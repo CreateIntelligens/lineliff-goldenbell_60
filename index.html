@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Golden Bell LIFF</title>
+  
+  <!-- Google Fonts - Noto Serif HK -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+HK:wght@200;300;400;500;600;700;900&display=swap" rel="stylesheet">
+  
+  <!-- LIFF SDK -->
+  <script charset="utf-8" src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+  
+  <!-- 全局配置 - 可在打包後直接修改 -->
+  <script>
+    // ===== Golden Bell LIFF 配置 =====
+    // 這些配置可以在打包後的 dist 目錄中直接修改
+    window.endpoint = {
+      // 調試模式 - 設為 true 可以在控制台看到詳細日誌
+      debug: true,
+      
+      // ===== LIFF 配置 =====
+      // LIFF ID - 修改這裡來改變 LIFF 應用 ID
+      liffId: 'YOUR_LIFF_ID',
+      // LINE Basic ID - 修改這裡來改變 LINE 官方帳號 ID
+      basicId: '@YOUR_BASIC_ID',
+      // 是否啟用 LIFF 功能 - 開發時可設為 false 來使用模擬用戶
+      enableLiff: false  // 👈 開發階段先設為 false
+      
+      // 未來後端 API 準備好後可以在這裡加入:
+      // baseURL: 'https://your-api-server.com/api',
+      // authToken: 'your-auth-token',
+      // timeout: 30000
+    };
+    
+    // 輸出配置到控制台（如果啟用調試模式）
+    if (window.endpoint.debug) {
+      console.log('🔧 當前 API 配置:', window.endpoint);
+      
+      // 檢查是否在開發環境
+      if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+        console.log('🌐 檢測到本地開發環境');
+        if (!window.endpoint.enableLiff) {
+          console.log('🔧 開發模式：LIFF 功能已關閉');
+          console.log('💡 現在可以測試功能而不會觸發 LIFF 錯誤');
+        }
+      }
+    }
+  </script>
+  
+  <script type="module" src="/resources/js/app.js"></script>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Noto Serif HK', serif;
+    }
+    
+    body {
+      background-color: #ffffff;
+      min-height: 100vh;
+      font-family: 'Noto Serif HK', serif;
+    }
+    
+    #vue-root {
+      min-height: 100vh;
+    }
+  </style>
+</head>
+<body>
+  <div id="vue-root" data-component="GoldenBellApp"></div>
+</body>
+</html>

@@ -1,0 +1,17 @@
+@import 'tailwindcss/base';
+@import 'tailwindcss/components';
+@import 'tailwindcss/utilities';
+
+/* Google Fonts 引入 */
+@import url('https://fonts.googleapis.com/css2?family=Noto+Serif+HK:wght@200;300;400;500;600;700;900&display=swap');
+
+/* 全域字體設定 */
+@layer base {
+  * {
+    font-family: 'Noto Serif HK', serif;
+  }
+
+  body {
+    font-family: 'Noto Serif HK', serif;
+  }
+}
