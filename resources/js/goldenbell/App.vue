@@ -90,43 +90,6 @@
              </div>
            </div>
 
-           <!-- 功能區域 -->
-           <div class="features-section">
-             <h3 class="text-lg font-medium mb-4">主要功能</h3>
-             
-             <div class="grid grid-cols-1 gap-4 max-w-md mx-auto">
-               <button 
-                 @click="showFeature('feature1')"
-                 class="feature-btn bg-blue-500 hover:bg-blue-600 text-white py-3 px-6 rounded-lg transition-colors"
-               >
-                 功能一
-               </button>
-               
-               <button 
-                 @click="showFeature('feature2')"
-                 class="feature-btn bg-green-500 hover:bg-green-600 text-white py-3 px-6 rounded-lg transition-colors"
-               >
-                 功能二
-               </button>
-               
-               <button 
-                 @click="showFeature('feature3')"
-                 class="feature-btn bg-purple-500 hover:bg-purple-600 text-white py-3 px-6 rounded-lg transition-colors"
-               >
-                 功能三
-               </button>
-               
-               <!-- LIFF 分享按鈕 -->
-               <button 
-                 @click="shareToFriends"
-                 :disabled="!canShare"
-                 class="feature-btn bg-orange-500 hover:bg-orange-600 disabled:bg-gray-400 text-white py-3 px-6 rounded-lg transition-colors"
-               >
-                 📤 分享給朋友
-               </button>
-             </div>
-           </div>
-
           <!-- 開發工具 -->
           <div v-if="showDebugInfo" class="dev-tools mt-8 p-4 bg-yellow-50 rounded-lg">
             <h4 class="font-medium mb-3">開發工具</h4>
@@ -164,7 +127,7 @@ import { ref, onMounted, onBeforeMount, computed } from 'vue'
 import { liffService } from '../services/liffService.js'
 import { API_CONFIG } from '../config/config.js'
 import TextInputFilter from './components/TextInputFilter.vue'
-// import { apiService } from '../services/apiService.js'  // 目前暫不需要
+// import { apiService } from '../services/apiService.js'  
 
 // 狀態管理
 const isInitialized = ref(false)
