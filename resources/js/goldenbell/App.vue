@@ -10,114 +10,168 @@
 
     <!-- 主要應用內容 -->
     <div v-else class="main-content">
-      <!-- Header -->
-      <header class="app-header">
-        <h1 class="text-2xl font-bold text-center py-4">金鐘獎 LIFF</h1>
-        
-        <!-- 開發資訊 (僅在調試模式顯示) -->
-        <div v-if="showDebugInfo" class="debug-info bg-gray-100 p-3 m-4 rounded-lg text-sm">
-          <p><strong>用戶 ID:</strong> {{ userId }}</p>
-          <p><strong>LIFF 狀態:</strong> {{ liffStatus.message }}</p>
-          <p><strong>環境:</strong> {{ isInClient ? 'LINE 應用內' : '瀏覽器' }}</p>
-          <p><strong>LIFF 開關:</strong> {{ liffEnabled ? '開啟' : '關閉 (開發模式)' }}</p>
-        </div>
-      </header>
+      <!-- <div v-if="showDebugInfo" class="dev-nav">
+        <button
+          :class="{ active: currentView === 'homepage' }"
+          @click="currentView = 'homepage'"
+        >
+          首頁
+        </button>
+        <button
+          :class="{ active: currentView === 'development' }"
+          @click="currentView = 'development'"
+        >
+          開發
+        </button>
+        <button
+          :class="{ active: currentView === 'poster' }"
+          @click="currentView = 'poster'"
+        >
+          海報
+        </button>
+      </div> -->
 
-      <!-- 主要內容區域 -->
-      <main class="app-main p-4">
-        <div class="welcome-section text-center mb-8">
-          <h2 class="text-xl font-semibold mb-4">歡迎使用金鐘獎 LIFF 應用</h2>
-          
-          <!-- 用戶資訊 -->
-          <div class="user-info bg-blue-50 p-4 rounded-lg mb-6">
-            <p class="text-gray-700">
-              <span v-if="liffStatus.isLoggedIn">
-                👋 您好！用戶 ID: {{ userId }}
-              </span>
-              <span v-else>
-                🎭 開發模式：使用模擬用戶
-              </span>
-            </p>
-            
-            <p v-if="liffStatus.isFriend" class="text-green-600 mt-2">
-              ✅ 已加入好友
-            </p>
-            <p v-else-if="liffStatus.isLoggedIn" class="text-orange-600 mt-2">
-              ⚠️ 尚未加入好友
-            </p>
+      <!-- Golden Bell Homepage -->
+      <GoldenBellHomepage
+        v-if="currentView === 'homepage'"
+        @createPoster="goToPosterCreation"
+      />
+
+      <!-- Development/Test Interface -->
+      <div v-else-if="currentView === 'development'" class="development-view">
+        <!-- Header -->
+        <header class="app-header">
+          <div class="flex justify-between items-center py-4 px-4">
+            <h1 class="text-2xl font-bold">金鐘獎 LIFF</h1>
+            <button
+              @click="currentView = 'homepage'"
+              class="bg-yellow-500 hover:bg-yellow-600 text-black px-4 py-2 rounded-lg text-sm font-medium"
+            >
+              查看首頁
+            </button>
           </div>
 
-           <!-- 文字過濾測試區域 -->
-           <div class="filter-test-section mb-8">
-             <h3 class="text-lg font-medium mb-4">📝 文字過濾測試</h3>
-             
-             <div class="max-w-md mx-auto">
-               <TextInputFilter
-                 ref="textFilterRef"
-                 :placeholder="'金鐘60是最喜歡的努力創作者的舞台！願每份心血都能獲得肯定，每份真情都能被正視！滿台灣影視人才濟濟…'"
-                 :max-length="50"
-                 :show-preview="true"
-                 :show-stats="showDebugInfo"
-                 :debug-mode="showDebugInfo"
-                 @input="onTextInput"
-                 @filtered="onTextFiltered"
-                 @warning="onTextWarning"
-                 @valid="onTextValid"
-               />
-               
-               <!-- 測試按鈕 -->
-               <div class="mt-4 space-y-2">
-                 <button 
-                   @click="testFilterWithSample"
-                   class="w-full bg-yellow-500 hover:bg-yellow-600 text-black py-2 px-4 rounded-lg transition-colors text-sm"
-                 >
-                   🧪 測試過濾功能
-                 </button>
-                 
-                 <button 
-                   @click="clearFilterInput"
-                   class="w-full bg-gray-500 hover:bg-gray-600 text-white py-2 px-4 rounded-lg transition-colors text-sm"
-                 >
-                   🗑️ 清空內容
-                 </button>
-               </div>
-               
-               <!-- 結果顯示 -->
-               <div v-if="filterResult" class="mt-4 p-3 bg-gray-100 rounded-lg">
-                 <h4 class="font-medium text-sm mb-2">過濾結果：</h4>
-                 <p class="text-sm text-gray-700">{{ filterResult }}</p>
+          <!-- 開發資訊 (僅在調試模式顯示) -->
+          <div v-if="showDebugInfo" class="debug-info bg-gray-100 p-3 m-4 rounded-lg text-sm">
+            <p><strong>用戶 ID:</strong> {{ userId }}</p>
+            <p><strong>LIFF 狀態:</strong> {{ liffStatus.message }}</p>
+            <p><strong>環境:</strong> {{ isInClient ? 'LINE 應用內' : '瀏覽器' }}</p>
+            <p><strong>LIFF 開關:</strong> {{ liffEnabled ? '開啟' : '關閉 (開發模式)' }}</p>
+          </div>
+        </header>
+
+        <!-- 主要內容區域 -->
+        <main class="app-main p-4">
+          <div class="welcome-section text-center mb-8">
+            <h2 class="text-xl font-semibold mb-4">歡迎使用金鐘獎 LIFF 應用</h2>
+
+            <!-- 用戶資訊 -->
+            <div class="user-info bg-blue-50 p-4 rounded-lg mb-6">
+              <p class="text-gray-700">
+                <span v-if="liffStatus.isLoggedIn">
+                  👋 您好！用戶 ID: {{ userId }}
+                </span>
+                <span v-else>
+                  ��� 開發模式：使用模擬用戶
+                </span>
+              </p>
+
+              <p v-if="liffStatus.isFriend" class="text-green-600 mt-2">
+                ✅ 已加入好友
+              </p>
+              <p v-else-if="liffStatus.isLoggedIn" class="text-orange-600 mt-2">
+                ⚠️ 尚未加入好友
+              </p>
+            </div>
+
+             <!-- 文字過濾測試區域 -->
+             <div class="filter-test-section mb-8">
+               <h3 class="text-lg font-medium mb-4">📝 文字過濾測試</h3>
+
+               <div class="max-w-md mx-auto">
+                 <TextInputFilter
+                   ref="textFilterRef"
+                   :placeholder="'金鐘60是最喜歡的努力創作者的舞台！願每份心血都能獲得肯定，每份真情都能被正視！滿台灣影視人才濟濟…'"
+                   :max-length="50"
+                   :show-preview="true"
+                   :show-stats="showDebugInfo"
+                   :debug-mode="showDebugInfo"
+                   @input="onTextInput"
+                   @filtered="onTextFiltered"
+                   @warning="onTextWarning"
+                   @valid="onTextValid"
+                 />
+
+                 <!-- 測試按鈕 -->
+                 <div class="mt-4 space-y-2">
+                   <button
+                     @click="testFilterWithSample"
+                     class="w-full bg-yellow-500 hover:bg-yellow-600 text-black py-2 px-4 rounded-lg transition-colors text-sm"
+                   >
+                     🧪 測試過濾功能
+                   </button>
+
+                   <button
+                     @click="clearFilterInput"
+                     class="w-full bg-gray-500 hover:bg-gray-600 text-white py-2 px-4 rounded-lg transition-colors text-sm"
+                   >
+                     🗑️ 清空內容
+                   </button>
+                 </div>
+
+                 <!-- 結果顯示 -->
+                 <div v-if="filterResult" class="mt-4 p-3 bg-gray-100 rounded-lg">
+                   <h4 class="font-medium text-sm mb-2">過濾結果：</h4>
+                   <p class="text-sm text-gray-700">{{ filterResult }}</p>
+                 </div>
                </div>
              </div>
-           </div>
 
-          <!-- 開發工具 -->
-          <div v-if="showDebugInfo" class="dev-tools mt-8 p-4 bg-yellow-50 rounded-lg">
-            <h4 class="font-medium mb-3">開發工具</h4>
-            <div class="flex flex-wrap gap-2 justify-center">
-              <button 
-                @click="toggleLiffMode"
-                class="dev-btn bg-gray-500 hover:bg-gray-600 text-white px-3 py-1 rounded text-sm"
-              >
-                切換 LIFF 模式
-              </button>
-              
-              <button 
-                @click="refreshUser"
-                class="dev-btn bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-sm"
-              >
-                重新載入用戶
-              </button>
-              
-              <button 
-                @click="showLiffInfo"
-                class="dev-btn bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded text-sm"
-              >
-                LIFF 資訊
-              </button>
+            <!-- 開發工具 -->
+            <div v-if="showDebugInfo" class="dev-tools mt-8 p-4 bg-yellow-50 rounded-lg">
+              <h4 class="font-medium mb-3">開發工具</h4>
+              <div class="flex flex-wrap gap-2 justify-center">
+                <button
+                  @click="toggleLiffMode"
+                  class="dev-btn bg-gray-500 hover:bg-gray-600 text-white px-3 py-1 rounded text-sm"
+                >
+                  切換 LIFF 模式
+                </button>
+
+                <button
+                  @click="refreshUser"
+                  class="dev-btn bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-sm"
+                >
+                  重新載入用戶
+                </button>
+
+                <button
+                  @click="showLiffInfo"
+                  class="dev-btn bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded text-sm"
+                >
+                  LIFF 資訊
+                </button>
+              </div>
             </div>
           </div>
+        </main>
+      </div>
+
+      <!-- Poster Creation View (Placeholder) -->
+      <div v-else-if="currentView === 'poster'" class="poster-creation-view">
+        <div class="min-h-screen bg-gray-100 flex items-center justify-center p-4">
+          <div class="bg-white rounded-lg shadow-lg p-8 max-w-md w-full text-center">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">應援海報製作</h2>
+            <p class="text-gray-600 mb-6">應援海報製作功能即將推出！</p>
+            <button
+              @click="currentView = 'homepage'"
+              class="bg-yellow-500 hover:bg-yellow-600 text-black px-6 py-3 rounded-lg font-medium"
+            >
+              返回首頁
+            </button>
+          </div>
         </div>
-      </main>
+      </div>
     </div>
   </div>
 </template>
@@ -127,7 +181,8 @@ import { ref, onMounted, onBeforeMount, computed } from 'vue'
 import { liffService } from '../services/liffService.js'
 import { API_CONFIG } from '../config/config.js'
 import TextInputFilter from './components/TextInputFilter.vue'
-// import { apiService } from '../services/apiService.js'  
+import GoldenBellHomepage from './components/GoldenBellHomepage.vue'
+// import { apiService } from '../services/apiService.js'
 
 // 狀態管理
 const isInitialized = ref(false)
@@ -138,6 +193,9 @@ const liffStatus = ref({
   isFriend: false,
   message: '初始化中...'
 })
+
+// 視圖導航狀態
+const currentView = ref('homepage') // 'homepage', 'development', 'poster'
 
 // 文字過濾相關狀態
 const textFilterRef = ref(null)
@@ -154,7 +212,7 @@ const canShare = computed(() => {
 // LIFF 初始化函數
 async function initializeLiff() {
   try {
-    console.log('🔧 開始初始化 LIFF...')
+    console.log('🔧 開始初���化 LIFF...')
     
     const result = await liffService.initializeLiff()
     liffStatus.value = result
@@ -210,6 +268,20 @@ async function initializeApp() {
   }
   
   console.log('=== 金鐘獎應用程序初始化完成 ===')
+}
+
+// 導航功能函數
+function goToPosterCreation() {
+  console.log('導航到應援海報製作頁面')
+  currentView.value = 'poster'
+}
+
+function goToHomepage() {
+  currentView.value = 'homepage'
+}
+
+function goToDevelopment() {
+  currentView.value = 'development'
 }
 
 // 功能函數
@@ -333,7 +405,7 @@ onBeforeMount(() => {
 })
 
 onMounted(() => {
-  console.log('Vue 組件已掛載')
+  console.log('Vue 組件已掛���')
   
   // 在調試模式下輸出額外資訊
   if (showDebugInfo.value) {
@@ -348,6 +420,7 @@ onMounted(() => {
 .app {
   min-height: 100vh;
   background-color: #ffffff;
+  font-family: 'Noto Serif HK', serif;
 }
 
 .loading-screen {
@@ -373,6 +446,16 @@ onMounted(() => {
   margin: 0 auto;
 }
 
+.development-view {
+  min-height: 100vh;
+  background-color: #ffffff;
+}
+
+.poster-creation-view {
+  min-height: 100vh;
+  background-color: #f3f4f6;
+}
+
 .feature-btn {
   font-family: 'Noto Serif HK', serif;
   font-weight: 500;
@@ -391,14 +474,59 @@ onMounted(() => {
   border: 1px solid #fbbf24;
 }
 
+/* Development shortcut - floating navigation */
+.dev-nav {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 1000;
+  background: rgba(0, 0, 0, 0.8);
+  border-radius: 8px;
+  padding: 8px;
+  display: flex;
+  gap: 8px;
+}
+
+.dev-nav button {
+  background: #fbbf24;
+  color: #000;
+  border: none;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.dev-nav button:hover {
+  background: #f59e0b;
+}
+
+.dev-nav button.active {
+  background: #059669;
+  color: white;
+}
+
 /* 響應式設計 */
 @media (max-width: 640px) {
   .app-main {
     padding: 1rem;
   }
-  
+
   .welcome-section h2 {
     font-size: 1.25rem;
   }
+
+  .dev-nav {
+    top: 10px;
+    right: 10px;
+    flex-direction: column;
+  }
+}
+
+/* Ensure homepage component displays correctly */
+.main-content {
+  position: relative;
+  width: 100%;
+  overflow-x: hidden;
 }
 </style>
