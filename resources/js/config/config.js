@@ -9,7 +9,7 @@ const DEFAULT_CONFIG = {
     // LIFF 配置
     liff: {
         liffId: '2008136985-4XQK1dpa',
-        basicId: '@640dvcey'
+        // basicId: '@640dvcey' // LINE Login Channel 不需要 Basic ID
     }
     // 未來後端 API 準備好後可以在這裡加入:
     // baseURL: 'https://your-api-server.com/api',
