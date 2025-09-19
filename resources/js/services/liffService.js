@@ -375,9 +375,9 @@ class LiffService {
       userProfile: this.userProfile,
       environment: this.getEnvironment(),
       liffEnabled: window.endpoint?.enableLiff || false,
-      // 檢查各種 LIFF API 是否可用
+      // 檢查各種 LIFF API 是否可用（跳過有問題的 API）
       apiAvailability: {
-        shareTargetPicker: this.isApiAvailable('shareTargetPicker'),
+        shareTargetPicker: false, // 暫時設為 false，避免 API 名稱錯誤
         bluetoothLeFunction: this.isApiAvailable('bluetoothLeFunction'),
         subwindow: this.isApiAvailable('subwindow')
       }
