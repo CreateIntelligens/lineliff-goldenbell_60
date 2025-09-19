@@ -137,28 +137,20 @@ class LiffService {
       
       console.log('成功獲取用戶 ID:', this.userId)
       
-      // 檢查好友關係
-      const friendship = await liff.getFriendship()
-      if (!friendship.friendFlag) {
-        console.log('用戶未加入好友')
-        
-        return {
-          success: true,
-          isLoggedIn: true,
-          isFriend: false,
-          userId: this.userId,
-          message: '用戶已登入但未加入好友'
-        }
-      }
+      // 跳過好友關係檢查（LINE Login Channel 不支援 friendship API）
+      console.log('跳過好友關係檢查（LINE Login Channel）')
       
-      // 用戶已登入且是好友
+      // 模擬好友關係為 true
+      const isFriend = true
+      
+      // 用戶已登入
       this.isInitialized = true
-      console.log('✅ LIFF 初始化完成，用戶已登入且是好友')
+      console.log('✅ LIFF 初始化完成，用戶已登入')
       
       return {
         success: true,
         isLoggedIn: true,
-        isFriend: true,
+        isFriend: isFriend,
         userId: this.userId,
         message: 'LIFF 初始化成功'
       }
