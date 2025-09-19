@@ -35,6 +35,6 @@ export default defineConfig({
             }
         },
         assetsInlineLimit: 4096,
-        copyPublicDir: false
+        copyPublicDir: true
     }
 });

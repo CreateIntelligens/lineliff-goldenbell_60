@@ -8,8 +8,8 @@ const DEFAULT_CONFIG = {
     debug: false,
     // LIFF 配置
     liff: {
-        liffId: 'YOUR_LIFF_ID',
-        basicId: '@YOUR_BASIC_ID'
+        liffId: '2008136985-4XQK1dpa',
+        basicId: '@640dvcey'
     }
     // 未來後端 API 準備好後可以在這裡加入:
     // baseURL: 'https://your-api-server.com/api',
