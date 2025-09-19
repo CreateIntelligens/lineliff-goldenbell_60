@@ -11,7 +11,6 @@
 
     <!-- Animation Queue -->
     <div class="flex w-full h-[47px] justify-center items-center relative z-10">
-
     </div>
 
     <!-- Main Content -->
