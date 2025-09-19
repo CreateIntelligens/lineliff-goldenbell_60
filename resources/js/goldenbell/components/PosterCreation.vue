@@ -499,11 +499,15 @@ const downloadToOfficial = () => {
 }
 
 const sharePoster = async () => {
+  console.log('🎯 分享按鈕被點擊了！')
+  
   try {
     console.log('🔗 開始分享海報...')
+    console.log('hasGenerated.value:', hasGenerated.value)
+    console.log('posterImage.value:', posterImage.value)
     
     // 檢查是否有生成的海報
-    if (!generatedPoster.value) {
+    if (!hasGenerated.value) {
       alert('請先生成海報再進行分享')
       return
     }
@@ -512,18 +516,21 @@ const sharePoster = async () => {
     const messages = [
       {
         type: 'text',
-        text: `🏆 我剛剛在金鐘獎 LIFF 應用中製作了應援海報！\n\n快來一起體驗金鐘獎的精彩吧！`
+        text: `「金鐘60星光打Call｜為心愛的節目瘋狂應援！」\n\n金鐘盛典即將登場！快來製作你的專屬應援海報，為最愛的節目和藝人加油打氣，一起點亮金鐘星光大道！\n\n點擊下方連結，留下想對節目或藝人說的話 讓你的心意化作「星光打Call卡」，在典禮閃耀 ❤`
       }
     ]
     
     // 如果有生成的海報圖片，也可以分享圖片
-    if (generatedPoster.value.imageUrl) {
+    if (posterImage.value) {
       messages.push({
         type: 'image',
-        originalContentUrl: generatedPoster.value.imageUrl,
-        previewImageUrl: generatedPoster.value.imageUrl
+        originalContentUrl: posterImage.value,
+        previewImageUrl: posterImage.value
       })
     }
+    
+    // 檢查 LIFF 服務狀態
+    console.log('LIFF 服務狀態:', liffService.getStatus())
     
     // 使用 LIFF 分享功能
     await liffService.shareTargetPicker(messages)

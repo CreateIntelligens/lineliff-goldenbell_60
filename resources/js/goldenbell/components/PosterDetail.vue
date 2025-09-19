@@ -95,6 +95,7 @@
 <script setup>
 import { defineEmits } from 'vue'
 import PageHeader from './PageHeader.vue'
+import { liffService } from '../../services/liffService.js'
 
 // Props
 const props = defineProps({
@@ -126,9 +127,46 @@ const downloadToOfficial = () => {
   // 下載邏輯
 }
 
-const sharePoster = () => {
-  console.log('分享海報:', props.recordData)
-  // 分享邏輯
+const sharePoster = async () => {
+  try {
+    console.log('🎯 海報詳情頁面分享按鈕被點擊了！')
+    console.log('分享海報:', props.recordData)
+    
+    // 準備分享的訊息內容
+    const messages = [
+      {
+        type: 'text',
+        text: `「金鐘60星光打Call｜為心愛的節目瘋狂應援！」\n\n金鐘盛典即將登場！快來製作你的專屬應援海報，為最愛的節目和藝人加油打氣，一起點亮金鐘星光大道！\n\n我的應援內容：${props.recordData.text}\n\n點擊下方連結，留下想對節目或藝人說的話 讓你的心意化作「星光打Call卡」，在典禮閃耀 ❤`
+      }
+    ]
+    
+    // 如果有海報圖片，也可以分享圖片
+    if (props.recordData.imageUrl || props.recordData.image_url || props.recordData.poster_image) {
+      const imageUrl = props.recordData.imageUrl || props.recordData.image_url || props.recordData.poster_image
+      messages.push({
+        type: 'image',
+        originalContentUrl: imageUrl,
+        previewImageUrl: imageUrl
+      })
+    }
+    
+    // 檢查 LIFF 服務狀態
+    console.log('LIFF 服務狀態:', liffService.getStatus())
+    
+    // 使用 LIFF 分享功能
+    await liffService.shareTargetPicker(messages)
+    console.log('✅ 海報分享成功')
+    
+  } catch (error) {
+    console.error('❌ 分享海報失敗:', error)
+    
+    // 根據環境顯示不同的錯誤訊息
+    if (liffService.isInClient()) {
+      alert(`分享失敗: ${error.message}`)
+    } else {
+      alert('請在 LINE 應用內使用分享功能')
+    }
+  }
 }
 
 const formatDate = (dateString) => {
