@@ -310,9 +310,13 @@ class LiffService {
       }
 
       // 檢查是否支援 shareTargetPicker 功能
-      if (!liff.isApiAvailable('shareTargetPicker')) {
-        throw new Error('當前環境不支援 Share Target Picker 功能')
-      }
+      console.log('檢查 shareTargetPicker API 可用性...')
+      console.log('liff.isApiAvailable 結果:', liff.isApiAvailable('shareTargetPicker'))
+      
+      // 先嘗試直接調用，不檢查 API 可用性
+      // if (!liff.isApiAvailable('shareTargetPicker')) {
+      //   throw new Error('當前環境不支援 Share Target Picker 功能')
+      // }
 
       // 開啟分享選擇器
       await liff.shareTargetPicker(messages)
