@@ -153,6 +153,14 @@ const sharePoster = async () => {
     // 檢查 LIFF 服務狀態
     console.log('LIFF 服務狀態:', liffService.getStatus())
     
+    // 檢查可用的 API
+    console.log('可用的 API:', {
+      shareTargetPicker: liffService.isApiAvailable('shareTargetPicker'),
+      shareTargetPicker2: liffService.isApiAvailable('shareTargetPicker'),
+      share: liffService.isApiAvailable('share'),
+      sendMessage: liffService.isApiAvailable('sendMessage')
+    })
+    
     // 使用 LIFF 分享功能
     await liffService.shareTargetPicker(messages)
     console.log('✅ 海報分享成功')
