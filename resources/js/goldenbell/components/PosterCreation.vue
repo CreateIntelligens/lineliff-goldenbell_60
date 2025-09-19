@@ -83,7 +83,7 @@
                       :style="isCreating ? 'background: linear-gradient(180deg, #E8FF02 -77.78%, #000 166.67%)' : 'background: #4C4C4C'"
                     >
                       <div class="text-white font-bold text-[13px] leading-[100%] tracking-[-0.247px]">
-                        製作我的應援海報 ✨
+                        {{ isLoading ? '處理中...' : '製作我的應援海報 ✨' }}
                       </div>
                     </div>
                   </div>
@@ -133,7 +133,7 @@
             <!-- Regenerate Button -->
             <div
               class="flex w-[150px] h-[36px] justify-center items-center gap-[10px] rounded-[8px] cursor-pointer hover:opacity-90 transition-opacity"
-              :class="{ 'opacity-50 cursor-not-allowed': generationCount >= maxGenerations }"
+              :class="{ 'opacity-50 cursor-not-allowed': remainingCount <= 0 || isLoading }"
               style="background: linear-gradient(180deg, #E8FF02 -77.78%, #000 166.67%)"
               @click="regeneratePoster"
             >
@@ -184,9 +184,10 @@
 </template>
 
 <script setup>
-import { ref, computed, defineEmits } from 'vue'
+import { ref, computed, defineEmits, onMounted } from 'vue'
 import { contentFilterService } from '../../services/contentFilterService.js'
 import { liffService } from '../../services/liffService.js'
+import { apiService } from '../../services/apiService.js'
 
 // Emits
 const emit = defineEmits(['goToImageRecord', 'goBack', 'posterGenerated'])
@@ -198,21 +199,22 @@ const generatedText = ref('')  // 保存已生成的文字
 const warnings = ref([])
 const filterStats = ref({ level1: 0, level2: 0, level3: 0 })
 const generationCount = ref(0)
+const maxGenerations = ref(10)
+const remainingCount = ref(10)
 const isCreating = ref(false)
 const isEditing = ref(false)
 const hasGenerated = ref(false) // 新增：是否已經生成過海報
+const isLoading = ref(false)
+const apiError = ref('')
 const maxLength = 20
-const maxGenerations = 10
+const eventType = 'cheer' // 金鐘60應援活動事件類型
 
 // Computed properties
 const canCreate = computed(() => {
-  // 簡化條件，暫時移除內容過濾警告的檢查
   const result = inputText.value.trim().length > 0 && 
-         generationCount.value < maxGenerations && 
-         !isOverLimit.value
-  
-  // 調試用 console.log (可以移除)
-  // console.log('canCreate 檢查:', { ... })
+         remainingCount.value > 0 && 
+         !isOverLimit.value &&
+         !isLoading.value
   
   return result
 })
@@ -232,7 +234,74 @@ const isOverLimit = computed(() => {
 
 const posterImage = ref('/images/Entered1.png')
 
+// 生命週期
+onMounted(async () => {
+  await loadUserData()
+})
+
 // Methods
+/**
+ * 載入用戶資料（生成次數等）
+ */
+const loadUserData = async () => {
+  if (!apiService.isApiAvailable()) {
+    console.warn('⚠️ API 服務不可用，使用預設值')
+    return
+  }
+
+  try {
+    isLoading.value = true
+    apiError.value = ''
+    
+    const countData = await apiService.getImageCount(eventType)
+    
+    if (countData && countData.data) {
+      generationCount.value = parseInt(countData.data.current_count) || 0
+      maxGenerations.value = parseInt(countData.data.limit) || 10
+      remainingCount.value = parseInt(countData.data.remaining) || 10
+    }
+    
+    console.log('✅ 用戶資料載入成功:', countData)
+  } catch (error) {
+    console.error('❌ 載入用戶資料失敗:', error)
+    console.log('🔄 後端 API 可能還未完成，使用預設值繼續開發')
+    
+    apiError.value = ''  // 清除錯誤，避免影響 UI
+    
+    // 使用預設值讓前端可以正常運作
+    generationCount.value = 0
+    maxGenerations.value = 10
+    remainingCount.value = 10
+    
+    console.log('💡 前端功能可正常使用，等待後端 API 完成後再進行完整測試')
+  } finally {
+    isLoading.value = false
+  }
+}
+
+/**
+ * 儲存生成的海報到後端
+ */
+const savePosterToAPI = async (text, imageUrl) => {
+  if (!apiService.isApiAvailable()) {
+    console.warn('⚠️ API 服務不可用，跳過儲存')
+    return null
+  }
+
+  try {
+    // 創建包含文字的海報圖片
+    const imageBlob = await apiService.createPosterBlob(imageUrl, text)
+    
+    // 上傳到後端
+    const result = await apiService.saveImage(text, imageBlob, eventType)
+    
+    console.log('✅ 海報儲存成功:', result)
+    return result
+  } catch (error) {
+    console.error('❌ 儲存海報失敗:', error)
+    throw error
+  }
+}
 const onTextInput = () => {
   // Handle text input validation if needed
   console.log('Text input:', inputText.value)
@@ -426,42 +495,65 @@ const processInput = () => {
   })
 }
 
-const createPoster = () => {
+const createPoster = async () => {
   if (!canCreate.value) return
   
-  // 保存要生成的文字
-  const textToUse = filteredText.value || inputText.value
-  generatedText.value = textToUse
-  
-  // Set creating state to true (changes button style permanently)
-  isCreating.value = true
-  
-  // 標記已經生成過海報，按鈕區域將一直顯示
-  hasGenerated.value = true
-  
-  // Increment generation count
-  generationCount.value++
-  
-  console.log('Creating poster with filtered text:', textToUse)
-  
-  // 創建海報數據
-  const posterData = {
-    text: textToUse,
-    imageUrl: posterImage.value, // 使用當前的海報圖片
-    generationCount: generationCount.value
+  try {
+    isLoading.value = true
+    apiError.value = ''
+    
+    // 保存要生成的文字
+    const textToUse = filteredText.value || inputText.value
+    generatedText.value = textToUse
+    
+    // Set creating state to true (changes button style permanently)
+    isCreating.value = true
+    
+    // 標記已經生成過海報，按鈕區域將一直顯示
+    hasGenerated.value = true
+    
+    // 儲存海報到後端
+    let savedResult = null
+    try {
+      savedResult = await savePosterToAPI(textToUse, posterImage.value)
+    } catch (saveError) {
+      // 即使儲存失敗也繼續，讓用戶能看到海報
+    }
+    
+    // 更新計數器（如果 API 可用且儲存成功）
+    if (savedResult) {
+      await loadUserData() // 重新載入用戶資料以獲取最新計數
+    } else {
+      // 如果 API 不可用，本地更新計數器
+      generationCount.value++
+      remainingCount.value = Math.max(0, remainingCount.value - 1)
+    }
+    
+    // 創建海報數據
+    const posterData = {
+      text: textToUse,
+      imageUrl: posterImage.value,
+      generationCount: generationCount.value,
+      savedResult: savedResult
+    }
+    
+    // 發送海報生成事件到父元件
+    emit('posterGenerated', posterData)
+    
+    console.log('✅ 海報創建完成')
+    
+  } catch (error) {
+    console.error('❌ 創建海報失敗:', error)
+    apiError.value = error.message
+    
+    // 重置狀態
+    isCreating.value = false
+    hasGenerated.value = false
+    
+    alert(`創建海報失敗: ${error.message}`)
+  } finally {
+    isLoading.value = false
   }
-  
-  // 發送海報生成事件到父元件
-  emit('posterGenerated', posterData)
-  
-  // Add poster creation logic here
-  // For example: call API to generate poster with textToUse
-  
-  // 不清空輸入框，讓用戶可以看到剛才輸入的內容
-  // inputText.value = ''
-  // filteredText.value = ''
-  // warnings.value = []
-  // isEditing.value = false
 }
 
 const goToImageRecord = () => {
@@ -469,16 +561,17 @@ const goToImageRecord = () => {
 }
 
 const regeneratePoster = () => {
-  if (generationCount.value >= maxGenerations) return
+  if (remainingCount.value <= 0 || isLoading.value) return
 
   // 重新生成 = 清空輸入框，讓用戶重新輸入文字
-  console.log('Regenerating poster - clearing input for new text')
+  console.log('🔄 重新生成海報 - 清空輸入框等待新文字')
   
   // 清空輸入框
   inputText.value = ''
   filteredText.value = ''
   warnings.value = []
   isEditing.value = false
+  generatedText.value = ''
   
   // 清空 DOM 內容
   const editableDiv = document.querySelector('[contenteditable="true"]')
@@ -490,12 +583,61 @@ const regeneratePoster = () => {
   isCreating.value = false
   
   // 重新生成不增加次數，用戶需要重新輸入文字後點擊「製作我的應援海報」才會增加次數
-  console.log('Input cleared. User needs to enter new text and click create button.')
+  console.log('✨ 輸入框已清空，請輸入新的應援文字後點擊創建按鈕')
 }
 
-const downloadToOfficial = () => {
-  console.log('Downloading to official account')
-  // Add download logic here
+const downloadToOfficial = async () => {
+  if (!hasGenerated.value) {
+    alert('請先生成海報')
+    return
+  }
+
+  try {
+    console.log('📥 開始下載到官方帳號...')
+    
+    // 創建包含文字的海報圖片
+    const canvas = document.createElement('canvas')
+    const ctx = canvas.getContext('2d')
+    const img = new Image()
+    
+    img.onload = () => {
+      // 設定 canvas 尺寸
+      canvas.width = img.width
+      canvas.height = img.height
+      
+      // 繪製背景圖
+      ctx.drawImage(img, 0, 0)
+      
+      // 如果有生成的文字，覆蓋到圖片上
+      if (generatedText.value) {
+        ctx.fillStyle = 'white'
+        ctx.font = 'bold 32px "Noto Serif HK", serif'
+        ctx.textAlign = 'center'
+        ctx.textBaseline = 'middle'
+        ctx.fillText(generatedText.value, canvas.width / 2, canvas.height / 2)
+      }
+      
+      // 下載圖片
+      canvas.toBlob((blob) => {
+        const url = URL.createObjectURL(blob)
+        const a = document.createElement('a')
+        a.href = url
+        a.download = `金鐘60應援海報_${new Date().getTime()}.png`
+        document.body.appendChild(a)
+        a.click()
+        document.body.removeChild(a)
+        URL.revokeObjectURL(url)
+        
+        console.log('✅ 海報下載完成')
+      })
+    }
+    
+    img.src = posterImage.value
+    
+  } catch (error) {
+    console.error('❌ 下載失敗:', error)
+    alert('下載失敗，請稍後再試')
+  }
 }
 
 const sharePoster = async () => {

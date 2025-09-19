@@ -25,8 +25,30 @@
 
       <!-- Records Container -->
       <div class="flex flex-col items-start gap-[16px] w-full overflow-y-auto">
+        <!-- Loading State -->
+        <div v-if="isLoading" class="flex flex-col items-center justify-center w-full py-20">
+          <div class="text-white text-center opacity-60">
+            <div class="text-lg mb-2">載入中...</div>
+            <div class="text-sm">正在獲取您的應援海報記錄</div>
+          </div>
+        </div>
+
+        <!-- Error State -->
+        <div v-else-if="apiError" class="flex flex-col items-center justify-center w-full py-20">
+          <div class="text-red-400 text-center">
+            <div class="text-lg mb-2">載入失敗</div>
+            <div class="text-sm">{{ apiError }}</div>
+            <button 
+              @click="loadImageHistory"
+              class="mt-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+            >
+              重新載入
+            </button>
+          </div>
+        </div>
+
         <!-- Empty State -->
-        <div v-if="records.length === 0" class="flex flex-col items-center justify-center w-full py-20">
+        <div v-else-if="records.length === 0" class="flex flex-col items-center justify-center w-full py-20">
           <div class="text-white text-center opacity-60">
             <div class="text-lg mb-2">尚未生成任何海報</div>
             <div class="text-sm">開始創建您的第一張應援海報吧！</div>
@@ -78,8 +100,9 @@
 </template>
 
 <script setup>
-import { defineEmits, computed } from 'vue'
+import { defineEmits, computed, onMounted, ref } from 'vue'
 import PageHeader from './PageHeader.vue'
+import { apiService } from '../../services/apiService.js'
 
 // Props
 const props = defineProps({
@@ -92,18 +115,106 @@ const props = defineProps({
 // Emits
 const emit = defineEmits(['goBack', 'viewItem'])
 
+// Reactive data
+const apiRecords = ref([])
+const isLoading = ref(false)
+const apiError = ref('')
+const eventType = 'cheer' // 金鐘60應援活動事件類型
+
 // Computed properties
-const records = computed(() => props.records)
+const records = computed(() => {
+  // 優先使用從 API 載入的記錄，如果沒有則使用 props
+  return apiRecords.value.length > 0 ? apiRecords.value : props.records
+})
 
 const generatedCount = computed(() => records.value.length)
 
+// 生命週期
+onMounted(async () => {
+  await loadImageHistory()
+})
+
 // Methods
+/**
+ * 載入圖片歷史記錄
+ */
+const loadImageHistory = async () => {
+  if (!apiService.isApiAvailable()) {
+    console.warn('⚠️ API 服務不可用，使用 props 中的記錄')
+    return
+  }
+
+  try {
+    isLoading.value = true
+    apiError.value = ''
+    
+    const result = await apiService.getImageHistory(eventType)
+    
+    if (result && result.data) {
+      // 根據 API 回應格式處理數據
+      let historyData = []
+      
+      if (typeof result.data === 'string') {
+        try {
+          historyData = JSON.parse(result.data)
+        } catch (e) {
+          console.warn('⚠️ 無法解析歷史記錄數據:', result.data)
+          historyData = []
+        }
+      } else if (Array.isArray(result.data)) {
+        historyData = result.data
+      }
+      
+      // 轉換數據格式以符合元件需求
+      apiRecords.value = historyData.map((item, index) => ({
+        id: item.id || index,
+        text: item.text || '',
+        imageUrl: item.image_url || item.imageUrl || null,
+        created_at: item.created_at || item.timestamp || new Date().toISOString(),
+        ...item // 保留其他屬性
+      }))
+      
+      console.log('✅ 圖片歷史載入成功:', apiRecords.value)
+    }
+    
+  } catch (error) {
+    console.error('❌ 載入圖片歷史失敗:', error)
+    apiError.value = error.message
+  } finally {
+    isLoading.value = false
+  }
+}
+
 const goBack = () => {
   emit('goBack')
 }
 
-const viewHistoryItem = (item) => {
-  emit('viewItem', item)
+const viewHistoryItem = async (item) => {
+  try {
+    // 如果是從 API 載入的項目且有ID，可以獲取詳細資訊
+    if (item.id && apiService.isApiAvailable()) {
+      console.log('🔍 查看圖片詳情:', item.id)
+      
+      try {
+        const detailResult = await apiService.getImageDetail(item.id)
+        if (detailResult && detailResult.data) {
+          // 合併詳細資訊
+          const detailedItem = { ...item, ...detailResult.data }
+          emit('viewItem', detailedItem)
+          return
+        }
+      } catch (error) {
+        console.warn('⚠️ 無法獲取詳細資訊，使用基本資訊:', error.message)
+      }
+    }
+    
+    // 使用基本資訊
+    emit('viewItem', item)
+    
+  } catch (error) {
+    console.error('❌ 查看項目失敗:', error)
+    emit('viewItem', item) // 發生錯誤時仍然嘗試顯示
+  }
 }
 
 const getHistoryImage = (item) => {

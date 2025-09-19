@@ -10,11 +10,16 @@ const DEFAULT_CONFIG = {
     liff: {
         liffId: '2008136985-4XQK1dpa',
         // basicId: '@640dvcey' // LINE Login Channel 不需要 Basic ID
+    },
+    // API 配置
+    api: {
+        baseURL: 'https://stg-line-crm.fanpokka.ai/api', // 實際的 API 基礎 URL
+        timeout: 30000,
+        headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+        }
     }
-    // 未來後端 API 準備好後可以在這裡加入:
-    // baseURL: 'https://your-api-server.com/api',
-    // timeout: 30000,
-    // authToken: ''
 };
 
 // 從 window.endpoint 讀取配置，如果沒有則使用默認值
@@ -68,14 +73,19 @@ export const configUtils = {
      */
     getFullUrl(endpoint) {
         const config = getConfig();
-        const baseURL = config.baseURL.replace(/\/$/, ''); // 移除結尾的斜線
+        const baseURL = config.api?.baseURL || config.baseURL;
+        if (!baseURL) {
+            throw new Error('API baseURL 未設定');
+        }
+        
+        const cleanBaseURL = baseURL.replace(/\/$/, ''); // 移除結尾的斜線
         const cleanEndpoint = endpoint.replace(/^\//, ''); // 移除開頭的斜線
         
         if (config.version) {
-            return `${baseURL}/${config.version}/${cleanEndpoint}`;
+            return `${cleanBaseURL}/${config.version}/${cleanEndpoint}`;
         }
         
-        return `${baseURL}/${cleanEndpoint}`;
+        return `${cleanBaseURL}/${cleanEndpoint}`;
     },
     
     /**

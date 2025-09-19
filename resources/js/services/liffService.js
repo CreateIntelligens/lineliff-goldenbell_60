@@ -220,6 +220,28 @@ class LiffService {
   }
 
   /**
+   * 獲取用戶資料 (相容性方法，與 getUserProfile 相同)
+   * @returns {Promise<Object|null>} 用戶資料或 null
+   */
+  async getProfile() {
+    // 在開發模式下，直接返回模擬用戶資料
+    if (!window.endpoint?.enableLiff) {
+      const mockProfile = {
+        userId: this.userId || 'dev_user_' + Date.now(),
+        displayName: '開發用戶',
+        pictureUrl: '',
+        statusMessage: '開發模式用戶'
+      }
+      
+      console.log('🎭 返回模擬用戶資料:', mockProfile)
+      return mockProfile
+    }
+
+    // 正常模式下調用 getUserProfile
+    return await this.getUserProfile()
+  }
+
+  /**
    * 登入
    * @param {string} redirectUri - 登入後重定向的 URI
    */

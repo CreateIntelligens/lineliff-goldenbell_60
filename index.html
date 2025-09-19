@@ -13,40 +13,103 @@
   <!-- LIFF SDK -->
   <script charset="utf-8" src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
   
-  <!-- 全局配置 - 可在打包後直接修改 -->
+  <!-- ================================ -->
+  <!-- 🔧 金鐘60應用配置區域 (後端可直接修改) -->
+  <!-- ================================ -->
   <script>
-    // ===== Golden Bell LIFF 配置 =====
-    // 這些配置可以在打包後的 dist 目錄中直接修改
-    window.endpoint = {
-      // 調試模式 - 設為 true 可以在控制台看到詳細日誌
-      debug: true,
+    /**
+     * 部署配置說明：
+     * 後端可以直接修改 dist/index.html 中的這段配置
+     * 無需重新編譯前端代碼，修改後立即生效
+     */
+    
+    window.GOLDENBELL_CONFIG = {
+      // ===== 調試模式 =====
+      debug: true, // 生產環境設為 false
+      
+      // ===== API 配置 =====
+      api: {
+        // 後端 API 端點 (部署時修改此處)
+        baseURL: 'https://stg-line-crm.fanpokka.ai/api', // 🔧 強制使用正式 API 端點
+        
+        timeout: 30000, // API 請求超時時間（毫秒）
+        
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        }
+      },
       
       // ===== LIFF 配置 =====
-      // LIFF ID - 修改這裡來改變 LIFF 應用 ID
-      liffId: '2008136985-4XQK1dpa',
-      // LINE Basic ID - LINE Login Channel 不需要 Basic ID
-      // basicId: '@640dvcey',
-      // 是否啟用 LIFF 功能 - 開發時可設為 false 來使用模擬用戶
-      enableLiff: true  
+      liff: {
+        liffId: '2008136985-4XQK1dpa', // 🔧 部署時修改 LIFF ID
+        enableLiff: true // 🔧 開發時設為 false，生產時設為 true
+      },
       
-      // 未來後端 API 準備好後可以在這裡加入:
-      // baseURL: 'https://your-api-server.com/api',
-      // authToken: 'your-auth-token',
-      // timeout: 30000
+      // ===== 功能開關 =====
+      features: {
+        enableImageUpload: true,    // 是否啟用圖片上傳功能
+        enableShareFunction: true, // 是否啟用分享功能
+        enableDownload: true,       // 是否啟用下載功能
+        maxGenerations: 10,         // 最大生成次數
+        maxTextLength: 20          // 最大文字長度
+      },
+      
+      // ===== 環境資訊 =====
+      environment: {
+        name: 'development', // 🔧 部署時改為 'staging' 或 'production'
+        version: '1.0.0',   // 🔧 版本號
+        buildTime: '2025-09-19T06:36:00.000Z' // 構建時間
+      }
     };
     
-    // 輸出配置到控制台（如果啟用調試模式）
-    if (window.endpoint.debug) {
-      console.log('🔧 當前 API 配置:', window.endpoint);
+    // 向後相容：設定舊的 window.endpoint
+    window.endpoint = {
+      debug: window.GOLDENBELL_CONFIG.debug,
+      api: window.GOLDENBELL_CONFIG.api,
+      liff: window.GOLDENBELL_CONFIG.liff,
+      enableLiff: window.GOLDENBELL_CONFIG.liff.enableLiff
+    };
+    
+    // 調試輸出
+    if (window.GOLDENBELL_CONFIG.debug) {
+      console.log('🔧 金鐘60配置已載入:', window.GOLDENBELL_CONFIG);
+      console.log('📡 API 端點:', window.GOLDENBELL_CONFIG.api.baseURL);
+      console.log('🌍 環境:', window.GOLDENBELL_CONFIG.environment.name);
+    }
+  </script>
+  
+  <!-- 開發環境特殊配置 -->
+  <script>
+    // 檢查是否在開發環境，並調整配置
+    if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+      console.log('🌐 檢測到本地開發環境');
       
-      // 檢查是否在開發環境
-      if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
-        console.log('🌐 檢測到本地開發環境');
-        if (!window.endpoint.enableLiff) {
-          console.log('🔧 開發模式：LIFF 功能已關閉');
-          console.log('💡 現在可以測試功能而不會觸發 LIFF 錯誤');
-        }
-      }
+      // 開發環境下關閉 LIFF 功能
+      window.GOLDENBELL_CONFIG.liff.enableLiff = false;
+      window.endpoint.enableLiff = false;
+      
+      console.log('🔧 開發模式：LIFF 功能已關閉');
+      console.log('💡 現在可以測試功能而不會觸發 LIFF 錯誤');
+    } else {
+      // 正式環境下啟用 LIFF 功能
+      window.GOLDENBELL_CONFIG.liff.enableLiff = true;
+      window.endpoint.enableLiff = true;
+      console.log('🔧 正式環境：LIFF 功能已啟用');
+    }
+  </script>
+  
+  <!-- 測試模組載入 -->
+  <script type="module">
+    console.log('🧪 測試：模組載入開始...')
+    try {
+      import('/resources/js/app.js').then(module => {
+        console.log('✅ app.js 模組載入成功:', module)
+      }).catch(error => {
+        console.error('❌ app.js 模組載入失敗:', error)
+      })
+    } catch (error) {
+      console.error('❌ 模組載入異常:', error)
     }
   </script>
   

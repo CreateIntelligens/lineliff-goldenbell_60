@@ -2038,7 +2038,8 @@
                         "schema": {
                             "type": "string",
                             "enum": [
-                                ""
+                                "cheer",
+                                "award_speech"
                             ]
                         }
                     }
@@ -2220,7 +2221,8 @@
                         "schema": {
                             "type": "string",
                             "enum": [
-                                ""
+                                "cheer",
+                                "award_speech"
                             ]
                         }
                     }
