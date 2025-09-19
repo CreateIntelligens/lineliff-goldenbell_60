@@ -186,6 +186,7 @@
 <script setup>
 import { ref, computed, defineEmits } from 'vue'
 import { contentFilterService } from '../../services/contentFilterService.js'
+import { liffService } from '../../services/liffService.js'
 
 // Emits
 const emit = defineEmits(['goToImageRecord', 'goBack', 'posterGenerated'])
@@ -497,9 +498,47 @@ const downloadToOfficial = () => {
   // Add download logic here
 }
 
-const sharePoster = () => {
-  console.log('Sharing poster')
-  // Add share logic here
+const sharePoster = async () => {
+  try {
+    console.log('🔗 開始分享海報...')
+    
+    // 檢查是否有生成的海報
+    if (!generatedPoster.value) {
+      alert('請先生成海報再進行分享')
+      return
+    }
+    
+    // 準備分享的訊息內容
+    const messages = [
+      {
+        type: 'text',
+        text: `🏆 我剛剛在金鐘獎 LIFF 應用中製作了應援海報！\n\n快來一起體驗金鐘獎的精彩吧！`
+      }
+    ]
+    
+    // 如果有生成的海報圖片，也可以分享圖片
+    if (generatedPoster.value.imageUrl) {
+      messages.push({
+        type: 'image',
+        originalContentUrl: generatedPoster.value.imageUrl,
+        previewImageUrl: generatedPoster.value.imageUrl
+      })
+    }
+    
+    // 使用 LIFF 分享功能
+    await liffService.shareTargetPicker(messages)
+    console.log('✅ 海報分享成功')
+    
+  } catch (error) {
+    console.error('❌ 分享海報失敗:', error)
+    
+    // 根據環境顯示不同的錯誤訊息
+    if (liffService.isInClient()) {
+      alert(`分享失敗: ${error.message}`)
+    } else {
+      alert('請在 LINE 應用內使用分享功能')
+    }
+  }
 }
 </script>
 
