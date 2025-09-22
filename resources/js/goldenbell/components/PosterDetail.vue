@@ -152,7 +152,34 @@ const sharePoster = async () => {
     console.log('🎯 海報詳情頁面分享按鈕被點擊了！')
     console.log('分享海報:', props.recordData)
     
-    // 準備分享的訊息內容
+    // 取得海報資訊
+    const imageUrl = props.recordData.imageUrl || props.recordData.image_url || props.recordData.poster_image
+    const text = props.recordData.text || ''
+    const posterId = props.recordData.id || props.recordData.poster_id
+    
+    // 🔧 修正：調用後端分享 API
+    console.log('📤 調用後端分享API...')
+    const shareResult = await apiService.createShare(text, imageUrl, posterId)
+    
+    console.log('✅ 後端分享API成功:', shareResult)
+    
+    // 如果後端返回分享URL，跳轉到專門的分享頁面
+    if (shareResult.share_url) {
+      console.log('🔄 跳轉到分享頁面:', shareResult.share_url)
+      window.location.href = shareResult.share_url
+      return
+    }
+    
+    // 如果後端返回 shareMessages，直接使用
+    if (shareResult.shareMessages && Array.isArray(shareResult.shareMessages)) {
+      console.log('📝 使用後端提供的分享訊息')
+      await liffService.shareTargetPicker(shareResult.shareMessages)
+      console.log('✅ 海報分享成功')
+      return
+    }
+    
+    // 備用方案：使用前端預設的分享訊息
+    console.log('⚠️ 後端未提供分享數據，使用備用方案')
     const messages = [
       {
         type: 'text',
@@ -161,25 +188,13 @@ const sharePoster = async () => {
     ]
     
     // 如果有海報圖片，也可以分享圖片
-    if (props.recordData.imageUrl || props.recordData.image_url || props.recordData.poster_image) {
-      const imageUrl = props.recordData.imageUrl || props.recordData.image_url || props.recordData.poster_image
+    if (imageUrl) {
       messages.push({
         type: 'image',
         originalContentUrl: imageUrl,
         previewImageUrl: imageUrl
       })
     }
-    
-    // 檢查 LIFF 服務狀態
-    console.log('LIFF 服務狀態:', liffService.getStatus())
-    
-    // 檢查可用的 API
-    console.log('可用的 API:', {
-      shareTargetPicker: liffService.isApiAvailable('shareTargetPicker'),
-      shareTargetPicker2: liffService.isApiAvailable('shareTargetPicker'),
-      share: liffService.isApiAvailable('share'),
-      sendMessage: liffService.isApiAvailable('sendMessage')
-    })
     
     // 使用 LIFF 分享功能
     await liffService.shareTargetPicker(messages)
