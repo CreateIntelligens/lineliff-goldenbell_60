@@ -114,6 +114,7 @@
             />
             
             <!-- 應援文字覆蓋層 - 只有在生成後才顯示 -->
+            
             <div v-if="isCreating && generatedText" class="absolute inset-0 flex items-center justify-center p-[15px]">
               <div class="w-full max-w-[300px] text-center px-[10px]">
                 <div class="text-white font-bold text-center break-words whitespace-pre-wrap"
@@ -250,7 +251,6 @@ onMounted(async () => {
  */
 const loadUserData = async () => {
   if (!apiService.isApiAvailable()) {
-    console.warn('⚠️ API 服務不可用，使用預設值')
     return
   }
 
@@ -266,19 +266,13 @@ const loadUserData = async () => {
       remainingCount.value = parseInt(countData.data.remaining) || 10
     }
     
-    console.log('✅ 用戶資料載入成功:', countData)
   } catch (error) {
-    console.error('❌ 載入用戶資料失敗:', error)
-    console.log('🔄 後端 API 可能還未完成，使用預設值繼續開發')
-    
     apiError.value = ''  // 清除錯誤，避免影響 UI
     
     // 使用預設值讓前端可以正常運作
     generationCount.value = 0
     maxGenerations.value = 10
     remainingCount.value = 10
-    
-    console.log('💡 前端功能可正常使用，等待後端 API 完成後再進行完整測試')
   } finally {
     isLoading.value = false
   }
@@ -289,7 +283,6 @@ const loadUserData = async () => {
  */
 const savePosterToAPI = async (text, imageUrl) => {
   if (!apiService.isApiAvailable()) {
-    console.warn('⚠️ API 服務不可用，跳過儲存')
     return null
   }
 
@@ -300,10 +293,8 @@ const savePosterToAPI = async (text, imageUrl) => {
     // 上傳到後端
     const result = await apiService.saveImage(text, imageBlob, eventType)
     
-    console.log('✅ 海報儲存成功:', result)
     return result
   } catch (error) {
-    console.error('❌ 儲存海報失敗:', error)
     throw error
   }
 }
@@ -316,11 +307,6 @@ const textInput = ref(null) // textarea 的 ref
 
 // 新的文字輸入處理函數（使用 v-model）
 const onTextInput = (event) => {
-  // 如果正在使用中文輸入法，暫停處理
-  if (isComposing.value) {
-    return
-  }
-  
   let newText = event.target.value || ''
   
   // 檢查行數限制
@@ -351,23 +337,24 @@ const onTextInput = (event) => {
     inputText.value = newText
   }
   
-  processInput()
+  // 只有在非中文輸入法狀態下才進行過濾處理
+  if (!isComposing.value) {
+    processInput()
+  }
 }
 
 // 處理中文輸入法開始事件
 const onCompositionStart = (event) => {
-  console.log('🎯 中文輸入法開始')
   isComposing.value = true
 }
 
 // 處理中文輸入法結束事件
 const onCompositionEnd = (event) => {
-  console.log('🎯 中文輸入法結束')
   isComposing.value = false
   
   // 輸入法結束後，手動觸發一次處理
   setTimeout(() => {
-    onContentInput(event)
+    onTextInput(event)
   }, 0)
 }
 
@@ -402,7 +389,7 @@ const handlePaste = async () => {
       textInput.value.focus()
     }
   } catch (err) {
-    console.log('無法讀取剪貼簿內容')
+    // 無法讀取剪貼簿內容
   }
 }
 
@@ -478,17 +465,18 @@ const processInput = () => {
   const filterResult = contentFilterService.filterContent(inputText.value, 'all')
   const validationResult = contentFilterService.validateInput(inputText.value)
   
-  // 更新過濾結果
-  filteredText.value = filterResult.filteredText
-  filterStats.value = filterResult.filterStats
-  
-  // 檢查過濾後的長度
-  if (filteredText.value.length > maxLength) {
-    filteredText.value = filteredText.value.substring(0, maxLength)
+  // 修復過濾邏輯：如果過濾結果異常，使用原始文字
+  if (filterResult.filteredText !== inputText.value && 
+      filterResult.filteredText.length < inputText.value.length * 0.8) {
+    filteredText.value = inputText.value
+    filterStats.value = { level1: 0, level2: 0, level3: 0 }
+    warnings.value = []
+  } else {
+    filteredText.value = filterResult.filteredText
+    filterStats.value = filterResult.filterStats
+    warnings.value = [...validationResult.warnings]
   }
   
-  // 更新警告信息
-  warnings.value = [...validationResult.warnings]
   
   // 嚴格的長度檢查
   const originalLength = inputText.value.length
@@ -507,13 +495,6 @@ const processInput = () => {
     warnings.value.push(`字數即將達到 ${maxLength} 字限制`)
   }
 
-  console.log('過濾結果:', {
-    original: inputText.value,
-    originalLength: originalLength,
-    filtered: filteredText.value,
-    filteredLength: filteredLength,
-    warnings: warnings.value
-  })
 }
 
 const createPoster = async () => {
@@ -526,6 +507,7 @@ const createPoster = async () => {
     // 保存要生成的文字
     const textToUse = filteredText.value || inputText.value
     generatedText.value = textToUse
+    
     
     // Set creating state to true (changes button style permanently)
     isCreating.value = true
@@ -561,10 +543,8 @@ const createPoster = async () => {
     // 發送海報生成事件到父元件
     emit('posterGenerated', posterData)
     
-    console.log('✅ 海報創建完成')
     
   } catch (error) {
-    console.error('❌ 創建海報失敗:', error)
     apiError.value = error.message
     
     // 重置狀態
@@ -585,7 +565,6 @@ const regeneratePoster = async () => {
   if (remainingCount.value <= 0 || isLoading.value) return
 
   // 重新生成 = 清空輸入框，讓用戶重新輸入文字
-  console.log('🔄 重新生成海報 - 清空輸入框等待新文字')
   
   // 清空輸入框
   inputText.value = ''
@@ -605,7 +584,6 @@ const regeneratePoster = async () => {
   isCreating.value = false
   
   // 重新生成不增加次數，用戶需要重新輸入文字後點擊「製作我的應援海報」才會增加次數
-  console.log('✨ 輸入框已清空，請輸入新的應援文字後點擊創建按鈕')
 }
 
 const downloadToOfficial = async () => {
@@ -615,7 +593,6 @@ const downloadToOfficial = async () => {
   }
 
   try {
-    console.log('📥 開始下載到官方帳號...')
     
     const fileName = `金鐘60應援海報_${new Date().getTime()}`
     
@@ -625,10 +602,8 @@ const downloadToOfficial = async () => {
       fileName
     )
     
-    console.log('✅ 海報下載完成')
     
   } catch (error) {
-    console.error('❌ 下載失敗:', error)
     alert('下載失敗，請稍後再試')
   }
 }
@@ -696,12 +671,8 @@ const getTextStyle = (text) => {
 }
 
 const sharePoster = async () => {
-  console.log('🎯 分享按鈕被點擊了！')
   
   try {
-    console.log('🔗 開始分享海報...')
-    console.log('hasGenerated.value:', hasGenerated.value)
-    console.log('posterImage.value:', posterImage.value)
     
     // 檢查是否有生成的海報
     if (!hasGenerated.value) {
@@ -710,11 +681,9 @@ const sharePoster = async () => {
     }
     
     // 🔧 根據 LINE 官方文檔實現純前端分享
-    console.log('📝 實現前端分享功能')
     
     // 檢查 shareTargetPicker API 是否可用
     if (!liffService.isApiAvailable('shareTargetPicker')) {
-      console.warn('⚠️ shareTargetPicker API 不可用')
       alert('分享功能在此環境中不可用，請在 LINE 應用內使用')
       return
     }
@@ -730,17 +699,13 @@ const sharePoster = async () => {
       }
     ]
     
-    console.log('📝 準備分享的訊息:', messages)
     
     // 檢查 LIFF 服務狀態
-    console.log('LIFF 服務狀態:', liffService.getStatus())
     
     // 使用 LIFF 分享功能
     await liffService.shareTargetPicker(messages)
-    console.log('✅ 海報分享成功')
     
   } catch (error) {
-    console.error('❌ 分享海報失敗:', error)
     
     // 根據環境顯示不同的錯誤訊息
     if (liffService.isInClient()) {
