@@ -520,7 +520,8 @@ const createPoster = async () => {
     try {
       savedResult = await savePosterToAPI(textToUse, posterImage.value)
     } catch (saveError) {
-      // 即使儲存失敗也繼續，讓用戶能看到海報
+      // 開發環境下 API 錯誤是正常的，不影響用戶體驗
+      // 在生產環境中，這會是真正的錯誤
     }
     
     // 更新計數器（如果 API 可用且儲存成功）
