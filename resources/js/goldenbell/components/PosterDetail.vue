@@ -32,9 +32,11 @@
             />
             
             <!-- 應援文字覆蓋層 -->
-            <div v-if="recordData.text" class="absolute inset-0 flex items-center justify-center p-[20px]">
-              <div class="p-[16px] max-w-[280px] text-center">
-                <div class="text-white font-bold text-[16px] leading-[140%] tracking-[-0.2px] break-words">
+            <div v-if="recordData.text" class="absolute inset-0 flex items-center justify-center p-[15px]">
+              <div class="w-full max-w-[300px] text-center px-[10px]">
+                <div class="text-white font-bold text-center break-words whitespace-pre-wrap"
+                     :class="getTextSizeClass(recordData.text)"
+                     :style="getTextStyle(recordData.text)">
                   {{ recordData.text }}
                 </div>
               </div>
@@ -194,6 +196,68 @@ const sharePoster = async () => {
       alert('請在 LINE 應用內使用分享功能')
     }
   }
+}
+
+/**
+ * 根據文字長度和內容動態計算文字大小類別
+ */
+const getTextSizeClass = (text) => {
+  if (!text) return 'text-[16px]'
+  
+  const length = text.length
+  
+  if (length <= 8) {
+    return 'text-[18px] md:text-[20px]' // 短文字使用較大字體
+  } else if (length <= 15) {
+    return 'text-[16px] md:text-[18px]' // 中等長度
+  } else {
+    return 'text-[14px] md:text-[16px]' // 長文字使用較小字體
+  }
+}
+
+/**
+ * 根據文字內容動態計算文字樣式
+ */
+const getTextStyle = (text) => {
+  if (!text) return {}
+  
+  const length = text.length
+  const hasEnglish = /[a-zA-Z]/.test(text)
+  const hasChinese = /[\u4e00-\u9fa5]/.test(text)
+  const hasNumbers = /[0-9]/.test(text)
+  
+  // 基礎樣式
+  let style = {
+    lineHeight: '1.4',
+    letterSpacing: '-0.1px',
+    wordBreak: 'break-word',
+    overflowWrap: 'break-word',
+    textShadow: '1px 1px 2px rgba(0, 0, 0, 0.8)' // 增加文字陰影提高可讀性
+  }
+  
+  // 根據文字類型調整樣式
+  if (hasChinese && hasEnglish) {
+    // 中英文混合
+    style.lineHeight = '1.5'
+    style.letterSpacing = '0px'
+    style.wordSpacing = '2px'
+  } else if (hasChinese) {
+    // 純中文
+    style.letterSpacing = '1px'
+    style.lineHeight = '1.4'
+  } else if (hasEnglish) {
+    // 純英文
+    style.letterSpacing = '0.5px'
+    style.wordSpacing = '1px'
+    style.lineHeight = '1.3'
+  }
+  
+  // 根據長度調整行高
+  if (length > 15) {
+    style.lineHeight = '1.3'
+  }
+  
+  return style
 }
 
 const formatDate = (dateString) => {

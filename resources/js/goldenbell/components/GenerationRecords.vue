@@ -78,9 +78,10 @@
                 </div>
                 
                 <!-- 應援文字覆蓋層 -->
-                <div v-if="item.text" class="absolute inset-0 flex items-center justify-center p-2">
-                  <div class="text-center">
-                    <div class="text-white font-bold text-[10px] leading-[120%] tracking-[-0.1px] break-words">
+                <div v-if="item.text" class="absolute inset-0 flex items-center justify-center p-1">
+                  <div class="text-center max-w-[90%]">
+                    <div class="text-white font-bold text-[9px] leading-[110%] break-words whitespace-pre-wrap"
+                         style="text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.9); word-break: break-word; overflow-wrap: break-word;">
                       {{ item.text }}
                     </div>
                   </div>
