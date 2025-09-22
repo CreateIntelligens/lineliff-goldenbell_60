@@ -331,22 +331,44 @@ class LiffService {
         throw new Error('LIFF 尚未初始化')
       }
 
-      // 檢查是否支援 shareTargetPicker 功能
-      console.log('檢查 shareTargetPicker API 可用性...')
-      console.log('liff.isApiAvailable 結果:', liff.isApiAvailable('shareTargetPicker'))
-      
-      // 先嘗試直接調用，不檢查 API 可用性
-      // if (!liff.isApiAvailable('shareTargetPicker')) {
-      //   throw new Error('當前環境不支援 Share Target Picker 功能')
-      // }
+      console.log('🔗 準備分享訊息:', messages)
 
-      // 開啟分享選擇器
+      // 檢查是否在 LINE 應用內
+      if (!this.isInClient()) {
+        throw new Error('分享功能只能在 LINE 應用內使用')
+      }
+
+      // 檢查 LIFF 函數是否存在
+      if (typeof liff.shareTargetPicker !== 'function') {
+        console.warn('⚠️ shareTargetPicker 函數不存在，嘗試使用替代方案')
+        
+        // 使用 sendMessages 作為備用方案
+        if (typeof liff.sendMessages === 'function') {
+          console.log('🔄 使用 sendMessages 作為備用分享方案')
+          await liff.sendMessages(messages)
+          console.log('✅ 訊息已發送')
+          return
+        } else {
+          throw new Error('LIFF 分享功能不可用')
+        }
+      }
+
+      // 使用正確的 API 調用分享選擇器
+      console.log('🚀 調用 liff.shareTargetPicker...')
       await liff.shareTargetPicker(messages)
       console.log('✅ 分享選擇器已開啟')
       
     } catch (error) {
       console.error('❌ 開啟分享選擇器失敗:', error)
-      throw error
+      
+      // 提供更詳細的錯誤信息
+      if (error.message.includes('Unexpected API name')) {
+        throw new Error('LIFF 版本不支援此分享功能，請更新 LINE 應用')
+      } else if (error.message.includes('not in client')) {
+        throw new Error('請在 LINE 應用內使用分享功能')
+      } else {
+        throw error
+      }
     }
   }
 
@@ -360,6 +382,24 @@ class LiffService {
       return false
     }
     return liff.isApiAvailable(apiName)
+  }
+
+  /**
+   * 檢查分享功能是否可用
+   * @returns {boolean} 分享功能是否可用
+   */
+  checkShareTargetPickerAvailability() {
+    if (!this.isInitialized || typeof liff === 'undefined') {
+      return false
+    }
+
+    // 檢查是否在 LINE 應用內
+    if (!this.isInClient()) {
+      return false
+    }
+
+    // 檢查函數是否存在
+    return typeof liff.shareTargetPicker === 'function' || typeof liff.sendMessages === 'function'
   }
 
   /**
@@ -397,9 +437,10 @@ class LiffService {
       userProfile: this.userProfile,
       environment: this.getEnvironment(),
       liffEnabled: window.endpoint?.enableLiff || false,
-      // 檢查各種 LIFF API 是否可用（跳過有問題的 API）
+      // 檢查各種 LIFF API 是否可用
       apiAvailability: {
-        shareTargetPicker: false, // 暫時設為 false，避免 API 名稱錯誤
+        shareTargetPicker: this.checkShareTargetPickerAvailability(), // 使用自定義檢查
+        sendMessages: this.isApiAvailable('sendMessages'),
         bluetoothLeFunction: this.isApiAvailable('bluetoothLeFunction'),
         subwindow: this.isApiAvailable('subwindow')
       }
