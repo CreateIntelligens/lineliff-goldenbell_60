@@ -249,7 +249,7 @@ onMounted(() => {
 <style scoped>
 .app {
   min-height: 100vh;
-  background-color: #ffffff;
+  background-color: #000000; /* 改為深色背景 */
   font-family: 'Noto Serif HK', serif;
 }
 
@@ -258,7 +258,7 @@ onMounted(() => {
   align-items: center;
   justify-content: center;
   min-height: 100vh;
-  background-color: #f9fafb;
+  background-color: #000000; /* 改為深色背景 */
 }
 
 .loading-content {

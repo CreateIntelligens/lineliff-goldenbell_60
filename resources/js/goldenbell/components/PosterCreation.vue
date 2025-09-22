@@ -188,6 +188,7 @@ import { ref, computed, defineEmits, onMounted } from 'vue'
 import { contentFilterService } from '../../services/contentFilterService.js'
 import { liffService } from '../../services/liffService.js'
 import { apiService } from '../../services/apiService.js'
+import { posterImageService } from '../../services/posterImageService.js'
 
 // Emits
 const emit = defineEmits(['goToImageRecord', 'goBack', 'posterGenerated'])
@@ -595,44 +596,15 @@ const downloadToOfficial = async () => {
   try {
     console.log('📥 開始下載到官方帳號...')
     
-    // 創建包含文字的海報圖片
-    const canvas = document.createElement('canvas')
-    const ctx = canvas.getContext('2d')
-    const img = new Image()
+    const fileName = `金鐘60應援海報_${new Date().getTime()}`
     
-    img.onload = () => {
-      // 設定 canvas 尺寸
-      canvas.width = img.width
-      canvas.height = img.height
-      
-      // 繪製背景圖
-      ctx.drawImage(img, 0, 0)
-      
-      // 如果有生成的文字，覆蓋到圖片上
-      if (generatedText.value) {
-        ctx.fillStyle = 'white'
-        ctx.font = 'bold 32px "Noto Serif HK", serif'
-        ctx.textAlign = 'center'
-        ctx.textBaseline = 'middle'
-        ctx.fillText(generatedText.value, canvas.width / 2, canvas.height / 2)
-      }
-      
-      // 下載圖片
-      canvas.toBlob((blob) => {
-        const url = URL.createObjectURL(blob)
-        const a = document.createElement('a')
-        a.href = url
-        a.download = `金鐘60應援海報_${new Date().getTime()}.png`
-        document.body.appendChild(a)
-        a.click()
-        document.body.removeChild(a)
-        URL.revokeObjectURL(url)
-        
-        console.log('✅ 海報下載完成')
-      })
-    }
+    await posterImageService.generateAndDownloadPoster(
+      posterImage.value,
+      generatedText.value,
+      fileName
+    )
     
-    img.src = posterImage.value
+    console.log('✅ 海報下載完成')
     
   } catch (error) {
     console.error('❌ 下載失敗:', error)

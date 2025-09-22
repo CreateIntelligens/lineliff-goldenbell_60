@@ -96,6 +96,7 @@
 import { defineEmits } from 'vue'
 import PageHeader from './PageHeader.vue'
 import { liffService } from '../../services/liffService.js'
+import { posterImageService } from '../../services/posterImageService.js'
 
 // Props
 const props = defineProps({
@@ -122,9 +123,28 @@ const regeneratePoster = () => {
   emit('regeneratePoster', props.recordData)
 }
 
-const downloadToOfficial = () => {
+const downloadToOfficial = async () => {
   console.log('下載到官方帳號:', props.recordData)
-  // 下載邏輯
+  
+  try {
+    console.log('📥 開始下載到官方帳號...')
+    
+    const imageUrl = props.recordData.imageUrl || props.recordData.image_url || props.recordData.poster_image || '/images/poster.png'
+    const text = props.recordData.text || ''
+    const fileName = `金鐘60應援海報_${props.recordData.id || new Date().getTime()}`
+    
+    await posterImageService.generateAndDownloadPoster(
+      imageUrl,
+      text,
+      fileName
+    )
+    
+    console.log('✅ 海報下載完成')
+    
+  } catch (error) {
+    console.error('❌ 下載失敗:', error)
+    alert('下載失敗，請稍後再試')
+  }
 }
 
 const sharePoster = async () => {
