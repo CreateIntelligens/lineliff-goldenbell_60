@@ -171,33 +171,126 @@ class PosterImageService {
    */
   async downloadCanvasAsImage(canvas, fileName, mimeType = 'image/png', quality = 0.9) {
     return new Promise((resolve, reject) => {
-      canvas.toBlob((blob) => {
-        if (!blob) {
-          reject(new Error('Canvas 轉換失敗'))
-          return
-        }
+      try {
+        console.log('🔄 開始轉換 Canvas 為 Blob...')
         
-        try {
-          // 創建下載連結
-          const url = URL.createObjectURL(blob)
-          const link = document.createElement('a')
+        canvas.toBlob((blob) => {
+          if (!blob) {
+            console.error('❌ Canvas 轉換失敗：無法生成 Blob')
+            reject(new Error('Canvas 轉換失敗'))
+            return
+          }
           
-          link.href = url
-          link.download = fileName.endsWith('.png') ? fileName : `${fileName}.png`
+          console.log('✅ Canvas 轉換成功，Blob 大小:', blob.size, 'bytes')
           
-          // 觸發下載
-          document.body.appendChild(link)
-          link.click()
-          document.body.removeChild(link)
-          
-          // 清理 URL
-          URL.revokeObjectURL(url)
-          
-          resolve()
-        } catch (error) {
-          reject(error)
-        }
-      }, mimeType, quality)
+          try {
+            // 檢查是否在 LIFF 環境中
+            const isInLiff = window.liff && window.liff.isInClient && window.liff.isInClient()
+            console.log('🔍 環境檢查 - 是否在 LIFF 中:', isInLiff)
+            console.log('🔍 User Agent:', navigator.userAgent)
+            
+            // 檢查是否支援下載功能
+            const isDownloadSupported = 'download' in document.createElement('a')
+            console.log('🔍 是否支援下載屬性:', isDownloadSupported)
+            
+            // 創建下載連結
+            const url = URL.createObjectURL(blob)
+            console.log('✅ 物件 URL 創建成功:', url)
+            
+            const link = document.createElement('a')
+            link.href = url
+            link.download = fileName.endsWith('.png') ? fileName : `${fileName}.png`
+            
+            // 添加更多屬性來提高相容性
+            link.style.display = 'none'
+            link.setAttribute('target', '_blank')
+            
+            console.log('🔗 下載連結屬性:', {
+              href: link.href,
+              download: link.download,
+              target: link.target
+            })
+            
+            // 觸發下載
+            document.body.appendChild(link)
+            console.log('✅ 連結已加入 DOM')
+            
+            // 嘗試觸發下載
+            try {
+              link.click()
+              console.log('✅ 下載點擊事件已觸發')
+            } catch (clickError) {
+              console.error('❌ 點擊事件失敗:', clickError)
+              
+              // 備用方案：嘗試手動觸發事件
+              const event = new MouseEvent('click', {
+                view: window,
+                bubbles: true,
+                cancelable: true
+              })
+              link.dispatchEvent(event)
+              console.log('🔄 嘗試手動觸發點擊事件')
+            }
+            
+            // 清理
+            setTimeout(() => {
+              document.body.removeChild(link)
+              URL.revokeObjectURL(url)
+              console.log('🧹 清理完成')
+            }, 1000)
+            
+            // 如果是 LIFF 環境，提供額外的備用方案
+            if (isInLiff) {
+              console.log('💡 LIFF 環境提示：如果下載沒有開始，可能是環境限制')
+              
+              // 備用方案：開啟新視窗顯示圖片，讓用戶手動保存
+              setTimeout(() => {
+                try {
+                  const newWindow = window.open()
+                  if (newWindow) {
+                    newWindow.document.write(`
+                      <html>
+                        <head>
+                          <title>金鐘60應援海報</title>
+                          <style>
+                            body { margin: 0; padding: 20px; text-align: center; background: #000; color: white; }
+                            img { max-width: 100%; height: auto; }
+                            .tip { margin-top: 20px; font-size: 14px; }
+                          </style>
+                        </head>
+                        <body>
+                          <h3>您的金鐘60應援海報</h3>
+                          <img src="${url}" alt="金鐘60應援海報" />
+                          <div class="tip">
+                            <p>長按圖片選擇「儲存到照片」</p>
+                            <p>或點擊右上角分享按鈕保存</p>
+                          </div>
+                        </body>
+                      </html>
+                    `)
+                    newWindow.document.close()
+                    console.log('📱 已開啟新視窗顯示圖片，供手動保存')
+                  } else {
+                    console.warn('⚠️ 無法開啟新視窗，可能被瀏覽器阻擋')
+                  }
+                } catch (windowError) {
+                  console.error('❌ 開啟新視窗失敗:', windowError)
+                }
+              }, 500)
+            }
+            
+            resolve()
+            
+          } catch (error) {
+            console.error('❌ 下載過程發生錯誤:', error)
+            reject(error)
+          }
+        }, mimeType, quality)
+        
+      } catch (error) {
+        console.error('❌ downloadCanvasAsImage 整體錯誤:', error)
+        reject(error)
+      }
     })
   }
 

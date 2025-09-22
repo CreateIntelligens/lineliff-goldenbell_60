@@ -55,6 +55,8 @@
                     @keydown="onKeyDown"
                     @paste="onPaste"
                     @keypress="onKeyPress"
+                    @compositionstart="onCompositionStart"
+                    @compositionend="onCompositionEnd"
                     :data-placeholder="!inputText ? '輸入：「我要為 ______ 加油！」或「給金鐘 60 的一句話」' : ''"
                     :maxlength="maxLength"
                   >{{ inputText }}</div>
@@ -308,7 +310,15 @@ const onTextInput = () => {
   console.log('Text input:', inputText.value)
 }
 
+// 用於處理中文輸入法的狀態
+const isComposing = ref(false)
+
 const onContentInput = (event) => {
+  // 如果正在使用中文輸入法（如注音、拼音），暫停處理
+  if (isComposing.value) {
+    return
+  }
+  
   let newText = event.target.textContent || ''
   
   // 移除多餘的空白字符，但保留換行符
@@ -336,6 +346,23 @@ const onContentInput = (event) => {
   
   inputText.value = newText
   processInput()
+}
+
+// 處理中文輸入法開始事件
+const onCompositionStart = (event) => {
+  console.log('🎯 中文輸入法開始')
+  isComposing.value = true
+}
+
+// 處理中文輸入法結束事件
+const onCompositionEnd = (event) => {
+  console.log('🎯 中文輸入法結束')
+  isComposing.value = false
+  
+  // 輸入法結束後，手動觸發一次處理
+  setTimeout(() => {
+    onContentInput(event)
+  }, 0)
 }
 
 const handlePaste = async () => {
