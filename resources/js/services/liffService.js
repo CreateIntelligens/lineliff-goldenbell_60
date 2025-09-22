@@ -333,27 +333,25 @@ class LiffService {
 
       console.log('🔗 準備分享訊息:', messages)
 
-      // 檢查是否在 LINE 應用內
-      if (!this.isInClient()) {
-        throw new Error('分享功能只能在 LINE 應用內使用')
+      // 根據 LINE 官方文檔：檢查 API 是否可用
+      if (!liff.isApiAvailable('shareTargetPicker')) {
+        throw new Error('shareTargetPicker API 在此環境中不可用')
       }
 
-      // 檢查 LIFF 函數是否存在
-      if (typeof liff.shareTargetPicker !== 'function') {
-        console.warn('⚠️ shareTargetPicker 函數不存在，嘗試使用替代方案')
-        
-        // 使用 sendMessages 作為備用方案
-        if (typeof liff.sendMessages === 'function') {
-          console.log('🔄 使用 sendMessages 作為備用分享方案')
-          await liff.sendMessages(messages)
-          console.log('✅ 訊息已發送')
-          return
-        } else {
-          throw new Error('LIFF 分享功能不可用')
+      // 驗證訊息格式
+      if (!Array.isArray(messages) || messages.length === 0) {
+        throw new Error('分享訊息格式錯誤：必須是非空陣列')
+      }
+
+      // 檢查每個訊息的格式
+      for (let i = 0; i < messages.length; i++) {
+        const message = messages[i]
+        if (!message.type) {
+          throw new Error(`訊息 ${i} 缺少 type 屬性`)
         }
       }
 
-      // 使用正確的 API 調用分享選擇器
+      // 使用官方 API 調用分享選擇器
       console.log('🚀 調用 liff.shareTargetPicker...')
       await liff.shareTargetPicker(messages)
       console.log('✅ 分享選擇器已開啟')
@@ -361,11 +359,9 @@ class LiffService {
     } catch (error) {
       console.error('❌ 開啟分享選擇器失敗:', error)
       
-      // 提供更詳細的錯誤信息
-      if (error.message.includes('Unexpected API name')) {
-        throw new Error('LIFF 版本不支援此分享功能，請更新 LINE 應用')
-      } else if (error.message.includes('not in client')) {
-        throw new Error('請在 LINE 應用內使用分享功能')
+      // 根據官方文檔提供更準確的錯誤信息
+      if (error.message.includes('not available')) {
+        throw new Error('分享功能在此環境中不可用，請在 LINE 應用內使用')
       } else {
         throw error
       }
@@ -393,13 +389,8 @@ class LiffService {
       return false
     }
 
-    // 檢查是否在 LINE 應用內
-    if (!this.isInClient()) {
-      return false
-    }
-
-    // 檢查函數是否存在
-    return typeof liff.shareTargetPicker === 'function' || typeof liff.sendMessages === 'function'
+    // 根據 LINE 官方文檔，使用 liff.isApiAvailable() 檢查
+    return this.isApiAvailable('shareTargetPicker')
   }
 
   /**

@@ -325,60 +325,7 @@ class ApiService {
       img.src = imageUrl
     })
   }
-  /**
-   * 創建分享連結
-   * @param {string} text - 海報文字
-   * @param {string} imageUrl - 海報圖片URL 
-   * @param {string} posterId - 海報ID (可選)
-   * @returns {Promise<Object>} 分享連結和相關數據
-   */
-  async createShare(text, imageUrl, posterId = null) {
-    try {
-      const userId = await this.getUserId()
-      const shareData = {
-        user_id: userId,
-        text: text,
-        image_url: imageUrl,
-        poster_id: posterId
-      }
 
-      const response = await this.makeRequest('POST', '/gba60/share', {
-        body: JSON.stringify(shareData)
-      })
-      
-      const result = await this.handleResponse(response)
-      
-      if (configUtils.isDebug()) {
-        console.log('🔗 創建分享連結:', result)
-      }
-      
-      return result
-    } catch (error) {
-      console.error('❌ 創建分享連結失敗:', error)
-      throw error
-    }
-  }
-
-  /**
-   * 取得分享數據
-   * @param {string} shareId - 分享ID
-   * @returns {Promise<Object>} 分享數據
-   */
-  async getShareData(shareId) {
-    try {
-      const response = await this.makeRequest('GET', `/gba60/share/${shareId}`)
-      const result = await this.handleResponse(response)
-      
-      if (configUtils.isDebug()) {
-        console.log('📤 取得分享數據:', result)
-      }
-      
-      return result
-    } catch (error) {
-      console.error('❌ 取得分享數據失敗:', error)
-      throw error
-    }
-  }
 }
 
 // 創建單例實例

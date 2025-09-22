@@ -157,44 +157,28 @@ const sharePoster = async () => {
     const text = props.recordData.text || ''
     const posterId = props.recordData.id || props.recordData.poster_id
     
-    // 🔧 修正：調用後端分享 API
-    console.log('📤 調用後端分享API...')
-    const shareResult = await apiService.createShare(text, imageUrl, posterId)
+    // 🔧 根據 LINE 官方文檔實現純前端分享
+    console.log('📝 實現前端分享功能')
     
-    console.log('✅ 後端分享API成功:', shareResult)
-    
-    // 如果後端返回分享URL，跳轉到專門的分享頁面
-    if (shareResult.share_url) {
-      console.log('🔄 跳轉到分享頁面:', shareResult.share_url)
-      window.location.href = shareResult.share_url
+    // 檢查 shareTargetPicker API 是否可用
+    if (!liffService.isApiAvailable('shareTargetPicker')) {
+      console.warn('⚠️ shareTargetPicker API 不可用')
+      alert('分享功能在此環境中不可用，請在 LINE 應用內使用')
       return
     }
     
-    // 如果後端返回 shareMessages，直接使用
-    if (shareResult.shareMessages && Array.isArray(shareResult.shareMessages)) {
-      console.log('📝 使用後端提供的分享訊息')
-      await liffService.shareTargetPicker(shareResult.shareMessages)
-      console.log('✅ 海報分享成功')
-      return
-    }
-    
-    // 備用方案：使用前端預設的分享訊息
-    console.log('⚠️ 後端未提供分享數據，使用備用方案')
+    // 準備分享訊息 - 包含用戶的應援文字
+    const shareText = text ? 
+      `「金鐘60星光打Call｜為心愛的節目瘋狂應援！」\n\n我的應援：${text}\n\n金鐘盛典即將登場！快來製作你的專屬應援海報，為最愛的節目和藝人加油打氣，一起點亮金鐘星光大道！\n\n讓你的心意化作「星光打Call卡」，在典禮閃耀 ❤` :
+      `「金鐘60星光打Call｜為心愛的節目瘋狂應援！」\n\n金鐘盛典即將登場！快來製作你的專屬應援海報，為最愛的節目和藝人加油打氣，一起點亮金鐘星光大道！\n\n讓你的心意化作「星光打Call卡」，在典禮閃耀 ❤`
     const messages = [
       {
         type: 'text',
-        text: `「金鐘60星光打Call｜為心愛的節目瘋狂應援！」\n\n金鐘盛典即將登場！快來製作你的專屬應援海報，為最愛的節目和藝人加油打氣，一起點亮金鐘星光大道！\n\n我的應援內容：${props.recordData.text}\n\n點擊下方連結，留下想對節目或藝人說的話 讓你的心意化作「星光打Call卡」，在典禮閃耀 ❤`
+        text: shareText
       }
     ]
     
-    // 如果有海報圖片，也可以分享圖片
-    if (imageUrl) {
-      messages.push({
-        type: 'image',
-        originalContentUrl: imageUrl,
-        previewImageUrl: imageUrl
-      })
-    }
+    console.log('📝 準備分享的訊息:', messages)
     
     // 使用 LIFF 分享功能
     await liffService.shareTargetPicker(messages)
