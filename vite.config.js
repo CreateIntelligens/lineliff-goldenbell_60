@@ -19,6 +19,10 @@ export default defineConfig({
             'localhost',
             '127.0.0.1',
             '.ngrok-free.app',
+            // 允許局域網 IP 訪問（用於手機測試）
+            /^192\.168\./,
+            /^10\./,
+            /^172\.(1[6-9]|2[0-9]|3[0-1])\./,
         ],
         proxy: {
             // 代理所有 /api 開頭的請求到後端 API

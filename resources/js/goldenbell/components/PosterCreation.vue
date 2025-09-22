@@ -38,9 +38,11 @@
               <!-- Text Input Area -->
               <div class="flex h-[146px] p-[10px_12px] items-start gap-[10px] w-full rounded-[12px] border border-[#B3C400] bg-[#272727]">
                 <div class="flex w-full h-[126px] flex-col justify-start items-start gap-[8px]">
-                  <!-- Input Prompt -->
-                  <div 
-                    class="flex-1 w-full font-bold text-[13px] leading-[160%] tracking-[-0.247px] outline-none cursor-text"
+                  <!-- Input Textarea -->
+                  <textarea 
+                    ref="textInput"
+                    v-model="inputText"
+                    class="flex-1 w-full h-full font-bold text-[13px] leading-[160%] tracking-[-0.247px] outline-none resize-none bg-transparent border-none"
                     :class="{ 
                       'text-white': isEditing || inputText,
                       'text-[rgba(255,255,255,0.45)]': !isEditing && !inputText,
@@ -48,18 +50,16 @@
                       'text-green-400': inputText && !hasWarnings && !isOverLimit,
                       'text-red-400': isOverLimit
                     }"
-                    contenteditable="true"
-                    @input="onContentInput"
+                    :placeholder="!inputText ? '輸入：「我要為 ______ 加油！」或「給金鐘 60 的一句話」' : ''"
+                    :maxlength="maxLength"
+                    @input="onTextInput"
                     @focus="onFocus"
                     @blur="onBlur"
                     @keydown="onKeyDown"
                     @paste="onPaste"
-                    @keypress="onKeyPress"
                     @compositionstart="onCompositionStart"
                     @compositionend="onCompositionEnd"
-                    :data-placeholder="!inputText ? '輸入：「我要為 ______ 加油！」或「給金鐘 60 的一句話」' : ''"
-                    :maxlength="maxLength"
-                  >{{ inputText }}</div>
+                  ></textarea>
 
                   <!-- Controls Container -->
                   <div class="flex flex-col items-start gap-[5px] w-full">
@@ -186,7 +186,7 @@
 </template>
 
 <script setup>
-import { ref, computed, defineEmits, onMounted } from 'vue'
+import { ref, computed, defineEmits, onMounted, nextTick } from 'vue'
 import { contentFilterService } from '../../services/contentFilterService.js'
 import { liffService } from '../../services/liffService.js'
 import { apiService } from '../../services/apiService.js'
@@ -305,47 +305,50 @@ const savePosterToAPI = async (text, imageUrl) => {
     throw error
   }
 }
-const onTextInput = () => {
-  // Handle text input validation if needed
-  console.log('Text input:', inputText.value)
-}
+// 移除舊的 onTextInput 函數，使用新的實現
 
 // 用於處理中文輸入法的狀態
 const isComposing = ref(false)
 const currentPosterId = ref(null) // 追蹤當前海報ID
+const textInput = ref(null) // textarea 的 ref
 
-const onContentInput = (event) => {
-  // 如果正在使用中文輸入法（如注音、拼音），暫停處理
+// 新的文字輸入處理函數（使用 v-model）
+const onTextInput = (event) => {
+  // 如果正在使用中文輸入法，暫停處理
   if (isComposing.value) {
     return
   }
   
-  let newText = event.target.textContent || ''
-  
-  // 移除多餘的空白字符，但保留換行符
-  newText = newText.replace(/\t/g, ' ').replace(/\r/g, '')
+  let newText = event.target.value || ''
   
   // 檢查行數限制
   const lines = newText.split('\n')
-  const maxLines = 3 // 根據輸入框高度設定最大行數
+  const maxLines = 4 // 適合 textarea 的行數限制
   
   if (lines.length > maxLines) {
     // 如果超過最大行數，只保留前幾行
     newText = lines.slice(0, maxLines).join('\n')
-    event.target.textContent = newText
-    setCaretToEnd(event.target)
+    inputText.value = newText
+    nextTick(() => {
+      if (textInput.value) {
+        textInput.value.value = newText
+      }
+    })
   }
   
   // 嚴格限制字數
   if (newText.length > maxLength) {
     newText = newText.substring(0, maxLength)
-    // 更新 DOM 內容
-    event.target.textContent = newText
-    // 設置游標到末尾
-    setCaretToEnd(event.target)
+    inputText.value = newText
+    nextTick(() => {
+      if (textInput.value) {
+        textInput.value.value = newText
+      }
+    })
+  } else {
+    inputText.value = newText
   }
   
-  inputText.value = newText
   processInput()
 }
 
@@ -375,7 +378,7 @@ const handlePaste = async () => {
     
     // 檢查行數限制
     const lines = newText.split('\n')
-    const maxLines = 3 // 根據輸入框高度設定最大行數
+    const maxLines = 4 // 適合 textarea 的行數限制
     
     if (lines.length > maxLines) {
       // 如果超過最大行數，只保留前幾行
@@ -390,25 +393,18 @@ const handlePaste = async () => {
     inputText.value = newText
     processInput()
     
-    // 更新 DOM 顯示
-    const editableDiv = document.querySelector('[contenteditable="true"]')
-    if (editableDiv) {
-      editableDiv.textContent = newText
-      setCaretToEnd(editableDiv)
+    // 更新 textarea
+    await nextTick()
+    if (textInput.value) {
+      textInput.value.value = newText
+      textInput.value.focus()
     }
   } catch (err) {
     console.log('無法讀取剪貼簿內容')
   }
 }
 
-const setCaretToEnd = (element) => {
-  const range = document.createRange()
-  const selection = window.getSelection()
-  range.selectNodeContents(element)
-  range.collapse(false)
-  selection.removeAllRanges()
-  selection.addRange(range)
-}
+// 移除 setCaretToEnd 函數，textarea 不需要手動管理游標位置
 
 const onFocus = () => {
   isEditing.value = true
@@ -428,20 +424,14 @@ const onPaste = (event) => {
   handlePaste()
 }
 
-const onKeyPress = (event) => {
-  // 在字符輸入之前檢查長度
-  if (inputText.value.length >= maxLength) {
-    event.preventDefault()
-    return false
-  }
-}
+// 移除 onKeyPress，使用 textarea 的 maxlength 屬性和 onTextInput 處理
 
 const onKeyDown = (event) => {
   // 處理換行鍵 - 檢查是否會超過高度限制
   if (event.key === 'Enter') {
-    const currentText = event.target.textContent || ''
+    const currentText = event.target.value || ''
     const lines = currentText.split('\n')
-    const maxLines = 3 // 根據輸入框高度設定最大行數
+    const maxLines = 4 // 適合 textarea 的行數限制
     
     if (lines.length >= maxLines) {
       event.preventDefault()
@@ -463,7 +453,7 @@ const onKeyDown = (event) => {
   
   // 如果是貼上操作，需要檢查貼上後的長度
   if ((event.ctrlKey || event.metaKey) && event.key === 'v') {
-    // 阻止預設貼上，我們將在 onContentInput 中處理
+    // 阻止預設貼上，我們將在 handlePaste 中處理
     event.preventDefault()
     handlePaste()
   }
@@ -589,7 +579,7 @@ const goToImageRecord = () => {
   emit('goToImageRecord')
 }
 
-const regeneratePoster = () => {
+const regeneratePoster = async () => {
   if (remainingCount.value <= 0 || isLoading.value) return
 
   // 重新生成 = 清空輸入框，讓用戶重新輸入文字
@@ -602,10 +592,11 @@ const regeneratePoster = () => {
   isEditing.value = false
   generatedText.value = ''
   
-  // 清空 DOM 內容
-  const editableDiv = document.querySelector('[contenteditable="true"]')
-  if (editableDiv) {
-    editableDiv.textContent = ''
+  // 清空 textarea 內容
+  await nextTick()
+  if (textInput.value) {
+    textInput.value.value = ''
+    textInput.value.focus()
   }
   
   // 重置按鈕狀態，讓用戶可以重新輸入
@@ -748,36 +739,65 @@ textarea::-webkit-scrollbar-thumb:hover {
   }
 }
 
-/* contenteditable placeholder 效果 */
-[contenteditable="true"]:empty:before {
-  content: attr(data-placeholder);
-  color: rgba(255, 255, 255, 0.45);
-  pointer-events: none;
-}
-
-[contenteditable="true"]:focus:empty:before {
-  content: attr(data-placeholder);
-  color: rgba(255, 255, 255, 0.45);
-}
-
-/* 移除 contenteditable 的預設樣式 */
-[contenteditable="true"] {
+/* textarea 樣式 */
+textarea {
   border: none !important;
   outline: none !important;
   background: transparent !important;
   padding: 0 !important;
   margin: 0 !important;
   white-space: pre-wrap !important; /* 允許換行但保持格式 */
-  overflow: hidden !important; /* 隱藏超出內容 */
+  overflow-y: auto !important; /* 允許垂直滾動 */
+  overflow-x: hidden !important; /* 隱藏水平滾動 */
   height: 126px !important; /* 固定高度 */
   line-height: 1.6 !important; /* 行高 */
   word-wrap: break-word !important; /* 長單詞換行 */
+  box-shadow: none !important;
+  -webkit-appearance: none !important;
+  -moz-appearance: none !important;
+  appearance: none !important;
 }
 
-/* 防止 iOS 縮放 */
+/* placeholder 樣式 */
+textarea::placeholder {
+  color: rgba(255, 255, 255, 0.45);
+  opacity: 1;
+}
+
+/* textarea 滾軸樣式 */
+textarea::-webkit-scrollbar {
+  width: 4px;
+}
+
+textarea::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+textarea::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 2px;
+}
+
+textarea::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.4);
+}
+
+/* 防止 iOS 縮放和改善手機輸入體驗 */
 @media (max-width: 640px) {
-  [contenteditable="true"] {
-    font-size: 13px;
+  textarea {
+    font-size: 16px !important; /* 防止 iOS Safari 自動縮放 */
+    transform: scale(0.8125); /* 縮小到視覺上的 13px */
+    transform-origin: top left;
+    width: 123%; /* 補償縮放造成的寬度減少 */
+  }
+}
+
+/* Android 優化 */
+@media (max-width: 640px) and (-webkit-min-device-pixel-ratio: 1) {
+  textarea {
+    font-size: 13px !important;
+    transform: none;
+    width: 100%;
   }
 }
 </style>

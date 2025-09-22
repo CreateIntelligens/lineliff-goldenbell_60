@@ -81,9 +81,27 @@
   
   <!-- 開發環境特殊配置 -->
   <script>
+    // 更全面的開發環境檢測
+    function isDevEnvironment() {
+      const hostname = window.location.hostname;
+      const port = window.location.port;
+      
+      // 檢查 localhost 和各種開發環境的條件
+      const isLocalhost = hostname === 'localhost' || hostname === '127.0.0.1';
+      const isLocalIP = /^192\.168\./.test(hostname) || /^10\./.test(hostname) || /^172\.(1[6-9]|2[0-9]|3[0-1])\./.test(hostname);
+      const isDevPort = port && (port === '3000' || port === '8080' || port === '5173' || port === '4173');
+      const hasDevKeyword = window.location.href.includes('dev') || window.location.href.includes('test');
+      
+      return isLocalhost || isLocalIP || isDevPort || hasDevKeyword;
+    }
+    
     // 檢查是否在開發環境，並調整配置
-    if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
-      console.log('🌐 檢測到本地開發環境');
+    if (isDevEnvironment()) {
+      console.log('🌐 檢測到開發環境:', {
+        hostname: window.location.hostname,
+        port: window.location.port,
+        href: window.location.href
+      });
       
       // 開發環境下關閉 LIFF 功能
       window.GOLDENBELL_CONFIG.liff.enableLiff = false;
@@ -91,6 +109,7 @@
       
       console.log('🔧 開發模式：LIFF 功能已關閉');
       console.log('💡 現在可以測試功能而不會觸發 LIFF 錯誤');
+      console.log('📱 手機也可以通過 IP 地址正常訪問開發服務器');
     } else {
       // 正式環境下啟用 LIFF 功能
       window.GOLDENBELL_CONFIG.liff.enableLiff = true;
