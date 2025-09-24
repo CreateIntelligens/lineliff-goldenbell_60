@@ -3,7 +3,7 @@
     <!-- Background Image -->
     <div class="absolute inset-0 w-full h-full">
       <img 
-        :src="getThemeImages('cheer').background" 
+        :src="getThemeImages('cheer').detailBackground" 
         alt="Golden Bell Background" 
         class="w-full h-full object-cover"
       />
