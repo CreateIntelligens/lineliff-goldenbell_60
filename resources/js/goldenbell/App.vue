@@ -223,8 +223,19 @@ function addGenerationRecord(posterData) {
     date: new Date().toISOString() // 備用時間屬性
   }
   
-  // 添加到紀錄開頭（最新的在前面）
-  generationRecords.value.unshift(newRecord)
+  // 檢查是否已存在相同的記錄（避免重複）
+  const existingRecordIndex = generationRecords.value.findIndex(record => 
+    record.text === newRecord.text && 
+    Math.abs(new Date(record.created_at) - new Date(newRecord.created_at)) < 5000 // 5秒內的重複
+  )
+  
+  if (existingRecordIndex === -1) {
+    // 添加到紀錄開頭（最新的在前面）
+    generationRecords.value.unshift(newRecord)
+  } else {
+    // 更新現有記錄
+    generationRecords.value[existingRecordIndex] = { ...generationRecords.value[existingRecordIndex], ...newRecord }
+  }
   
   // 更新對應事件類型的生成狀態
   if (generationStates.value[currentEventType]) {
@@ -254,34 +265,94 @@ function updateGenerationState(eventType, stateData) {
 }
 
 async function loadUserHistory() {
+  console.log('📚 開始載入用戶歷史記錄...')
+  console.log('🔧 API 可用性:', apiService.isApiAvailable())
+  
   if (!apiService.isApiAvailable()) {
     console.warn('⚠️ API 服務不可用，跳過歷史記錄載入')
     return
   }
 
   try {
-    console.log('📚 開始載入用戶歷史記錄...')
+    // 載入當前事件類型的歷史記錄
+    const currentEventType = getCurrentEventType()
+    console.log('📡 當前事件類型:', currentEventType)
     
-    // 載入兩種事件類型的歷史記錄
-    const [cheerHistory, awardHistory] = await Promise.allSettled([
-      apiService.getImageHistory('cheer'),
-      apiService.getImageHistory('award_speech')
-    ])
+    const historyResult = await apiService.getImageHistory(currentEventType)
+    console.log('🔍 API 原始回應:', historyResult)
     
-    // 處理應援海報歷史記錄
-    if (cheerHistory.status === 'fulfilled' && cheerHistory.value?.data) {
-      const cheerData = Array.isArray(cheerHistory.value.data) ? cheerHistory.value.data : []
-      console.log('✅ 應援海報歷史記錄:', cheerData.length, '筆')
+    const allHistoryRecords = []
+    
+    // 智能解析 API 回應，適應各種可能的格式
+    if (historyResult) {
+      let historyData = null
+      
+      // 嘗試多種可能的數據路徑
+      if (historyResult.data) {
+        historyData = historyResult.data
+      } else if (historyResult.result) {
+        historyData = historyResult.result
+      } else if (Array.isArray(historyResult)) {
+        historyData = historyResult
+      } else {
+        console.warn('⚠️ 無法識別的 API 回應格式:', historyResult)
+        return
+      }
+      
+      console.log('🔍 解析的歷史數據:', historyData, '類型:', typeof historyData)
+      
+      // 如果是字串，嘗試解析為 JSON
+      if (typeof historyData === 'string') {
+        try {
+          historyData = JSON.parse(historyData)
+          console.log('✅ JSON 解析成功:', historyData)
+        } catch (e) {
+          console.warn('⚠️ JSON 解析失敗:', e)
+          historyData = []
+        }
+      }
+      
+      // 處理數組數據
+      if (Array.isArray(historyData) && historyData.length > 0) {
+        console.log('📋 處理', historyData.length, '筆記錄')
+        
+        const formattedData = historyData.map((item, index) => {
+          console.log(`📄 記錄 ${index + 1}:`, item)
+          
+          return {
+            id: item.id || `${currentEventType}_${Date.now()}_${index}`,
+            imageUrl: item.image_url || item.imageUrl || item.poster_image || null,
+            image_url: item.image_url || item.imageUrl || item.poster_image || null,
+            poster_image: item.image_url || item.imageUrl || item.poster_image || null,
+            text: item.text || item.content || '',
+            created_at: item.created_at || item.timestamp || item.date || new Date().toISOString(),
+            timestamp: item.created_at || item.timestamp || item.date || new Date().toISOString(),
+            date: item.created_at || item.timestamp || item.date || new Date().toISOString(),
+            event_type: currentEventType
+          }
+        })
+        
+        allHistoryRecords.push(...formattedData)
+        console.log('✅ 成功格式化', formattedData.length, '筆記錄')
+      } else {
+        console.log('📝 沒有歷史記錄或數據為空')
+      }
     }
     
-    // 處理感言卡歷史記錄  
-    if (awardHistory.status === 'fulfilled' && awardHistory.value?.data) {
-      const awardData = Array.isArray(awardHistory.value.data) ? awardHistory.value.data : []
-      console.log('✅ 感言卡歷史記錄:', awardData.length, '筆')
+    // 更新記錄
+    if (allHistoryRecords.length > 0) {
+      // 按時間排序（最新的在前）
+      allHistoryRecords.sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
+      generationRecords.value = allHistoryRecords
+      console.log('🎉 總共載入歷史記錄:', allHistoryRecords.length, '筆')
+      console.log('📦 載入的記錄詳情:', allHistoryRecords)
+    } else {
+      console.log('📝 沒有找到歷史記錄，保持當前記錄')
     }
     
   } catch (error) {
     console.error('❌ 載入用戶歷史記錄失敗:', error)
+    console.error('❌ 錯誤詳情:', error.message, error.stack)
   }
 }
 

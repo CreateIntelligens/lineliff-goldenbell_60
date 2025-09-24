@@ -152,16 +152,18 @@ onMounted(async () => {
  * 載入圖片歷史記錄
  */
 const loadImageHistory = async () => {
-  console.log('🔍 開始載入圖片歷史記錄...')
-  console.log('📡 API 服務可用性:', apiService.isApiAvailable())
-  console.log('🌐 當前環境:', {
+  console.log('🔍 [GenerationRecords] 開始載入圖片歷史記錄...')
+  console.log('📡 [GenerationRecords] API 服務可用性:', apiService.isApiAvailable())
+  console.log('🌐 [GenerationRecords] 當前環境:', {
     hostname: window.location.hostname,
     enableLiff: window.endpoint?.enableLiff,
-    eventType: eventType
+    eventType: eventType,
+    propsRecords: props.records.length
   })
   
   if (!apiService.isApiAvailable()) {
-    console.warn('⚠️ API 服務不可用，使用 props 中的記錄')
+    console.warn('⚠️ [GenerationRecords] API 服務不可用，使用 props 中的記錄')
+    apiError.value = 'API 服務不可用'
     return
   }
 

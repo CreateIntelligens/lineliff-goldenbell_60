@@ -175,8 +175,23 @@ class ApiService {
         event_type: eventType
       })
 
+      console.log('📡 請求歷史記錄 API:', {
+        endpoint: `/gba60/images?${params}`,
+        userId: userId,
+        eventType: eventType
+      })
+
       const response = await this.makeRequest('GET', `/gba60/images?${params}`)
-      return await this.handleResponse(response)
+      const result = await this.handleResponse(response)
+      
+      console.log('📦 歷史記錄 API 回應:', {
+        status: response.status,
+        result: result,
+        dataType: typeof result?.data,
+        dataContent: result?.data
+      })
+      
+      return result
     } catch (error) {
       console.error('❌ 獲取圖片歷史失敗:', error)
       throw error
