@@ -200,6 +200,16 @@ class ApiService {
       formData.append('text', text)
       formData.append('image', imageBlob, 'poster.png')
 
+      if (configUtils.isDebug()) {
+        console.log('📤 儲存圖片請求參數:', {
+          user_id: userId,
+          event_type: eventType,
+          text: text,
+          image_size: imageBlob.size,
+          image_type: imageBlob.type
+        })
+      }
+
       const response = await this.makeRequest('POST', '/gba60/images', {
         body: formData
       })
@@ -207,6 +217,13 @@ class ApiService {
       return await this.handleResponse(response)
     } catch (error) {
       console.error('❌ 儲存圖片失敗:', error)
+      console.error('❌ 錯誤詳情:', {
+        message: error.message,
+        userId: await this.getUserId().catch(() => 'unknown'),
+        eventType: eventType,
+        textLength: text?.length || 0,
+        blobSize: imageBlob?.size || 0
+      })
       throw error
     }
   }

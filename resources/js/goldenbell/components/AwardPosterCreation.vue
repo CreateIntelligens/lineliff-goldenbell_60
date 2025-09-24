@@ -144,7 +144,7 @@
               @click="regeneratePoster"
             >
               <div class="text-white font-bold text-[13px] leading-[100%] tracking-[-0.247px]">
-                重新生成 ({{ generationCount }}/{{ maxGenerations }})
+                重新生成 (剩餘{{ remainingCount }}次)
               </div>
             </div>
 
@@ -489,9 +489,12 @@ const createPoster = async () => {
       // API error is normal in development
     }
     
-    if (savedResult) {
+    // 無論 API 是否成功，都重新載入用戶資料以確保計數正確
+    // 這樣可以確保顯示的數字始終與伺服器端一致
+    try {
       await loadUserData()
-    } else {
+    } catch (loadError) {
+      // 如果載入失敗，手動更新本地計數
       generationCount.value++
       remainingCount.value = Math.max(0, remainingCount.value - 1)
     }
@@ -575,9 +578,9 @@ const getAbsoluteTextStyle = (text) => {
 const regeneratePoster = async () => {
   if (remainingCount.value <= 0 || isLoading.value) return
   
-  // 重置狀態
+  // 不重置 hasGenerated 狀態，因為已經有生成過
+  // 只重置創建狀態來重新顯示載入動畫
   isCreating.value = false
-  hasGenerated.value = false
   
   // 重新創建海報
   await createPoster()
