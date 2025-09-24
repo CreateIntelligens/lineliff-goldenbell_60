@@ -27,7 +27,7 @@
           <div class="relative h-[353px] w-full rounded-[4px] overflow-hidden">
             <img 
               class="h-full w-full object-cover"
-              :src="recordData.imageUrl || recordData.image_url || recordData.poster_image || '/images/poster.png'"
+              :src="recordData.imageUrl || recordData.image_url || recordData.poster_image || getThemeImages(eventType).poster"
               alt="Poster Detail"
             />
             
@@ -146,7 +146,7 @@ const downloadToOfficial = async () => {
   try {
     console.log('📥 開始下載到官方帳號...')
     
-    const imageUrl = props.recordData.imageUrl || props.recordData.image_url || props.recordData.poster_image || '/images/poster.png'
+    const imageUrl = props.recordData.imageUrl || props.recordData.image_url || props.recordData.poster_image || getThemeImages(eventType).poster
     const text = props.recordData.text || ''
     const fileName = eventType === 'award_speech' 
       ? `金鐘60得獎感言卡_${props.recordData.id || new Date().getTime()}`

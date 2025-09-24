@@ -15,7 +15,7 @@
       <div class="flex flex-col items-start gap-[456px] w-full">
         <!-- Title -->
         <img 
-          src="/images/award_Title.png"
+          :src="getThemeImages('award_speech').title"
           alt="Title"
           class="h-[108px] w-full object-contain"
         />
@@ -26,7 +26,7 @@
             <!-- First button container -->
             <div class="flex flex-col items-center gap-[10px] w-full">
               <img 
-                src="/images/award_2025.png"
+                :src="getThemeImages('award_speech').hero"
                 alt="2025 Award"
                 class="w-[279px] h-[54px]"
               />
@@ -36,7 +36,7 @@
             <div class="flex flex-col items-center gap-[10px] w-full">
               <img 
                 @click="handleCreateSpeech"
-                src="/images/award_button.png"
+                :src="getThemeImages('award_speech').button"
                 alt="Create Speech Button"
                 class="w-[309px] h-[50px] cursor-pointer transition-transform duration-200 hover:scale-105 active:scale-95"
               />
@@ -46,7 +46,7 @@
           <!-- Bottom container -->
           <div class="flex flex-col items-center gap-[10px] w-full">
             <img 
-              src="/images/award_logo.png"
+              :src="getThemeImages('award_speech').logo"
               alt="Bottom Logo"
               class="w-[153px] h-[20px]"
             />

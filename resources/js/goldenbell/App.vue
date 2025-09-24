@@ -174,9 +174,9 @@ function goToImageRecord() {
 function addGenerationRecord(posterData) {
   const newRecord = {
     id: Date.now(), // 使用時間戳作為唯一 ID
-    imageUrl: posterData.imageUrl || '/images/poster.png', // 海報圖片 URL
-    image_url: posterData.imageUrl || '/images/poster.png', // 備用屬性名
-    poster_image: posterData.imageUrl || '/images/poster.png', // 備用屬性名
+    imageUrl: posterData.imageUrl || '', // 海報圖片 URL
+    image_url: posterData.imageUrl || '', // 備用屬性名
+    poster_image: posterData.imageUrl || '', // 備用屬性名
     text: posterData.text || '', // 應援文字
     created_at: new Date().toISOString(), // 創建時間
     timestamp: new Date().toISOString(), // 備用時間屬性

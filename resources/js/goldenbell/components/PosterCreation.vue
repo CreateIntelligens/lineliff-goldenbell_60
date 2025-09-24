@@ -3,7 +3,7 @@
     <!-- Background Image -->
     <div class="absolute inset-0 w-full h-full">
       <img 
-        src="/images/poster.png" 
+        :src="getThemeImages('cheer').background" 
         alt="Golden Bell Background" 
         class="w-full h-full object-cover"
       />
@@ -194,6 +194,7 @@ import { contentFilterService } from '../../services/contentFilterService.js'
 import { liffService } from '../../services/liffService.js'
 import { apiService } from '../../services/apiService.js'
 import { posterImageService } from '../../services/posterImageService.js'
+import { getThemeImages } from '../../assets/images.js'
 
 // Emits
 const emit = defineEmits(['goToImageRecord', 'goBack', 'posterGenerated'])
@@ -238,7 +239,10 @@ const isOverLimit = computed(() => {
 })
 
 
-const posterImage = ref('/images/Entered1.png')
+const posterImage = computed(() => {
+  const themeImages = getThemeImages('cheer')
+  return themeImages.entered1
+})
 
 // 生命週期
 onMounted(async () => {
