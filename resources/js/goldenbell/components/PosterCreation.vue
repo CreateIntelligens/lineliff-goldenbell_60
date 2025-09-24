@@ -303,11 +303,13 @@ const loadUserData = async () => {
     const countData = await apiService.getImageCount(eventType)
     console.log('📦 API 回應:', countData)
     
-    if (countData && countData.data) {
+    // API 回應格式：{status: 'success', result: {data: {...}}}
+    const apiData = countData?.result?.data || countData?.data
+    if (apiData) {
       const oldCount = generationCount.value
-      generationCount.value = parseInt(countData.data.current_count) || 0
-      maxGenerations.value = parseInt(countData.data.limit) || 10
-      remainingCount.value = parseInt(countData.data.remaining) || 10
+      generationCount.value = parseInt(apiData.current_count) || 0
+      maxGenerations.value = parseInt(apiData.limit) || 10
+      remainingCount.value = parseInt(apiData.remaining) || 10
       
       console.log('✅ 計數更新成功:', {
         舊計數: oldCount,
