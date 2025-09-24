@@ -152,6 +152,14 @@ onMounted(async () => {
  * 載入圖片歷史記錄
  */
 const loadImageHistory = async () => {
+  console.log('🔍 開始載入圖片歷史記錄...')
+  console.log('📡 API 服務可用性:', apiService.isApiAvailable())
+  console.log('🌐 當前環境:', {
+    hostname: window.location.hostname,
+    enableLiff: window.endpoint?.enableLiff,
+    eventType: eventType
+  })
+  
   if (!apiService.isApiAvailable()) {
     console.warn('⚠️ API 服務不可用，使用 props 中的記錄')
     return

@@ -65,6 +65,7 @@
 <script setup>
 import { ref, onMounted, onBeforeMount, computed } from 'vue'
 import { liffService } from '../services/liffService.js'
+import { apiService } from '../services/apiService.js'
 import { API_CONFIG } from '../config/config.js'
 import GoldenBellHomepage from './components/GoldenBellHomepage.vue'
 import AwardSpeechHomepage from './components/AwardSpeechHomepage.vue'
@@ -162,6 +163,9 @@ async function initializeApp() {
       liffEnabled: liffEnabled.value
     })
     
+    // 初始化後載入用戶歷史記錄
+    await loadUserHistory()
+    
   } catch (error) {
     console.error('應用初始化過程發生錯誤:', error)
     // 設置默認狀態
@@ -246,6 +250,38 @@ function updateGenerationState(eventType, stateData) {
   if (generationStates.value[eventType]) {
     Object.assign(generationStates.value[eventType], stateData)
     console.log('更新生成狀態:', eventType, stateData)
+  }
+}
+
+async function loadUserHistory() {
+  if (!apiService.isApiAvailable()) {
+    console.warn('⚠️ API 服務不可用，跳過歷史記錄載入')
+    return
+  }
+
+  try {
+    console.log('📚 開始載入用戶歷史記錄...')
+    
+    // 載入兩種事件類型的歷史記錄
+    const [cheerHistory, awardHistory] = await Promise.allSettled([
+      apiService.getImageHistory('cheer'),
+      apiService.getImageHistory('award_speech')
+    ])
+    
+    // 處理應援海報歷史記錄
+    if (cheerHistory.status === 'fulfilled' && cheerHistory.value?.data) {
+      const cheerData = Array.isArray(cheerHistory.value.data) ? cheerHistory.value.data : []
+      console.log('✅ 應援海報歷史記錄:', cheerData.length, '筆')
+    }
+    
+    // 處理感言卡歷史記錄  
+    if (awardHistory.status === 'fulfilled' && awardHistory.value?.data) {
+      const awardData = Array.isArray(awardHistory.value.data) ? awardHistory.value.data : []
+      console.log('✅ 感言卡歷史記錄:', awardData.length, '筆')
+    }
+    
+  } catch (error) {
+    console.error('❌ 載入用戶歷史記錄失敗:', error)
   }
 }
 
