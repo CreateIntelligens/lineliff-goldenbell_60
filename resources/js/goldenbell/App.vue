@@ -42,7 +42,7 @@
       <GenerationRecords
         v-else-if="currentView === 'records'"
         :records="generationRecords"
-        @goBack="goToHomepage"
+        @goBack="goBackFromRecords"
         @viewItem="viewGenerationRecord"
       />
 
@@ -168,6 +168,18 @@ function goToHomepage() {
 function goToImageRecord() {
   console.log('導航到圖片生成紀錄頁面')
   currentView.value = 'records'
+}
+
+function goBackFromRecords() {
+  const eventType = getCurrentEventType()
+  
+  if (eventType === 'award_speech') {
+    console.log('從感言卡生成紀錄返回到感言卡製作頁面')
+    currentView.value = 'poster'
+  } else {
+    console.log('從應援海報生成紀錄返回到應援海報製作頁面')
+    currentView.value = 'poster'
+  }
 }
 
 // 生成紀錄相關函數
