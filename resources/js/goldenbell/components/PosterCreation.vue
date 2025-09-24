@@ -262,6 +262,7 @@ const posterImage = computed(() => {
 onMounted(async () => {
   // 首先使用從 App.vue 傳來的初始狀態
   if (props.initialState) {
+    console.log('📥 PosterCreation 收到初始狀態:', props.initialState)
     generationCount.value = props.initialState.generationCount
     maxGenerations.value = props.initialState.maxGenerations
     remainingCount.value = props.initialState.remainingCount
@@ -273,7 +274,11 @@ onMounted(async () => {
       isCreating.value = true
     }
     
-    console.log('✅ 使用初始狀態:', props.initialState)
+    console.log('✅ 應用初始狀態完成，目前計數:', {
+      generationCount: generationCount.value,
+      maxGenerations: maxGenerations.value,
+      remainingCount: remainingCount.value
+    })
   }
   
   // 然後嘗試從 API 載入最新數據（如果可用）

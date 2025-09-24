@@ -306,20 +306,34 @@ async function loadUserHistory() {
     ])
     
     // 更新計數狀態
-    if (cheerCount.status === 'fulfilled' && cheerCount.value?.data) {
-      const data = cheerCount.value.data
-      generationStates.value.cheer.generationCount = parseInt(data.current_count) || 0
-      generationStates.value.cheer.maxGenerations = parseInt(data.limit) || 10
-      generationStates.value.cheer.remainingCount = parseInt(data.remaining) || 10
-      console.log('✅ 載入應援海報計數:', data)
+    if (cheerCount.status === 'fulfilled') {
+      console.log('🔍 應援海報計數 API 回應:', cheerCount.value)
+      if (cheerCount.value?.data) {
+        const data = cheerCount.value.data
+        generationStates.value.cheer.generationCount = parseInt(data.current_count) || 0
+        generationStates.value.cheer.maxGenerations = parseInt(data.limit) || 10
+        generationStates.value.cheer.remainingCount = parseInt(data.remaining) || 10
+        console.log('✅ 載入應援海報計數:', data)
+      } else {
+        console.warn('⚠️ 應援海報計數 API 回應格式異常:', cheerCount.value)
+      }
+    } else {
+      console.error('❌ 應援海報計數 API 失敗:', cheerCount.reason)
     }
     
-    if (awardCount.status === 'fulfilled' && awardCount.value?.data) {
-      const data = awardCount.value.data
-      generationStates.value.award_speech.generationCount = parseInt(data.current_count) || 0
-      generationStates.value.award_speech.maxGenerations = parseInt(data.limit) || 10
-      generationStates.value.award_speech.remainingCount = parseInt(data.remaining) || 10
-      console.log('✅ 載入感言卡計數:', data)
+    if (awardCount.status === 'fulfilled') {
+      console.log('🔍 感言卡計數 API 回應:', awardCount.value)
+      if (awardCount.value?.data) {
+        const data = awardCount.value.data
+        generationStates.value.award_speech.generationCount = parseInt(data.current_count) || 0
+        generationStates.value.award_speech.maxGenerations = parseInt(data.limit) || 10
+        generationStates.value.award_speech.remainingCount = parseInt(data.remaining) || 10
+        console.log('✅ 載入感言卡計數:', data)
+      } else {
+        console.warn('⚠️ 感言卡計數 API 回應格式異常:', awardCount.value)
+      }
+    } else {
+      console.error('❌ 感言卡計數 API 失敗:', awardCount.reason)
     }
     
     const allHistoryRecords = []
