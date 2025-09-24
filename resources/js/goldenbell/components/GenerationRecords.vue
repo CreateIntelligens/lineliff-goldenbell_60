@@ -3,8 +3,8 @@
     <!-- Background Image -->
     <div class="absolute inset-0 w-full min-h-full">
       <img 
-        src="/images/poster.png" 
-        alt="Golden Bell Background" 
+        :src="backgroundImage" 
+        :alt="eventType === 'award_speech' ? 'Award Speech Background' : 'Golden Bell Background'"
         class="w-full h-full min-h-screen object-cover"
       />
     </div>
@@ -17,7 +17,7 @@
     <div class="flex w-full h-[781px] pt-[24px] px-[20px] flex-col items-start gap-[24px] relative z-10">
       <!-- Header -->
       <PageHeader
-        title="應援海報生成紀錄"
+        :title="pageTitle"
         :showBadge="true"
         :badgeText="`已生成：${generatedCount}/10`"
         @goBack="goBack"
@@ -77,11 +77,10 @@
                   <span class="text-[#999999] text-xs">無圖片</span>
                 </div>
                 
-                <!-- 應援文字覆蓋層 -->
-                <div v-if="item.text" class="absolute inset-0 flex items-center justify-center p-1">
-                  <div class="text-center max-w-[90%]">
-                    <div class="text-white font-bold text-[9px] leading-[110%] break-words whitespace-pre-wrap"
-                         style="text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.9); word-break: break-word; overflow-wrap: break-word;">
+                <!-- 文字覆蓋層 - 根據事件類型調整位置 -->
+                <div v-if="item.text" :class="getTextOverlayClass()" class="absolute p-1">
+                  <div :class="getTextContainerClass()">
+                    <div :class="getTextClass()" :style="getTextStyle()">
                       {{ item.text }}
                     </div>
                   </div>
@@ -104,6 +103,8 @@
 import { defineEmits, computed, onMounted, ref } from 'vue'
 import PageHeader from './PageHeader.vue'
 import { apiService } from '../../services/apiService.js'
+import { getCurrentEventType } from '../../config/themeConfig.js'
+import { getThemeImages } from '../../assets/images.js'
 
 // Props
 const props = defineProps({
@@ -120,7 +121,7 @@ const emit = defineEmits(['goBack', 'viewItem'])
 const apiRecords = ref([])
 const isLoading = ref(false)
 const apiError = ref('')
-const eventType = 'cheer' // 金鐘60應援活動事件類型
+const eventType = getCurrentEventType() // 動態獲取當前事件類型
 
 // Computed properties
 const records = computed(() => {
@@ -129,6 +130,17 @@ const records = computed(() => {
 })
 
 const generatedCount = computed(() => records.value.length)
+
+// 根據 event_type 動態標題
+const pageTitle = computed(() => {
+  return eventType === 'award_speech' ? '專屬感言卡生成紀錄' : '應援海報生成紀錄'
+})
+
+// 根據 event_type 動態背景圖片
+const backgroundImage = computed(() => {
+  const themeImages = getThemeImages(eventType)
+  return themeImages.detailBackground  // 使用 detailBackground (award_background.png)
+})
 
 // 生命週期
 onMounted(async () => {
@@ -246,6 +258,53 @@ const formatDate = (dateString) => {
   const minutes = String(date.getMinutes()).padStart(2, '0')
   
   return `${year}/${month}/${day} ${hours}:${minutes}`
+}
+
+// 文字覆蓋層樣式函數
+const getTextOverlayClass = () => {
+  if (eventType === 'award_speech') {
+    // 感言卡：文字在白色信紙區域（大約在圖片中央偏上的位置）
+    return 'top-[20%] left-[30px] w-[70%]'
+  } else {
+    // 應援海報：文字居中
+    return 'inset-0 flex items-center justify-center'
+  }
+}
+
+const getTextContainerClass = () => {
+  if (eventType === 'award_speech') {
+    return 'w-full'  // 使用完整寬度，位置已經在 overlay 層控制
+  } else {
+    return 'text-center max-w-[90%]'
+  }
+}
+
+const getTextClass = () => {
+  if (eventType === 'award_speech') {
+    // 感言卡：黑色文字，稍微大一點以便在小圖中顯示
+    return 'text-black font-bold text-[10px] leading-[120%] break-words whitespace-pre-wrap'
+  } else {
+    // 應援海報：白色文字
+    return 'text-white font-bold text-[9px] leading-[110%] break-words whitespace-pre-wrap'
+  }
+}
+
+const getTextStyle = () => {
+  if (eventType === 'award_speech') {
+    return {
+      wordBreak: 'break-word',
+      overflowWrap: 'break-word',
+      textAlign: 'left',
+      transform: 'rotate(-3deg)',  // 配合信紙角度
+      transformOrigin: 'top left'
+    }
+  } else {
+    return {
+      textShadow: '1px 1px 2px rgba(0, 0, 0, 0.9)',
+      wordBreak: 'break-word',
+      overflowWrap: 'break-word'
+    }
+  }
 }
 </script>
 

@@ -3,8 +3,8 @@
     <!-- Background Image -->
     <div class="absolute inset-0 w-full min-h-full">
       <img 
-        src="/images/background.png" 
-        alt="Golden Bell Background" 
+        :src="getThemeImages(getCurrentEventType()).background" 
+        alt="Background" 
         class="w-full h-full min-h-screen object-cover"
       />
     </div>
@@ -19,57 +19,42 @@
         <!-- Awards Info -->
         <div class="flex flex-col items-start gap-[358px] w-full">
           <!-- Awards Header -->
-          <div class="flex flex-col items-start gap-[28px] w-full">
+          <div class="flex flex-col items-start gap-[28px] w-full" v-if="getThemeContent('title') || getThemeContent('subtitle') || getThemeEvents().length > 0">
             <!-- Title Container -->
-            <div class="flex flex-col items-center gap-[8px] w-full">
-              <div class="h-[24px] w-full text-white text-center font-bold text-[24px] leading-[24px]">
-                第60屆金鐘獎頒獎典禮
+            <div class="flex flex-col items-center gap-[8px] w-full" v-if="getThemeContent('title') || getThemeContent('subtitle')">
+              <div v-if="getThemeContent('title')" class="h-[24px] w-full text-white text-center font-bold text-[24px] leading-[24px]">
+                {{ getThemeContent('title') }}
               </div>
-              <div class="h-[14px] w-full text-white text-center font-bold text-[14px] leading-[14px]">
-                THE 60th GOLDEN BELL AWARDS 2025
+              <div v-if="getThemeContent('subtitle')" class="h-[14px] w-full text-white text-center font-bold text-[14px] leading-[14px]">
+                {{ getThemeContent('subtitle') }}
               </div>
             </div>
 
             <!-- Event Dates Container -->
-            <div class="flex justify-center items-center gap-[32px] w-full">
-              <!-- Event 1 -->
-              <div class="flex items-center gap-[8px]">
-                <div class="w-[1px] h-[40px] bg-gradient-to-b from-[#E8FF02] to-black"></div>
+            <div v-if="getThemeEvents().length > 0" class="flex justify-center items-center gap-[32px] w-full">
+              <!-- Dynamic Events -->
+              <div 
+                v-for="(event, index) in getThemeEvents()" 
+                :key="index"
+                class="flex items-center gap-[8px]"
+              >
+                <div 
+                  class="w-[1px] h-[40px] bg-gradient-to-b to-black"
+                  :style="{ backgroundImage: `linear-gradient(to bottom, ${getThemeColor('accent')}, black)` }"
+                ></div>
                 <div class="flex flex-col items-start gap-[5px]">
-                  <div class="text-[#E8FF02] text-[18px] font-normal leading-[18px]">
-                    <span class="text-[18px]">10.11 </span>
-                    <span class="text-[13px]">/SAT</span>
+                  <div 
+                    class="text-[18px] font-normal leading-[18px]"
+                    :style="{ color: getThemeColor('accent') }"
+                  >
+                    <span class="text-[18px]">{{ event.date }} </span>
+                    <span class="text-[13px]">/{{ event.day }}</span>
                   </div>
-                  <div class="text-[#E8FF02] text-[18px] font-normal leading-[18px]">
-                    廣播金鐘
-                  </div>
-                </div>
-              </div>
-
-              <!-- Event 2 -->
-              <div class="flex items-center gap-[8px]">
-                <div class="w-[1px] h-[40px] bg-gradient-to-b from-[#E8FF02] to-black"></div>
-                <div class="flex flex-col items-start gap-[5px]">
-                  <div class="text-[#E8FF02] text-[18px] font-normal leading-[18px]">
-                    <span class="text-[18px]">10.17 </span>
-                    <span class="text-[13px]">/FRI</span>
-                  </div>
-                  <div class="text-[#E8FF02] text-[18px] font-normal leading-[18px]">
-                    節目金鐘
-                  </div>
-                </div>
-              </div>
-
-              <!-- Event 3 -->
-              <div class="flex items-center gap-[8px]">
-                <div class="w-[1px] h-[40px] bg-gradient-to-b from-[#E8FF02] to-black"></div>
-                <div class="flex flex-col items-start gap-[5px]">
-                  <div class="text-[#E8FF02] text-[18px] font-normal leading-[18px]">
-                    <span class="text-[18px]">10.18 </span>
-                    <span class="text-[13px]">/SAT</span>
-                  </div>
-                  <div class="text-[#E8FF02] text-[18px] font-normal leading-[18px]">
-                    戲劇金鐘
+                  <div 
+                    class="text-[18px] font-normal leading-[18px]"
+                    :style="{ color: getThemeColor('accent') }"
+                  >
+                    {{ event.name }}
                   </div>
                 </div>
               </div>
@@ -83,11 +68,11 @@
               <div class="h-[32px] w-full relative">
                 <!-- Blurred background title -->
                 <div class="absolute inset-0 w-full h-[32px] text-white text-center font-bold text-[32px] leading-[32px] tracking-[0.32px] blur-[2px]">
-                  金鐘60•星光閃耀
+                  {{ getThemeContent('mainTitle') }}
                 </div>
                 <!-- Sharp foreground title -->
                 <div class="absolute inset-0 w-full h-[32px] text-white text-center font-bold text-[32px] leading-[32px] tracking-[0.32px]">
-                  金鐘60•星光閃耀
+                  {{ getThemeContent('mainTitle') }}
                 </div>
               </div>
             </div>
@@ -95,9 +80,9 @@
             <!-- Description -->
             <div class="h-[87px] w-full">
               <div class="w-full text-white text-center font-bold text-[18px] leading-[29px] tracking-[1.44px]">
-                快來製作你的專屬應援海報<br/>
-                為最愛的節目和藝人加油打氣，<br/>
-                一起點亮金鐘星光大道！
+                <template v-for="(line, index) in getThemeContent('description')" :key="index">
+                  {{ line }}<br v-if="index < getThemeContent('description').length - 1"/>
+                </template>
               </div>
             </div>
           </div>
@@ -105,11 +90,23 @@
 
         <!-- Call to Action Button -->
         <div class="flex px-[4px] justify-end items-center gap-[5px] w-full">
-          <div class="text-[#E8FF02] font-normal text-[20px] leading-[20px] underline cursor-pointer" @click="handleCreatePoster">
-            製作我的應援海報
+          <div 
+            class="font-normal text-[20px] leading-[20px] underline cursor-pointer" 
+            :style="{ color: getThemeColor('accent') }"
+            @click="handleCreatePoster"
+          >
+            {{ getThemeContent('buttonText') }}
           </div>
-          <svg class="w-[13px] h-[13px] fill-[#E8FF02] cursor-pointer" @click="handleCreatePoster" width="13" height="14" viewBox="0 0 13 14" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M10.1621 7.86292H0.834671C0.598181 7.86292 0.399947 7.78076 0.239968 7.61643C0.0799893 7.45211 0 7.24849 0 7.00557C0 6.76266 0.0799893 6.55904 0.239968 6.39471C0.399947 6.23038 0.598181 6.14822 0.834671 6.14822H10.1621L6.07223 1.94721C5.9053 1.77574 5.82531 1.57569 5.83226 1.34706C5.83922 1.11844 5.92616 0.918387 6.0931 0.746917C6.26003 0.589736 6.45479 0.507573 6.67737 0.500429C6.89995 0.493284 7.0947 0.575447 7.26164 0.746917L12.7705 6.40543C12.8539 6.49116 12.9131 6.58404 12.9478 6.68407C12.9826 6.78409 13 6.89126 13 7.00557C13 7.11989 12.9826 7.22705 12.9478 7.32708C12.9131 7.4271 12.8539 7.51998 12.7705 7.60572L7.26164 13.2642C7.10861 13.4214 6.91734 13.5 6.6878 13.5C6.45827 13.5 6.26003 13.4214 6.0931 13.2642C5.92616 13.0928 5.8427 12.8891 5.8427 12.6534C5.8427 12.4176 5.92616 12.214 6.0931 12.0425L10.1621 7.86292Z" fill="#E8FF02"/>
+          <svg 
+            class="w-[13px] h-[13px] cursor-pointer" 
+            :style="{ fill: getThemeColor('accent') }"
+            @click="handleCreatePoster" 
+            width="13" 
+            height="14" 
+            viewBox="0 0 13 14" 
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path d="M10.1621 7.86292H0.834671C0.598181 7.86292 0.399947 7.78076 0.239968 7.61643C0.0799893 7.45211 0 7.24849 0 7.00557C0 6.76266 0.0799893 6.55904 0.239968 6.39471C0.399947 6.23038 0.598181 6.14822 0.834671 6.14822H10.1621L6.07223 1.94721C5.9053 1.77574 5.82531 1.57569 5.83226 1.34706C5.83922 1.11844 5.92616 0.918387 6.0931 0.746917C6.26003 0.589736 6.45479 0.507573 6.67737 0.500429C6.89995 0.493284 7.0947 0.575447 7.26164 0.746917L12.7705 6.40543C12.8539 6.49116 12.9131 6.58404 12.9478 6.68407C12.9826 6.78409 13 6.89126 13 7.00557C13 7.11989 12.9826 7.22705 12.9478 7.32708C12.9131 7.4271 12.8539 7.51998 12.7705 7.60572L7.26164 13.2642C7.10861 13.4214 6.91734 13.5 6.6878 13.5C6.45827 13.5 6.26003 13.4214 6.0931 13.2642C5.92616 13.0928 5.8427 12.8891 5.8427 12.6534C5.8427 12.4176 5.92616 12.214 6.0931 12.0425L10.1621 7.86292Z"/>
           </svg>
         </div>
       </div>
@@ -118,7 +115,16 @@
 </template>
 
 <script setup>
-import { defineEmits } from 'vue'
+import { defineEmits, onMounted } from 'vue'
+import { 
+  getThemeImage, 
+  getThemeContent, 
+  getThemeColor, 
+  getThemeEvents,
+  getCurrentEventType,
+  logCurrentTheme 
+} from '../../config/themeConfig.js'
+import { getThemeImages } from '../../assets/images.js'
 
 // Emits
 const emit = defineEmits(['createPoster'])
@@ -127,6 +133,15 @@ const emit = defineEmits(['createPoster'])
 const handleCreatePoster = () => {
   emit('createPoster')
 }
+
+// 生命週期
+onMounted(() => {
+  // 調試：輸出當前主題
+  console.log('🎨 首頁載入，當前事件類型:', getCurrentEventType())
+  if (window.GOLDENBELL_CONFIG?.debug) {
+    logCurrentTheme()
+  }
+})
 </script>
 
 <style scoped>

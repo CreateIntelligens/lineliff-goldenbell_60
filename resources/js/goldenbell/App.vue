@@ -10,15 +10,29 @@
 
     <!-- 主要應用內容 -->
     <div v-else class="main-content">
-      <!-- Golden Bell Homepage -->
+      <!-- 根據 event_type 選擇不同的首頁 -->
       <GoldenBellHomepage
-        v-if="currentView === 'homepage'"
+        v-if="currentView === 'homepage' && getCurrentEventType() === 'cheer'"
         @createPoster="goToPosterCreation"
+      />
+      
+      <AwardSpeechHomepage
+        v-else-if="currentView === 'homepage' && getCurrentEventType() === 'award_speech'"
+        @createPoster="goToPosterCreation"
+        @viewRecords="goToImageRecord"
       />
 
       <!-- Poster Creation View -->
       <PosterCreation
-        v-else-if="currentView === 'poster'"
+        v-else-if="currentView === 'poster' && getCurrentEventType() === 'cheer'"
+        @goToImageRecord="goToImageRecord"
+        @goBack="goToHomepage"
+        @posterGenerated="addGenerationRecord"
+      />
+      
+      <!-- Award Poster Creation View -->
+      <AwardPosterCreation
+        v-else-if="currentView === 'poster' && getCurrentEventType() === 'award_speech'"
         @goToImageRecord="goToImageRecord"
         @goBack="goToHomepage"
         @posterGenerated="addGenerationRecord"
@@ -49,9 +63,12 @@ import { ref, onMounted, onBeforeMount, computed } from 'vue'
 import { liffService } from '../services/liffService.js'
 import { API_CONFIG } from '../config/config.js'
 import GoldenBellHomepage from './components/GoldenBellHomepage.vue'
+import AwardSpeechHomepage from './components/AwardSpeechHomepage.vue'
 import PosterCreation from './components/PosterCreation.vue'
+import AwardPosterCreation from './components/AwardPosterCreation.vue'
 import GenerationRecords from './components/GenerationRecords.vue'
 import PosterDetail from './components/PosterDetail.vue'
+import { getCurrentEventType } from '../config/themeConfig.js'
 
 // 狀態管理
 const isInitialized = ref(false)

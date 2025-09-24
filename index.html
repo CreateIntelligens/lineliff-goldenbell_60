@@ -41,6 +41,10 @@
       // ===== 調試模式 =====
       debug: true, // 生產環境設為 false
       
+      // ===== 主題配置 =====
+      // 可以通過 URL 參數 ?event_type=award_speech 覆蓋
+      eventType: 'cheer', // 默認主題：cheer 或 award_speech
+      
       // ===== API 配置 =====
       api: {
         // 後端 API 端點 (部署時修改此處)
@@ -165,9 +169,92 @@
       min-height: 100vh;
       background-color: #000000; /* 改為深色背景 */
     }
+    
+    /* 主題切換按鈕樣式 - 隱藏 */
+    .theme-toggle-btn {
+      display: none; /* 隱藏按鈕 */
+    }
   </style>
 </head>
 <body>
+  <!-- 主題切換按鈕 -->
+  <button id="theme-toggle" class="theme-toggle-btn">
+    🎭 切換主題
+  </button>
+  
   <div id="vue-root" data-component="GoldenBellApp"></div>
+  
+  <!-- 主題切換功能 -->
+  <script>
+    (function() {
+      // 獲取當前主題
+      function getCurrentTheme() {
+        const urlParams = new URLSearchParams(window.location.search);
+        return urlParams.get('event_type') || window.GOLDENBELL_CONFIG.eventType || 'cheer';
+      }
+      
+      // 更新按鈕外觀
+      function updateButtonAppearance(theme) {
+        const button = document.getElementById('theme-toggle');
+        if (!button) return;
+        
+        if (theme === 'award_speech') {
+          button.classList.add('award-speech');
+          button.innerHTML = '🏆 感言卡模式';
+        } else {
+          button.classList.remove('award-speech');
+          button.innerHTML = '📣 應援模式';
+        }
+      }
+      
+      // 切換主題
+      function toggleTheme() {
+        const currentTheme = getCurrentTheme();
+        const newTheme = currentTheme === 'cheer' ? 'award_speech' : 'cheer';
+        
+        // 更新 URL 參數
+        const url = new URL(window.location);
+        url.searchParams.set('event_type', newTheme);
+        
+        // 顯示切換提示
+        const themeName = newTheme === 'award_speech' ? '得獎感言卡' : '應援海報';
+        console.log(`🎭 切換到${themeName}模式`);
+        
+        // 重新載入頁面
+        window.location.href = url.toString();
+      }
+      
+      // 等待 DOM 載入完成
+      document.addEventListener('DOMContentLoaded', function() {
+        const button = document.getElementById('theme-toggle');
+        if (button) {
+          // 初始化按鈕外觀
+          updateButtonAppearance(getCurrentTheme());
+          
+          // 綁定點擊事件
+          button.addEventListener('click', toggleTheme);
+          
+          console.log('🎭 主題切換按鈕已初始化');
+          console.log('📍 當前主題:', getCurrentTheme());
+        }
+      });
+      
+      // 如果 DOM 已經載入完成
+      if (document.readyState === 'loading') {
+        // DOM 還在載入中
+      } else {
+        // DOM 已經載入完成，立即執行初始化
+        setTimeout(() => {
+          const button = document.getElementById('theme-toggle');
+          if (button) {
+            updateButtonAppearance(getCurrentTheme());
+            button.addEventListener('click', toggleTheme);
+            console.log('🎭 主題切換按鈕已初始化 (立即執行)');
+            console.log('📍 當前主題:', getCurrentTheme());
+          }
+        }, 100);
+      }
+    })();
+  </script>
 </body>
 </html>

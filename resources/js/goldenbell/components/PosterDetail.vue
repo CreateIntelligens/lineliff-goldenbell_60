@@ -3,8 +3,8 @@
     <!-- Background Image -->
     <div class="absolute inset-0 w-full h-full">
       <img 
-        src="/images/poster.png" 
-        alt="Golden Bell Background" 
+        :src="backgroundImage" 
+        :alt="eventType === 'award_speech' ? 'Award Speech Background' : 'Golden Bell Background'"
         class="w-full h-full object-cover"
       />
     </div>
@@ -15,7 +15,7 @@
       <div class="flex flex-col items-center gap-[24px] w-full">
         <!-- Header -->
         <PageHeader
-          title="應援海報生成紀錄"
+          :title="pageTitle"
           :showBadge="true"
           :badgeText="`已生成：${generatedCount}/10`"
           @goBack="goBack"
@@ -31,12 +31,11 @@
               alt="Poster Detail"
             />
             
-            <!-- 應援文字覆蓋層 -->
-            <div v-if="recordData.text" class="absolute inset-0 flex items-center justify-center p-[15px]">
-              <div class="w-full max-w-[300px] text-center px-[10px]">
-                <div class="text-white font-bold text-center break-words whitespace-pre-wrap"
-                     :class="getTextSizeClass(recordData.text)"
-                     :style="getTextStyle(recordData.text)">
+            <!-- 文字覆蓋層 - 根據事件類型調整位置和顏色 -->
+            <div v-if="recordData.text" :class="getTextOverlayClass()" class="absolute">
+              <div :class="getTextContainerClass()">
+                <div :class="getTextClass(recordData.text)" 
+                     :style="getDetailTextStyle(recordData.text)">
                   {{ recordData.text }}
                 </div>
               </div>
@@ -95,10 +94,12 @@
 </template>
 
 <script setup>
-import { defineEmits } from 'vue'
+import { defineEmits, computed } from 'vue'
 import PageHeader from './PageHeader.vue'
 import { liffService } from '../../services/liffService.js'
 import { posterImageService } from '../../services/posterImageService.js'
+import { getCurrentEventType } from '../../config/themeConfig.js'
+import { getThemeImages } from '../../assets/images.js'
 
 // Props
 const props = defineProps({
@@ -114,6 +115,20 @@ const props = defineProps({
 
 // Emits
 const emit = defineEmits(['goBack', 'regeneratePoster'])
+
+// 動態獲取當前事件類型
+const eventType = getCurrentEventType()
+
+// 根據 event_type 動態標題
+const pageTitle = computed(() => {
+  return eventType === 'award_speech' ? '專屬感言卡生成紀錄' : '應援海報生成紀錄'
+})
+
+// 根據 event_type 動態背景圖片
+const backgroundImage = computed(() => {
+  const themeImages = getThemeImages(eventType)
+  return themeImages.detailBackground
+})
 
 // Methods
 const goBack = () => {
@@ -133,12 +148,35 @@ const downloadToOfficial = async () => {
     
     const imageUrl = props.recordData.imageUrl || props.recordData.image_url || props.recordData.poster_image || '/images/poster.png'
     const text = props.recordData.text || ''
-    const fileName = `金鐘60應援海報_${props.recordData.id || new Date().getTime()}`
+    const fileName = eventType === 'award_speech' 
+      ? `金鐘60得獎感言卡_${props.recordData.id || new Date().getTime()}`
+      : `金鐘60應援海報_${props.recordData.id || new Date().getTime()}`
+    
+    // 根據事件類型設定下載選項
+    let downloadOptions = {}
+    if (eventType === 'award_speech') {
+      // 感言卡使用黑色文字和特殊位置
+      downloadOptions = {
+        textColor: '#000000',  // 黑色文字
+        textAlign: 'center',  // 居中對齊
+        fontSize: 36,  // 適合的字體大小
+        fontFamily: '"Noto Serif HK", serif'
+      }
+    } else {
+      // 應援海報使用白色文字
+      downloadOptions = {
+        textColor: '#FFFFFF',  // 白色文字
+        textAlign: 'center',
+        fontSize: 36,
+        fontFamily: '"Noto Serif HK", serif'
+      }
+    }
     
     await posterImageService.generateAndDownloadPoster(
       imageUrl,
       text,
-      fileName
+      fileName,
+      downloadOptions
     )
     
     console.log('✅ 海報下載完成')
@@ -169,10 +207,14 @@ const sharePoster = async () => {
       return
     }
     
-    // 準備分享訊息 - 包含用戶的應援文字
-    const shareText = text ? 
-      `「金鐘60星光打Call｜為心愛的節目瘋狂應援！」\n\n我的應援：${text}\n\n金鐘盛典即將登場！快來製作你的專屬應援海報，為最愛的節目和藝人加油打氣，一起點亮金鐘星光大道！\n\n讓你的心意化作「星光打Call卡」，在典禮閃耀 ❤` :
-      `「金鐘60星光打Call｜為心愛的節目瘋狂應援！」\n\n金鐘盛典即將登場！快來製作你的專屬應援海報，為最愛的節目和藝人加油打氣，一起點亮金鐘星光大道！\n\n讓你的心意化作「星光打Call卡」，在典禮閃耀 ❤`
+    // 準備分享訊息 - 根據事件類型調整
+    const shareText = eventType === 'award_speech' 
+      ? (text ? 
+          `「金鐘60得獎感言卡｜我的金鐘夢想成真！」\n\n我的得獎感言：${text}\n\n金鐘盛典即將登場！快來製作你的專屬得獎感言卡，想像自己站在金鐘獎台上的光榮時刻！\n\n讓你的夢想化作「得獎感言卡」，閃耀金鐘榮光 ✨` :
+          `「金鐘60得獎感言卡｜我的金鐘夢想成真！」\n\n金鐘盛典即將登場！快來製作你的專屬得獎感言卡，想像自己站在金鐘獎台上的光榮時刻！\n\n讓你的夢想化作「得獎感言卡」，閃耀金鐘榮光 ✨`)
+      : (text ? 
+          `「金鐘60星光打Call｜為心愛的節目瘋狂應援！」\n\n我的應援：${text}\n\n金鐘盛典即將登場！快來製作你的專屬應援海報，為最愛的節目和藝人加油打氣，一起點亮金鐘星光大道！\n\n讓你的心意化作「星光打Call卡」，在典禮閃耀 ❤` :
+          `「金鐘60星光打Call｜為心愛的節目瘋狂應援！」\n\n金鐘盛典即將登場！快來製作你的專屬應援海報，為最愛的節目和藝人加油打氣，一起點亮金鐘星光大道！\n\n讓你的心意化作「星光打Call卡」，在典禮閃耀 ❤`)
     const messages = [
       {
         type: 'text',
@@ -276,6 +318,53 @@ const formatDate = (dateString) => {
   const minutes = String(date.getMinutes()).padStart(2, '0')
   
   return `${year}/${month}/${day} ${hours}:${minutes}`
+}
+
+// 文字覆蓋層樣式函數（詳細頁面版本）
+const getTextOverlayClass = () => {
+  if (eventType === 'award_speech') {
+    // 感言卡：文字在卡片區域，絕對定位
+    return 'top-[105px] left-[85px] p-[10px]'
+  } else {
+    // 應援海報：文字居中
+    return 'inset-0 flex items-center justify-center p-[15px]'
+  }
+}
+
+const getTextContainerClass = () => {
+  if (eventType === 'award_speech') {
+    return 'w-[240px]'
+  } else {
+    return 'w-full max-w-[300px] text-center px-[10px]'
+  }
+}
+
+const getTextClass = (text) => {
+  const sizeClass = getTextSizeClass(text)
+  const baseClass = 'font-bold break-words whitespace-pre-wrap'
+  
+  if (eventType === 'award_speech') {
+    return `text-black ${baseClass} ${sizeClass}`
+  } else {
+    return `text-white text-center ${baseClass} ${sizeClass}`
+  }
+}
+
+const getDetailTextStyle = (text) => {
+  if (eventType === 'award_speech') {
+    // 感言卡樣式：黑色文字，左對齊，輕微旋轉
+    return {
+      textAlign: 'left',
+      transform: 'rotate(-7deg)',
+      transformOrigin: 'top left',
+      lineHeight: '1.2',
+      wordBreak: 'break-word',
+      overflowWrap: 'break-word'
+    }
+  } else {
+    // 應援海報樣式：使用原有的 getTextStyle
+    return getTextStyle(text)
+  }
 }
 </script>
 

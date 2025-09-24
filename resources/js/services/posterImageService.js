@@ -97,11 +97,11 @@ class PosterImageService {
     ctx.textAlign = textAlign
     ctx.textBaseline = textBaseline
     
-    // 添加文字陰影效果，讓文字更清楚
-    ctx.shadowColor = 'rgba(0, 0, 0, 0.8)'
-    ctx.shadowBlur = 4
-    ctx.shadowOffsetX = 2
-    ctx.shadowOffsetY = 2
+    // 不使用陰影效果，保持文字清晰
+    ctx.shadowColor = 'transparent'
+    ctx.shadowBlur = 0
+    ctx.shadowOffsetX = 0
+    ctx.shadowOffsetY = 0
     
     // 計算文字位置
     const x = options.x || canvasWidth / 2
