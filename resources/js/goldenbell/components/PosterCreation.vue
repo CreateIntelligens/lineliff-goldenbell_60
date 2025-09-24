@@ -196,8 +196,22 @@ import { apiService } from '../../services/apiService.js'
 import { posterImageService } from '../../services/posterImageService.js'
 import { getThemeImages } from '../../assets/images.js'
 
+// Props
+const props = defineProps({
+  initialState: {
+    type: Object,
+    default: () => ({
+      hasGenerated: false,
+      generatedText: '',
+      generationCount: 0,
+      maxGenerations: 10,
+      remainingCount: 10
+    })
+  }
+})
+
 // Emits
-const emit = defineEmits(['goToImageRecord', 'goBack', 'posterGenerated'])
+const emit = defineEmits(['goToImageRecord', 'goBack', 'posterGenerated', 'stateUpdated'])
 
 // Reactive data
 const inputText = ref('')
@@ -246,6 +260,23 @@ const posterImage = computed(() => {
 
 // 生命週期
 onMounted(async () => {
+  // 首先使用從 App.vue 傳來的初始狀態
+  if (props.initialState) {
+    generationCount.value = props.initialState.generationCount
+    maxGenerations.value = props.initialState.maxGenerations
+    remainingCount.value = props.initialState.remainingCount
+    hasGenerated.value = props.initialState.hasGenerated
+    generatedText.value = props.initialState.generatedText
+    
+    // 如果有已生成的文字，設置為已創建狀態
+    if (props.initialState.hasGenerated && props.initialState.generatedText) {
+      isCreating.value = true
+    }
+    
+    console.log('✅ 使用初始狀態:', props.initialState)
+  }
+  
+  // 然後嘗試從 API 載入最新數據（如果可用）
   await loadUserData()
 })
 
@@ -536,6 +567,15 @@ const createPoster = async () => {
       generationCount.value++
       remainingCount.value = Math.max(0, remainingCount.value - 1)
     }
+    
+    // 更新 App.vue 中的狀態
+    emit('stateUpdated', eventType, {
+      hasGenerated: hasGenerated.value,
+      generatedText: generatedText.value,
+      generationCount: generationCount.value,
+      maxGenerations: maxGenerations.value,
+      remainingCount: remainingCount.value
+    })
     
     // 創建海報數據
     const posterData = {

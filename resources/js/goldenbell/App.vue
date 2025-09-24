@@ -25,17 +25,21 @@
       <!-- Poster Creation View -->
       <PosterCreation
         v-else-if="currentView === 'poster' && getCurrentEventType() === 'cheer'"
+        :initialState="generationStates.cheer"
         @goToImageRecord="goToImageRecord"
         @goBack="goToHomepage"
         @posterGenerated="addGenerationRecord"
+        @stateUpdated="updateGenerationState"
       />
       
       <!-- Award Poster Creation View -->
       <AwardPosterCreation
         v-else-if="currentView === 'poster' && getCurrentEventType() === 'award_speech'"
+        :initialState="generationStates.award_speech"
         @goToImageRecord="goToImageRecord"
         @goBack="goToHomepage"
         @posterGenerated="addGenerationRecord"
+        @stateUpdated="updateGenerationState"
       />
 
       <!-- Generation Records View -->
@@ -86,6 +90,24 @@ const currentView = ref('homepage') // 'homepage', 'poster', 'records', 'detail'
 // 生成紀錄狀態
 const generationRecords = ref([])
 const selectedRecord = ref(null) // 當前查看的紀錄
+
+// 各事件類型的生成狀態追蹤
+const generationStates = ref({
+  cheer: {
+    hasGenerated: false,
+    generatedText: '',
+    generationCount: 0,
+    maxGenerations: 10,
+    remainingCount: 10
+  },
+  award_speech: {
+    hasGenerated: false,
+    generatedText: '',
+    generationCount: 0,
+    maxGenerations: 10,
+    remainingCount: 10
+  }
+})
 
 // 計算屬性
 const liffEnabled = computed(() => window.endpoint?.enableLiff || false)
@@ -184,6 +206,8 @@ function goBackFromRecords() {
 
 // 生成紀錄相關函數
 function addGenerationRecord(posterData) {
+  const currentEventType = getCurrentEventType()
+  
   const newRecord = {
     id: Date.now(), // 使用時間戳作為唯一 ID
     imageUrl: posterData.imageUrl || '', // 海報圖片 URL
@@ -198,8 +222,31 @@ function addGenerationRecord(posterData) {
   // 添加到紀錄開頭（最新的在前面）
   generationRecords.value.unshift(newRecord)
   
+  // 更新對應事件類型的生成狀態
+  if (generationStates.value[currentEventType]) {
+    generationStates.value[currentEventType].hasGenerated = true
+    generationStates.value[currentEventType].generatedText = posterData.text || ''
+    generationStates.value[currentEventType].generationCount = posterData.generationCount || generationStates.value[currentEventType].generationCount + 1
+    
+    // 如果有從 posterData 傳來的計數資訊，更新它
+    if (posterData.maxGenerations !== undefined) {
+      generationStates.value[currentEventType].maxGenerations = posterData.maxGenerations
+    }
+    if (posterData.remainingCount !== undefined) {
+      generationStates.value[currentEventType].remainingCount = posterData.remainingCount
+    }
+  }
+  
   console.log('新增生成紀錄:', newRecord)
+  console.log('更新生成狀態:', generationStates.value[currentEventType])
   console.log('目前總紀錄數:', generationRecords.value.length)
+}
+
+function updateGenerationState(eventType, stateData) {
+  if (generationStates.value[eventType]) {
+    Object.assign(generationStates.value[eventType], stateData)
+    console.log('更新生成狀態:', eventType, stateData)
+  }
 }
 
 function viewGenerationRecord(record) {
