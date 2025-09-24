@@ -265,112 +265,110 @@ function updateGenerationState(eventType, stateData) {
 }
 
 async function loadUserHistory() {
-  console.log('📚 開始載入用戶歷史記錄...')
-  console.log('🔧 API 可用性:', apiService.isApiAvailable())
-  
   if (!apiService.isApiAvailable()) {
     console.warn('⚠️ API 服務不可用，跳過歷史記錄載入')
     return
   }
 
   try {
-    // 載入當前事件類型的歷史記錄
-    const currentEventType = getCurrentEventType()
-    console.log('📡 當前事件類型:', currentEventType)
+    console.log('📚 開始載入用戶歷史記錄...')
     
-    const historyResult = await apiService.getImageHistory(currentEventType)
-    console.log('🔍 API 原始回應:', historyResult)
-    console.log('🔍 API 回應詳細內容:', JSON.stringify(historyResult, null, 2))
+    // 載入所有事件類型的歷史記錄
+    const [cheerHistory, awardHistory] = await Promise.allSettled([
+      apiService.getImageHistory('cheer'),
+      apiService.getImageHistory('award_speech')
+    ])
     
     const allHistoryRecords = []
     
-    // 智能解析 API 回應，適應各種可能的格式
-    if (historyResult) {
-      let historyData = null
-      
-      // 嘗試多種可能的數據路徑，適應不同的API回應格式
-      if (historyResult.result && historyResult.result.data) {
-        // 格式1: { result: { data: [...] } }
-        historyData = historyResult.result.data
-        console.log('🔍 使用格式1: result.data')
-      } else if (historyResult.data) {
-        // 格式2: { data: [...] }
-        historyData = historyResult.data
-        console.log('🔍 使用格式2: data')
-      } else if (historyResult.result) {
-        // 格式3: { result: [...] }
-        historyData = historyResult.result
-        console.log('🔍 使用格式3: result')
-      } else if (Array.isArray(historyResult)) {
-        // 格式4: [...]
-        historyData = historyResult
-        console.log('🔍 使用格式4: 直接陣列')
-      } else {
-        console.warn('⚠️ 無法識別的 API 回應格式:', historyResult)
-        return
-      }
-      
-      console.log('🔍 解析的歷史數據:', historyData, '類型:', typeof historyData)
-      
-      // 如果是字串，嘗試解析為 JSON
-      if (typeof historyData === 'string') {
-        try {
-          historyData = JSON.parse(historyData)
-          console.log('✅ JSON 解析成功:', historyData)
-        } catch (e) {
-          console.warn('⚠️ JSON 解析失敗:', e)
-          historyData = []
-        }
-      }
-      
-      // 處理數組數據
-      console.log('🔍 historyData 檢查:', {
-        isArray: Array.isArray(historyData),
-        length: Array.isArray(historyData) ? historyData.length : 'N/A',
-        content: historyData
-      })
-      
-      if (Array.isArray(historyData) && historyData.length > 0) {
-        console.log('📋 處理', historyData.length, '筆記錄')
-        
-        const formattedData = historyData.map((item, index) => {
-          console.log(`📄 記錄 ${index + 1}:`, item)
-          
-          return {
-            id: item.id || `${currentEventType}_${Date.now()}_${index}`,
-            imageUrl: item.image_url || item.imageUrl || item.poster_image || null,
-            image_url: item.image_url || item.imageUrl || item.poster_image || null,
-            poster_image: item.image_url || item.imageUrl || item.poster_image || null,
-            text: item.text || item.content || '',
-            created_at: item.created_at || item.timestamp || item.date || new Date().toISOString(),
-            timestamp: item.created_at || item.timestamp || item.date || new Date().toISOString(),
-            date: item.created_at || item.timestamp || item.date || new Date().toISOString(),
-            event_type: currentEventType
-          }
-        })
-        
-        allHistoryRecords.push(...formattedData)
-        console.log('✅ 成功格式化', formattedData.length, '筆記錄')
-      } else {
-        console.log('📝 沒有歷史記錄或數據為空')
-      }
+    // 處理應援海報歷史記錄
+    if (cheerHistory.status === 'fulfilled') {
+      const records = parseHistoryData(cheerHistory.value, 'cheer')
+      allHistoryRecords.push(...records)
     }
     
-    // 更新記錄
+    // 處理感言卡歷史記錄
+    if (awardHistory.status === 'fulfilled') {
+      const records = parseHistoryData(awardHistory.value, 'award_speech')
+      allHistoryRecords.push(...records)
+    }
+    
+    // 按時間排序並更新記錄
     if (allHistoryRecords.length > 0) {
-      // 按時間排序（最新的在前）
       allHistoryRecords.sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
       generationRecords.value = allHistoryRecords
-      console.log('🎉 總共載入歷史記錄:', allHistoryRecords.length, '筆')
-      console.log('📦 載入的記錄詳情:', allHistoryRecords)
+      console.log('✅ 總共載入歷史記錄:', allHistoryRecords.length, '筆')
+      
+      // 更新各事件類型的狀態
+      updateStatesFromHistory(allHistoryRecords)
     } else {
-      console.log('📝 沒有找到歷史記錄，保持當前記錄')
+      console.log('📝 沒有找到歷史記錄')
     }
     
   } catch (error) {
     console.error('❌ 載入用戶歷史記錄失敗:', error)
-    console.error('❌ 錯誤詳情:', error.message, error.stack)
   }
+}
+
+// 解析歷史數據的通用函數
+function parseHistoryData(historyResult, eventType) {
+  if (!historyResult) return []
+  
+  let historyData = null
+  
+  // 智能解析 API 回應格式
+  if (historyResult.result && historyResult.result.data) {
+    historyData = historyResult.result.data
+  } else if (historyResult.data) {
+    historyData = historyResult.data
+  } else if (historyResult.result) {
+    historyData = historyResult.result
+  } else if (Array.isArray(historyResult)) {
+    historyData = historyResult
+  }
+  
+  // 解析 JSON 字串
+  if (typeof historyData === 'string') {
+    try {
+      historyData = JSON.parse(historyData)
+    } catch (e) {
+      console.warn('⚠️ 無法解析 JSON:', e)
+      return []
+    }
+  }
+  
+  // 處理陣列數據
+  if (!Array.isArray(historyData)) return []
+  
+  return historyData.map((item, index) => ({
+    id: item.id || `${eventType}_${Date.now()}_${index}`,
+    imageUrl: item.image_url || item.imageUrl || item.poster_image || null,
+    image_url: item.image_url || item.imageUrl || item.poster_image || null,
+    poster_image: item.image_url || item.imageUrl || item.poster_image || null,
+    text: item.text || item.content || '',
+    created_at: item.created_at || item.timestamp || item.date || new Date().toISOString(),
+    timestamp: item.created_at || item.timestamp || item.date || new Date().toISOString(),
+    date: item.created_at || item.timestamp || item.date || new Date().toISOString(),
+    event_type: eventType
+  }))
+}
+
+// 從歷史記錄更新狀態
+function updateStatesFromHistory(records) {
+  // 重置狀態
+  generationStates.value.cheer.hasGenerated = false
+  generationStates.value.award_speech.hasGenerated = false
+  
+  // 根據記錄更新狀態
+  records.forEach(record => {
+    const eventType = record.event_type
+    if (generationStates.value[eventType]) {
+      generationStates.value[eventType].hasGenerated = true
+      if (!generationStates.value[eventType].generatedText) {
+        generationStates.value[eventType].generatedText = record.text
+      }
+    }
+  })
 }
 
 function viewGenerationRecord(record) {

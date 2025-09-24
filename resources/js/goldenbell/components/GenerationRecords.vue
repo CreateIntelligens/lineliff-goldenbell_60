@@ -152,18 +152,14 @@ onMounted(async () => {
  * 載入圖片歷史記錄
  */
 const loadImageHistory = async () => {
-  console.log('🔍 [GenerationRecords] 開始載入圖片歷史記錄...')
-  console.log('📡 [GenerationRecords] API 服務可用性:', apiService.isApiAvailable())
-  console.log('🌐 [GenerationRecords] 當前環境:', {
-    hostname: window.location.hostname,
-    enableLiff: window.endpoint?.enableLiff,
-    eventType: eventType,
-    propsRecords: props.records.length
-  })
+  // 生產環境下隱藏詳細日誌
+  if (window.GOLDENBELL_CONFIG?.debug) {
+    console.log('🔍 [GenerationRecords] 開始載入圖片歷史記錄...')
+  }
   
   if (!apiService.isApiAvailable()) {
-    console.warn('⚠️ [GenerationRecords] API 服務不可用，使用 props 中的記錄')
-    apiError.value = 'API 服務不可用'
+    console.warn('⚠️ API 服務不可用')
+    apiError.value = 'API 服務暫時不可用，請稍後再試'
     return
   }
 

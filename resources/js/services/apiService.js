@@ -205,16 +205,52 @@ class ApiService {
    * @param {string} eventType - 事件類型
    * @returns {Promise<Object>} 儲存結果
    */
-  async saveImage(text, imageBlob, eventType = '') {
+  /**
+   * 自動初始化用戶
+   * @param {string} eventType - 事件類型
+   * @returns {Promise<boolean>} 是否初始化成功
+   */
+  async initializeUser(eventType = '') {
     try {
-      const userId = await this.getUserId()
-      const formData = new FormData()
+      console.log('🔄 開始初始化用戶...')
       
+      // 方法1：嘗試呼叫計數API（可能會自動創建用戶）
+      try {
+        await this.getImageCount(eventType)
+        console.log('✅ 計數API呼叫成功')
+      } catch (e) {
+        console.log('⚠️ 計數API失敗:', e.message)
+      }
+      
+      // 方法2：嘗試呼叫歷史記錄API（可能會自動創建用戶）
+      try {
+        await this.getImageHistory(eventType)
+        console.log('✅ 歷史記錄API呼叫成功')
+      } catch (e) {
+        console.log('⚠️ 歷史記錄API失敗:', e.message)
+      }
+      
+      return true
+    } catch (error) {
+      console.error('❌ 用戶初始化失敗:', error)
+      return false
+    }
+  }
+
+  async saveImage(text, imageBlob, eventType = '') {
+    const userId = await this.getUserId()
+    
+    // 創建FormData的通用函數
+    const createFormData = () => {
+      const formData = new FormData()
       formData.append('user_id', userId)
       formData.append('event_type', eventType)
       formData.append('text', text)
       formData.append('image', imageBlob, 'poster.png')
+      return formData
+    }
 
+    try {
       if (configUtils.isDebug()) {
         console.log('📤 儲存圖片請求參數:', {
           user_id: userId,
@@ -226,19 +262,47 @@ class ApiService {
       }
 
       const response = await this.makeRequest('POST', '/gba60/images', {
-        body: formData
+        body: createFormData()
       })
       
       return await this.handleResponse(response)
+      
     } catch (error) {
       console.error('❌ 儲存圖片失敗:', error)
-      console.error('❌ 錯誤詳情:', {
-        message: error.message,
-        userId: await this.getUserId().catch(() => 'unknown'),
-        eventType: eventType,
-        textLength: text?.length || 0,
-        blobSize: imageBlob?.size || 0
-      })
+      
+      // 如果是422錯誤（用戶ID問題），嘗試自動初始化用戶
+      if (error.message.includes('user id') || error.message.includes('user_id') || 
+          error.message.includes('422') || error.message.includes('無效')) {
+        
+        console.log('🔄 檢測到用戶ID問題，嘗試自動初始化...')
+        
+        try {
+          await this.initializeUser(eventType)
+          
+          // 等待一小段時間讓後端處理
+          await new Promise(resolve => setTimeout(resolve, 1000))
+          
+          console.log('🔄 重新嘗試儲存圖片...')
+          const retryResponse = await this.makeRequest('POST', '/gba60/images', {
+            body: createFormData()
+          })
+          
+          const result = await this.handleResponse(retryResponse)
+          console.log('✅ 重試成功！')
+          return result
+          
+        } catch (retryError) {
+          console.error('❌ 自動初始化後重試仍失敗:', retryError)
+          
+          // 如果所有自動修復都失敗，提供有用的錯誤信息
+          const friendlyError = new Error(
+            `儲存失敗：${retryError.message || '未知錯誤'}。請聯繫技術支援，用戶ID: ${userId}`
+          )
+          throw friendlyError
+        }
+      }
+      
+      // 其他類型的錯誤直接拋出
       throw error
     }
   }
