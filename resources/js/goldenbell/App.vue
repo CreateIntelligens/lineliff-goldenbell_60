@@ -184,9 +184,25 @@ async function initializeApp() {
 }
 
 // 導航功能函數
-function goToPosterCreation() {
+async function goToPosterCreation() {
   console.log('導航到應援海報製作頁面')
   currentView.value = 'poster'
+  
+  // 進入海報製作頁面時，確保載入最新的計數資料
+  if (apiService.isApiAvailable()) {
+    const currentEventType = getCurrentEventType()
+    try {
+      const countData = await apiService.getImageCount(currentEventType)
+      if (countData && countData.data) {
+        generationStates.value[currentEventType].generationCount = parseInt(countData.data.current_count) || 0
+        generationStates.value[currentEventType].maxGenerations = parseInt(countData.data.limit) || 10
+        generationStates.value[currentEventType].remainingCount = parseInt(countData.data.remaining) || 10
+        console.log('🔄 更新海報製作頁面計數:', countData.data)
+      }
+    } catch (error) {
+      console.warn('⚠️ 載入計數資料失敗:', error.message)
+    }
+  }
 }
 
 function goToHomepage() {
@@ -279,13 +295,32 @@ async function loadUserHistory() {
   }
 
   try {
-    console.log('📚 開始載入用戶歷史記錄...')
+    console.log('📚 開始載入用戶歷史記錄和計數資料...')
     
-    // 載入所有事件類型的歷史記錄
-    const [cheerHistory, awardHistory] = await Promise.allSettled([
+    // 並行載入歷史記錄和計數資料
+    const [cheerHistory, awardHistory, cheerCount, awardCount] = await Promise.allSettled([
       apiService.getImageHistory('cheer'),
-      apiService.getImageHistory('award_speech')
+      apiService.getImageHistory('award_speech'),
+      apiService.getImageCount('cheer'),
+      apiService.getImageCount('award_speech')
     ])
+    
+    // 更新計數狀態
+    if (cheerCount.status === 'fulfilled' && cheerCount.value?.data) {
+      const data = cheerCount.value.data
+      generationStates.value.cheer.generationCount = parseInt(data.current_count) || 0
+      generationStates.value.cheer.maxGenerations = parseInt(data.limit) || 10
+      generationStates.value.cheer.remainingCount = parseInt(data.remaining) || 10
+      console.log('✅ 載入應援海報計數:', data)
+    }
+    
+    if (awardCount.status === 'fulfilled' && awardCount.value?.data) {
+      const data = awardCount.value.data
+      generationStates.value.award_speech.generationCount = parseInt(data.current_count) || 0
+      generationStates.value.award_speech.maxGenerations = parseInt(data.limit) || 10
+      generationStates.value.award_speech.remainingCount = parseInt(data.remaining) || 10
+      console.log('✅ 載入感言卡計數:', data)
+    }
     
     const allHistoryRecords = []
     
@@ -312,6 +347,11 @@ async function loadUserHistory() {
     } else {
       console.log('📝 沒有找到歷史記錄')
     }
+    
+    console.log('🎯 最終計數狀態:', {
+      cheer: generationStates.value.cheer,
+      award_speech: generationStates.value.award_speech
+    })
     
   } catch (error) {
     console.error('❌ 載入用戶歷史記錄失敗:', error)
