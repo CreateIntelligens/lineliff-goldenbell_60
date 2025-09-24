@@ -288,13 +288,23 @@ async function loadUserHistory() {
     if (historyResult) {
       let historyData = null
       
-      // 嘗試多種可能的數據路徑
-      if (historyResult.data) {
+      // 嘗試多種可能的數據路徑，適應不同的API回應格式
+      if (historyResult.result && historyResult.result.data) {
+        // 格式1: { result: { data: [...] } }
+        historyData = historyResult.result.data
+        console.log('🔍 使用格式1: result.data')
+      } else if (historyResult.data) {
+        // 格式2: { data: [...] }
         historyData = historyResult.data
+        console.log('🔍 使用格式2: data')
       } else if (historyResult.result) {
+        // 格式3: { result: [...] }
         historyData = historyResult.result
+        console.log('🔍 使用格式3: result')
       } else if (Array.isArray(historyResult)) {
+        // 格式4: [...]
         historyData = historyResult
+        console.log('🔍 使用格式4: 直接陣列')
       } else {
         console.warn('⚠️ 無法識別的 API 回應格式:', historyResult)
         return
