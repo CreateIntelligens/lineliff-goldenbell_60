@@ -59,6 +59,6 @@ export default defineConfig({
             }
         },
         assetsInlineLimit: 4096,
-        copyPublicDir: true
+        copyPublicDir: false  // 不複製 public 資料夾，只使用 import 的圖片（有雜湊）
     }
 });
