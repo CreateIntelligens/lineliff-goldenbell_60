@@ -299,6 +299,7 @@ onMounted(async () => {
 // Methods
 const loadUserData = async () => {
   if (!apiService.isApiAvailable()) {
+    console.log('⚠️ API 服務不可用，跳過計數載入')
     return
   }
 
@@ -306,20 +307,36 @@ const loadUserData = async () => {
     isLoading.value = true
     apiError.value = ''
     
+    console.log('📡 呼叫 getImageCount API，事件類型:', eventType)
     const countData = await apiService.getImageCount(eventType)
+    console.log('📦 API 回應:', countData)
     
     if (countData && countData.data) {
+      const oldCount = generationCount.value
       generationCount.value = parseInt(countData.data.current_count) || 0
       maxGenerations.value = parseInt(countData.data.limit) || 10
       remainingCount.value = parseInt(countData.data.remaining) || 10
+      
+      console.log('✅ 計數更新成功:', {
+        舊計數: oldCount,
+        新計數: generationCount.value,
+        最大次數: maxGenerations.value,
+        剩餘次數: remainingCount.value
+      })
+    } else {
+      console.warn('⚠️ API 回應格式異常:', countData)
     }
     
   } catch (error) {
+    console.error('❌ 載入計數失敗:', error)
     apiError.value = ''
     
-    generationCount.value = 0
-    maxGenerations.value = 10
-    remainingCount.value = 10
+    // 不要重置計數，保留現有狀態
+    console.log('🔄 保留現有計數狀態:', {
+      generationCount: generationCount.value,
+      maxGenerations: maxGenerations.value,
+      remainingCount: remainingCount.value
+    })
   } finally {
     isLoading.value = false
   }
