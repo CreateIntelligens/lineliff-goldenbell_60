@@ -607,28 +607,60 @@ const goToImageRecord = () => {
 }
 
 const regeneratePoster = async () => {
-  if (remainingCount.value <= 0 || isLoading.value) return
-
-  // 重新生成 = 清空輸入框，讓用戶重新輸入文字
+  if (remainingCount.value <= 0 || isLoading.value || !generatedText.value) return
   
-  // 清空輸入框
-  inputText.value = ''
-  filteredText.value = ''
-  warnings.value = []
-  isEditing.value = false
-  generatedText.value = ''
-  
-  // 清空 textarea 內容
-  await nextTick()
-  if (textInput.value) {
-    textInput.value.value = ''
-    textInput.value.focus()
+  try {
+    isLoading.value = true
+    apiError.value = ''
+    
+    // 使用已生成的文字重新創建海報
+    const textToUse = generatedText.value
+    
+    // 儲存海報到後端（這會消耗一次生成次數）
+    let savedResult = null
+    try {
+      savedResult = await savePosterToAPI(textToUse, posterImage.value)
+    } catch (saveError) {
+      // 開發環境下 API 錯誤是正常的，不影響用戶體驗
+      console.warn('API 儲存失敗:', saveError.message)
+    }
+    
+    // 重新載入用戶資料以獲取最新計數（重要：這會更新剩餘次數）
+    try {
+      await loadUserData()
+    } catch (loadError) {
+      // 如果 API 不可用，本地更新計數器
+      generationCount.value++
+      remainingCount.value = Math.max(0, remainingCount.value - 1)
+    }
+    
+    // 更新 App.vue 中的狀態
+    emit('stateUpdated', eventType, {
+      hasGenerated: hasGenerated.value,
+      generatedText: generatedText.value,
+      generationCount: generationCount.value,
+      maxGenerations: maxGenerations.value,
+      remainingCount: remainingCount.value
+    })
+    
+    // 創建海報數據
+    const posterData = {
+      text: textToUse,
+      imageUrl: posterImage.value,
+      generationCount: generationCount.value,
+      savedResult: savedResult,
+      isRegeneration: true // 標記這是重新生成
+    }
+    
+    // 發送海報生成事件到父元件
+    emit('posterGenerated', posterData)
+    
+  } catch (error) {
+    apiError.value = error.message
+    alert(`重新生成海報失敗: ${error.message}`)
+  } finally {
+    isLoading.value = false
   }
-  
-  // 重置按鈕狀態，讓用戶可以重新輸入
-  isCreating.value = false
-  
-  // 重新生成不增加次數，用戶需要重新輸入文字後點擊「製作我的應援海報」才會增加次數
 }
 
 const downloadToOfficial = async () => {

@@ -46,6 +46,7 @@
       <GenerationRecords
         v-else-if="currentView === 'records'"
         :records="generationRecords"
+        :refreshTrigger="recordsRefreshTrigger"
         @goBack="goBackFromRecords"
         @viewItem="viewGenerationRecord"
       />
@@ -91,6 +92,7 @@ const currentView = ref('homepage') // 'homepage', 'poster', 'records', 'detail'
 // 生成紀錄狀態
 const generationRecords = ref([])
 const selectedRecord = ref(null) // 當前查看的紀錄
+const recordsRefreshTrigger = ref(0) // 用於觸發記錄頁面刷新
 
 // 各事件類型的生成狀態追蹤
 const generationStates = ref({
@@ -191,9 +193,12 @@ function goToHomepage() {
   currentView.value = 'homepage'
 }
 
-function goToImageRecord() {
+async function goToImageRecord() {
   console.log('導航到圖片生成紀錄頁面')
   currentView.value = 'records'
+  
+  // 觸發記錄頁面重新載入資料
+  recordsRefreshTrigger.value = Date.now()
 }
 
 function goBackFromRecords() {
@@ -255,6 +260,9 @@ function addGenerationRecord(posterData) {
   console.log('新增生成紀錄:', newRecord)
   console.log('更新生成狀態:', generationStates.value[currentEventType])
   console.log('目前總紀錄數:', generationRecords.value.length)
+  
+  // 觸發記錄頁面刷新（如果有需要的話）
+  recordsRefreshTrigger.value = Date.now()
 }
 
 function updateGenerationState(eventType, stateData) {

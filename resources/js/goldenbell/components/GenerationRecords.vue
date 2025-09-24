@@ -100,7 +100,7 @@
 </template>
 
 <script setup>
-import { defineEmits, computed, onMounted, ref } from 'vue'
+import { defineEmits, computed, onMounted, ref, watch } from 'vue'
 import PageHeader from './PageHeader.vue'
 import { apiService } from '../../services/apiService.js'
 import { getCurrentEventType } from '../../config/themeConfig.js'
@@ -111,6 +111,10 @@ const props = defineProps({
   records: {
     type: Array,
     default: () => []
+  },
+  refreshTrigger: {
+    type: Number,
+    default: 0
   }
 })
 
@@ -145,6 +149,14 @@ const backgroundImage = computed(() => {
 // 生命週期
 onMounted(async () => {
   await loadImageHistory()
+})
+
+// 監聽 refreshTrigger 變化，重新載入資料
+watch(() => props.refreshTrigger, async (newValue, oldValue) => {
+  if (newValue !== oldValue && newValue > 0) {
+    console.log('🔄 收到刷新請求，重新載入歷史記錄...')
+    await loadImageHistory()
+  }
 })
 
 // Methods
