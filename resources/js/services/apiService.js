@@ -151,14 +151,26 @@ class ApiService {
     } catch (error) {
       console.error('❌ 無法獲取用戶ID:', error)
       
-      // 開發模式下的後備機制
-      if (!window.endpoint?.enableLiff) {
-        const fallbackUserId = 'dev_user_' + Date.now()
-        console.log('🔄 使用後備用戶ID (開發模式):', fallbackUserId)
-        return fallbackUserId
-      }
+      // 智能後備機制：根據環境決定策略
+      const hostname = window.location.hostname
+      const isLiffEnvironment = hostname.includes('liff.line.me')
+      const isLocalDev = hostname === 'localhost' || hostname === '127.0.0.1'
       
-      throw new Error('無法獲取用戶資訊')
+      if (!window.endpoint?.enableLiff || !isLiffEnvironment || isLocalDev) {
+        // 開發模式或非 LIFF 環境，使用開發用戶ID
+        const fallbackUserId = 'dev_user_' + Date.now()
+        console.log('🔄 使用後備用戶ID:', fallbackUserId, '環境:', {
+          hostname,
+          isLiffEnvironment,
+          enableLiff: window.endpoint?.enableLiff
+        })
+        return fallbackUserId
+      } else {
+        // LIFF 環境但無法獲取用戶ID，可能是權限問題
+        const guestUserId = 'guest_user_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9)
+        console.warn('⚠️ LIFF 環境但無法獲取用戶ID，使用訪客ID:', guestUserId)
+        return guestUserId
+      }
     }
   }
 
