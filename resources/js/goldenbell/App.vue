@@ -280,6 +280,7 @@ async function loadUserHistory() {
     
     const historyResult = await apiService.getImageHistory(currentEventType)
     console.log('🔍 API 原始回應:', historyResult)
+    console.log('🔍 API 回應詳細內容:', JSON.stringify(historyResult, null, 2))
     
     const allHistoryRecords = []
     
@@ -313,6 +314,12 @@ async function loadUserHistory() {
       }
       
       // 處理數組數據
+      console.log('🔍 historyData 檢查:', {
+        isArray: Array.isArray(historyData),
+        length: Array.isArray(historyData) ? historyData.length : 'N/A',
+        content: historyData
+      })
+      
       if (Array.isArray(historyData) && historyData.length > 0) {
         console.log('📋 處理', historyData.length, '筆記錄')
         
