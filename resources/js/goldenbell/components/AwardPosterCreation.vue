@@ -713,18 +713,16 @@ const downloadToOfficial = async () => {
     
     const fileName = `金鐘60得獎感言卡_${new Date().getTime()}`
     
-    // 感言卡使用黑色文字和特殊位置 - 參考預覽位置
+    // 感言卡使用黑色文字和正中間位置
     const downloadOptions = {
       textColor: '#000000',       // 黑色文字
-      textAlign: 'left',          // 左對齊（與預覽一致）
-      textBaseline: 'top',        // 從指定位置開始往下排，而不是置中
-      x: 95,                      // X 位置：85px（與預覽 left: 85px 一致）
-      y: 125,                     // Y 位置：調整上去一點點（原本預覽是 105px）
-      maxWidth: 240,              // 最大寬度：240px（與預覽 width: 240px 一致）
+      textAlign: 'center',        // 居中對齊
+      textBaseline: 'middle',     // 垂直居中
+      // x, y 不設定，讓它使用預設的畫面中央位置
+      maxWidth: 300,              // 稍微增加最大寬度
       fontSize: 30,               // 字體大小
       fontFamily: '"Noto Serif HK", serif',
-      // 添加文字傾斜效果 - 會在 posterImageService 中實現
-      rotation: -7                // 向左傾斜 7 度（與預覽 rotate(-7deg) 一致）
+      rotation: 0                 // 不傾斜，保持水平
     }
     
     await posterImageService.generateAndDownloadPoster(

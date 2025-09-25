@@ -186,17 +186,16 @@ const downloadToOfficial = async () => {
     // 🔧 移除 fontSize 設定，讓它使用與 PosterCreation 相同的動態字體大小
     let downloadOptions = {}
     if (eventType === 'award_speech') {
-      // 感言卡使用黑色文字和特殊位置 - 與 AwardPosterCreation 一致
+      // 感言卡使用黑色文字和正中間位置 - 與 AwardPosterCreation 一致
       downloadOptions = {
         textColor: '#000000',       // 黑色文字
-        textAlign: 'left',          // 左對齊（與預覽一致）
-        textBaseline: 'top',        // 從指定位置開始往下排，而不是置中
-        x: 95,                      // X 位置：與 AwardPosterCreation 一致
-        y: 125,                     // Y 位置：調整上下
-        maxWidth: 240,              // 最大寬度：240px（與預覽 width: 240px 一致）
+        textAlign: 'center',        // 居中對齊
+        textBaseline: 'middle',     // 垂直居中
+        // x, y 不設定，讓它使用預設的畫面中央位置
+        maxWidth: 300,              // 稍微增加最大寬度
         fontSize: 30,
         fontFamily: '"Noto Serif HK", serif',
-        rotation: -7                // 向左傾斜 7 度（與預覽 rotate(-7deg) 一致）
+        rotation: 0                 // 不傾斜，保持水平
       }
     } else {
       // 應援海報使用白色文字
