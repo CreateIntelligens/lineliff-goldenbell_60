@@ -29,7 +29,9 @@
         <div v-if="isLoading" class="flex flex-col items-center justify-center w-full py-20">
           <div class="text-white text-center opacity-60">
             <div class="text-lg mb-2">載入中...</div>
-            <div class="text-sm">正在獲取您的應援海報記錄</div>
+            <div class="text-sm">
+              {{ eventType === 'award_speech' ? '正在獲取您的感言卡記錄' : '正在獲取您的應援海報記錄' }}
+            </div>
           </div>
         </div>
 
@@ -50,8 +52,12 @@
         <!-- Empty State -->
         <div v-else-if="records.length === 0" class="flex flex-col items-center justify-center w-full py-20">
           <div class="text-white text-center opacity-60">
-            <div class="text-lg mb-2">尚未生成任何海報</div>
-            <div class="text-sm">開始創建您的第一張應援海報吧！</div>
+            <div class="text-lg mb-2">
+              {{ eventType === 'award_speech' ? '尚未生成任何感言卡' : '尚未生成任何海報' }}
+            </div>
+            <div class="text-sm">
+              {{ eventType === 'award_speech' ? '開始創建您的第一張專屬感言卡吧！' : '開始創建您的第一張應援海報吧！' }}
+            </div>
           </div>
         </div>
         
@@ -166,7 +172,10 @@ watch(() => props.refreshTrigger, async (newValue, oldValue) => {
 const loadImageHistory = async () => {
   // 生產環境下隱藏詳細日誌
   if (window.GOLDENBELL_CONFIG?.debug) {
-    console.log('🔍 [GenerationRecords] 開始載入圖片歷史記錄...')
+    console.log('🔍 [GenerationRecords] 開始載入圖片歷史記錄...', {
+      eventType: eventType,
+      pageTitle: pageTitle.value
+    })
   }
   
   if (!apiService.isApiAvailable()) {
@@ -196,16 +205,33 @@ const loadImageHistory = async () => {
         historyData = result.data
       }
       
-      // 轉換數據格式以符合元件需求
-      apiRecords.value = historyData.map((item, index) => ({
-        id: item.id || index,
-        text: item.text || '',
-        imageUrl: item.image_url || item.imageUrl || null,
-        created_at: item.created_at || item.timestamp || new Date().toISOString(),
-        ...item // 保留其他屬性
-      }))
+      // 轉換數據格式以符合元件需求，並過濾當前事件類型的記錄
+      apiRecords.value = historyData
+        .filter(item => {
+          // 確保只顯示當前事件類型的記錄
+          const itemEventType = item.event_type || item.eventType
+          if (!itemEventType) {
+            // 如果沒有事件類型，可能是舊資料，根據需求決定是否顯示
+            console.warn('⚠️ 發現沒有事件類型的記錄:', item)
+            return false // 不顯示沒有事件類型的記錄
+          }
+          return itemEventType === eventType
+        })
+        .map((item, index) => ({
+          id: item.id || index,
+          text: item.text || '',
+          imageUrl: item.image_url || item.imageUrl || null,
+          created_at: item.created_at || item.timestamp || new Date().toISOString(),
+          event_type: item.event_type || item.eventType || eventType, // 確保事件類型存在
+          ...item // 保留其他屬性
+        }))
       
-      console.log('✅ 圖片歷史載入成功:', apiRecords.value)
+      console.log('✅ 圖片歷史載入成功:', {
+        currentEventType: eventType,
+        totalRecords: historyData.length,
+        filteredRecords: apiRecords.value.length,
+        records: apiRecords.value
+      })
     }
     
   } catch (error) {
