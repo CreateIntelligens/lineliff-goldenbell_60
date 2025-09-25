@@ -144,7 +144,7 @@
               @click="regeneratePoster"
             >
               <div class="text-white font-bold text-[13px] leading-[100%] tracking-[-0.247px]">
-                重新生成 (剩餘{{ remainingCount }}次)
+                重新生成 ({{ generationCount }}/{{ maxGenerations }})
               </div>
             </div>
 

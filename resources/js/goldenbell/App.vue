@@ -217,16 +217,38 @@ async function goToImageRecord() {
   recordsRefreshTrigger.value = Date.now()
 }
 
-function goBackFromRecords() {
+async function goBackFromRecords() {
   const eventType = getCurrentEventType()
   
-  if (eventType === 'award_speech') {
-    console.log('從感言卡生成紀錄返回到感言卡製作頁面')
-    currentView.value = 'poster'
-  } else {
-    console.log('從應援海報生成紀錄返回到應援海報製作頁面')
-    currentView.value = 'poster'
+  console.log(`從${eventType === 'award_speech' ? '感言卡' : '應援海報'}生成紀錄返回到製作頁面`)
+  
+  // 重新載入用戶計數資料，確保計數正確
+  if (apiService.isApiAvailable()) {
+    try {
+      console.log('🔄 重新載入計數資料...')
+      const countData = await apiService.getImageCount(eventType)
+      
+      // API 回應格式：{status: 'success', result: {data: {...}}}
+      const apiData = countData?.result?.data || countData?.data
+      if (apiData && generationStates.value[eventType]) {
+        generationStates.value[eventType].generationCount = parseInt(apiData.current_count) || 0
+        generationStates.value[eventType].maxGenerations = parseInt(apiData.limit) || 10
+        generationStates.value[eventType].remainingCount = parseInt(apiData.remaining) || 10
+        
+        console.log('✅ 計數資料更新成功:', {
+          eventType,
+          generationCount: generationStates.value[eventType].generationCount,
+          maxGenerations: generationStates.value[eventType].maxGenerations,
+          remainingCount: generationStates.value[eventType].remainingCount
+        })
+      }
+    } catch (error) {
+      console.warn('⚠️ 重新載入計數資料失敗，保留現有狀態:', error.message)
+    }
   }
+  
+  // 返回到海報製作頁面
+  currentView.value = 'poster'
 }
 
 // 生成紀錄相關函數

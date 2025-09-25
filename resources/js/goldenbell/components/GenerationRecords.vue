@@ -199,10 +199,19 @@ const loadImageHistory = async () => {
     // 確保傳遞正確的 eventType 給 API
     console.log('📡 準備呼叫 API:', {
       eventType: eventType,
-      apiMethod: 'getImageHistory'
+      apiMethod: 'getImageHistory',
+      url: window.location.href,
+      pageTitle: pageTitle.value
     })
     
     const result = await apiService.getImageHistory(eventType)
+    
+    console.log('📦 API 原始回應 (呼叫前的檢查):', {
+      eventType: eventType,
+      result: result,
+      resultData: result?.data,
+      resultType: typeof result?.data
+    })
     
     if (result && result.data) {
       // 根據 API 回應格式處理數據
@@ -230,59 +239,107 @@ const loadImageHistory = async () => {
         }))
       })
       
-      apiRecords.value = historyData
-        .filter(item => {
-          // 確保只顯示當前事件類型的記錄
-          const itemEventType = item.event_type || item.eventType
+      // 🔒 嚴格過濾：確保兩個主題完全隔離
+      const strictlyFilteredData = historyData.filter(item => {
+        // 1. 基本事件類型檢查
+        const itemEventType = item.event_type || item.eventType
+        
+        if (!itemEventType) {
+          console.warn('⚠️ 發現沒有事件類型的記錄，將被過濾:', item)
+          return false
+        }
+        
+        // 2. 標準化比較
+        const normalizedItemType = String(itemEventType).trim().toLowerCase()
+        const normalizedCurrentType = String(eventType).trim().toLowerCase()
+        const basicMatch = normalizedItemType === normalizedCurrentType
+        
+        // 3. 嚴格的交叉驗證 - 防止標記錯誤的資料
+        if (eventType === 'award_speech') {
+          // award_speech 應該要有的特徵：較短文字、特定圖片 URL 模式
+          const text = item.text || ''
+          const imageUrl = item.image_url || item.imageUrl || ''
           
-          console.log('🔍 過濾項目:', {
-            itemId: item.id,
-            itemEventType: itemEventType,
-            currentEventType: eventType,
-            match: itemEventType === eventType,
-            item: item
-          })
+          // 檢查是否有 cheer 的特徵（這些應該被排除）
+          const hasCheerFeatures = 
+            text.length > 50 || // cheer 文字通常較長
+            imageUrl.includes('cheer') ||
+            imageUrl.includes('poster') ||
+            text.includes('應援') ||
+            text.includes('加油') ||
+            text.includes('打call')
           
-          if (!itemEventType) {
-            // 如果沒有事件類型，可能是舊資料，根據需求決定是否顯示
-            console.warn('⚠️ 發現沒有事件類型的記錄:', item)
-            return false // 不顯示沒有事件類型的記錄
+          if (hasCheerFeatures && basicMatch) {
+            console.warn('🚫 award_speech 模式下檢測到 cheer 特徵，過濾掉:', {
+              itemId: item.id,
+              eventType: itemEventType,
+              text: text.substring(0, 30) + '...',
+              textLength: text.length,
+              imageUrl: imageUrl,
+              reason: '具有 cheer 特徵'
+            })
+            return false
           }
-          // 使用更嚴格的比較，考慮大小寫和空格問題
-          const normalizedItemType = String(itemEventType).trim().toLowerCase()
-          const normalizedCurrentType = String(eventType).trim().toLowerCase()
-          const isMatch = normalizedItemType === normalizedCurrentType
           
-          if (!isMatch) {
-            console.log('❌ 事件類型不匹配:', {
-              原始值: itemEventType,
-              標準化值: normalizedItemType,
-              目標值: eventType,
-              目標標準化值: normalizedCurrentType
+          // award_speech 應該有的特徵
+          const hasAwardFeatures = 
+            text.length <= 100 && // 感言卡文字通常較短
+            (text.includes('感謝') || text.includes('得獎') || text.includes('感言') || text.length > 0)
+          
+          if (!hasAwardFeatures && basicMatch) {
+            console.warn('⚠️ award_speech 模式下資料不符合感言卡特徵:', {
+              itemId: item.id,
+              text: text.substring(0, 30) + '...',
+              textLength: text.length
             })
           }
+        }
+        
+        if (eventType === 'cheer') {
+          // cheer 應該要有的特徵檢查
+          const text = item.text || ''
+          const imageUrl = item.image_url || item.imageUrl || ''
           
-          // 額外檢查：如果是 award_speech 模式，確保不顯示可能是 cheer 的資料
-          if (eventType === 'award_speech' && isMatch) {
-            // 檢查圖片URL或其他特徵來判斷是否真的是 award_speech 的資料
-            const imageUrl = item.image_url || item.imageUrl || ''
-            const hasCheerCharacteristics = imageUrl.includes('cheer') || 
-                                          imageUrl.includes('poster') ||
-                                          (item.text && item.text.length > 100) // cheer 通常文字較長
-                                          
-            if (hasCheerCharacteristics) {
-              console.warn('🚫 檢測到可能是 cheer 資料但標記為 award_speech，過濾掉:', {
-                itemId: item.id,
-                eventType: itemEventType,
-                imageUrl: imageUrl,
-                textLength: item.text?.length
-              })
-              return false
-            }
+          // 檢查是否有 award_speech 的特徵（這些應該被排除）
+          const hasAwardFeatures = 
+            text.includes('感謝') ||
+            text.includes('得獎') ||
+            text.includes('感言') ||
+            imageUrl.includes('award') ||
+            (text.length > 0 && text.length <= 20 && !text.includes('應援') && !text.includes('加油'))
+          
+          if (hasAwardFeatures && basicMatch) {
+            console.warn('🚫 cheer 模式下檢測到 award_speech 特徵，過濾掉:', {
+              itemId: item.id,
+              eventType: itemEventType,
+              text: text.substring(0, 30) + '...',
+              textLength: text.length,
+              imageUrl: imageUrl,
+              reason: '具有 award_speech 特徵'
+            })
+            return false
           }
-          
-          return isMatch
+        }
+        
+        console.log(basicMatch ? '✅' : '❌', '過濾項目:', {
+          itemId: item.id,
+          itemEventType: itemEventType,
+          currentEventType: eventType,
+          match: basicMatch,
+          textPreview: (item.text || '').substring(0, 20) + '...'
         })
+        
+        return basicMatch
+      })
+      
+      console.log('🔍 嚴格過濾結果:', {
+        原始記錄數: historyData.length,
+        過濾後記錄數: strictlyFilteredData.length,
+        當前事件類型: eventType,
+        被過濾掉的記錄數: historyData.length - strictlyFilteredData.length
+      })
+      
+      apiRecords.value = strictlyFilteredData
         .map((item, index) => ({
           id: item.id || index,
           text: item.text || '',
