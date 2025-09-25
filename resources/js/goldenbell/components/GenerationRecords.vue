@@ -133,6 +133,14 @@ const isLoading = ref(false)
 const apiError = ref('')
 const eventType = getCurrentEventType() // 動態獲取當前事件類型
 
+// 調試：確認 eventType 取得正確
+console.log('🎯 [GenerationRecords] 當前事件類型:', {
+  eventType: eventType,
+  url: window.location.href,
+  urlParams: new URLSearchParams(window.location.search).get('event_type'),
+  configEventType: window.GOLDENBELL_CONFIG?.eventType
+})
+
 // Computed properties
 const records = computed(() => {
   // 優先使用從 API 載入的記錄，如果沒有則使用 props
@@ -188,6 +196,12 @@ const loadImageHistory = async () => {
     isLoading.value = true
     apiError.value = ''
     
+    // 確保傳遞正確的 eventType 給 API
+    console.log('📡 準備呼叫 API:', {
+      eventType: eventType,
+      apiMethod: 'getImageHistory'
+    })
+    
     const result = await apiService.getImageHistory(eventType)
     
     if (result && result.data) {
@@ -206,16 +220,68 @@ const loadImageHistory = async () => {
       }
       
       // 轉換數據格式以符合元件需求，並過濾當前事件類型的記錄
+      console.log('🔍 開始過濾歷史記錄:', {
+        currentEventType: eventType,
+        totalItems: historyData.length,
+        items: historyData.map(item => ({
+          id: item.id,
+          event_type: item.event_type || item.eventType,
+          text: item.text?.substring(0, 20) + '...'
+        }))
+      })
+      
       apiRecords.value = historyData
         .filter(item => {
           // 確保只顯示當前事件類型的記錄
           const itemEventType = item.event_type || item.eventType
+          
+          console.log('🔍 過濾項目:', {
+            itemId: item.id,
+            itemEventType: itemEventType,
+            currentEventType: eventType,
+            match: itemEventType === eventType,
+            item: item
+          })
+          
           if (!itemEventType) {
             // 如果沒有事件類型，可能是舊資料，根據需求決定是否顯示
             console.warn('⚠️ 發現沒有事件類型的記錄:', item)
             return false // 不顯示沒有事件類型的記錄
           }
-          return itemEventType === eventType
+          // 使用更嚴格的比較，考慮大小寫和空格問題
+          const normalizedItemType = String(itemEventType).trim().toLowerCase()
+          const normalizedCurrentType = String(eventType).trim().toLowerCase()
+          const isMatch = normalizedItemType === normalizedCurrentType
+          
+          if (!isMatch) {
+            console.log('❌ 事件類型不匹配:', {
+              原始值: itemEventType,
+              標準化值: normalizedItemType,
+              目標值: eventType,
+              目標標準化值: normalizedCurrentType
+            })
+          }
+          
+          // 額外檢查：如果是 award_speech 模式，確保不顯示可能是 cheer 的資料
+          if (eventType === 'award_speech' && isMatch) {
+            // 檢查圖片URL或其他特徵來判斷是否真的是 award_speech 的資料
+            const imageUrl = item.image_url || item.imageUrl || ''
+            const hasCheerCharacteristics = imageUrl.includes('cheer') || 
+                                          imageUrl.includes('poster') ||
+                                          (item.text && item.text.length > 100) // cheer 通常文字較長
+                                          
+            if (hasCheerCharacteristics) {
+              console.warn('🚫 檢測到可能是 cheer 資料但標記為 award_speech，過濾掉:', {
+                itemId: item.id,
+                eventType: itemEventType,
+                imageUrl: imageUrl,
+                textLength: item.text?.length
+              })
+              return false
+            }
+          }
+          
+          return isMatch
         })
         .map((item, index) => ({
           id: item.id || index,
