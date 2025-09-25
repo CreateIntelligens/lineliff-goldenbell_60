@@ -174,13 +174,14 @@ const downloadToOfficial = async () => {
       : `金鐘60應援海報_${props.recordData.id || new Date().getTime()}`
     
     // 根據事件類型設定下載選項
+    // 🔧 移除 fontSize 設定，讓它使用與 PosterCreation 相同的動態字體大小
     let downloadOptions = {}
     if (eventType === 'award_speech') {
       // 感言卡使用黑色文字和特殊位置
       downloadOptions = {
         textColor: '#000000',  // 黑色文字
         textAlign: 'center',  // 居中對齊
-        fontSize: 36,  // 適合的字體大小
+        // fontSize: 使用預設的動態計算 (圖片尺寸的8%，最小48px)
         fontFamily: '"Noto Serif HK", serif'
       }
     } else {
@@ -188,7 +189,7 @@ const downloadToOfficial = async () => {
       downloadOptions = {
         textColor: '#FFFFFF',  // 白色文字
         textAlign: 'center',
-        fontSize: 36,
+        // fontSize: 使用預設的動態計算 (圖片尺寸的8%，最小48px)
         fontFamily: '"Noto Serif HK", serif'
       }
     }
