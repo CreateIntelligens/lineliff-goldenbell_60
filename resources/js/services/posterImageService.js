@@ -132,12 +132,12 @@ class PosterImageService {
       ctx.rotate(rotation * Math.PI / 180)  // 應用旋轉（轉換為弧度）
       
       // 繪製文字（支援多行），旋轉後的原點在 (0, 0)
-      this.drawMultilineText(ctx, text, 0, 0, maxWidth, lineHeight)
+      this.drawMultilineText(ctx, text, 0, 0, maxWidth, lineHeight, options)
       
       ctx.restore()  // 恢復狀態
     } else {
       // 繪製文字（支援多行）
-      this.drawMultilineText(ctx, text, x, y, maxWidth, lineHeight)
+      this.drawMultilineText(ctx, text, x, y, maxWidth, lineHeight, options)
     }
     
     // 清除陰影設定
@@ -155,8 +155,9 @@ class PosterImageService {
    * @param {number} y - Y 座標
    * @param {number} maxWidth - 最大寬度
    * @param {number} lineHeight - 行高
+   * @param {Object} options - 繪製選項
    */
-  drawMultilineText(ctx, text, x, y, maxWidth, lineHeight) {
+  drawMultilineText(ctx, text, x, y, maxWidth, lineHeight, options = {}) {
     const words = text.split('')
     const lines = []
     let currentLine = ''
@@ -176,9 +177,18 @@ class PosterImageService {
     }
     lines.push(currentLine)
     
-    // 計算起始 Y 位置（置中）
+    // 計算起始 Y 位置
     const totalHeight = lines.length * lineHeight
-    const startY = y - (totalHeight / 2) + (lineHeight / 2)
+    
+    // 根據 textBaseline 調整起始位置
+    let startY
+    if (options.textBaseline === 'top' || ctx.textBaseline === 'top') {
+      // 如果是 top baseline，從指定 Y 位置開始
+      startY = y + (lineHeight / 2)
+    } else {
+      // 預設為置中
+      startY = y - (totalHeight / 2) + (lineHeight / 2)
+    }
     
     // 繪製每一行
     lines.forEach((line, index) => {

@@ -190,8 +190,9 @@ const downloadToOfficial = async () => {
       downloadOptions = {
         textColor: '#000000',       // 黑色文字
         textAlign: 'left',          // 左對齊（與預覽一致）
-        x: 85,                      // X 位置：85px（與預覽 left: 85px 一致）
-        y: 125,                      // Y 位置：調整上下
+        textBaseline: 'top',        // 從指定位置開始往下排，而不是置中
+        x: 95,                      // X 位置：與 AwardPosterCreation 一致
+        y: 125,                     // Y 位置：調整上下
         maxWidth: 240,              // 最大寬度：240px（與預覽 width: 240px 一致）
         fontSize: 30,
         fontFamily: '"Noto Serif HK", serif',
