@@ -718,7 +718,7 @@ const downloadToOfficial = async () => {
       textColor: '#000000',       // 黑色文字
       textAlign: 'left',          // 左對齊（與預覽一致）
       x: 85,                      // X 位置：85px（與預覽 left: 85px 一致）
-      y: 85,                      // Y 位置：調整上去一點點（原本預覽是 105px）
+      y: 105,                      // Y 位置：調整上去一點點（原本預覽是 105px）
       maxWidth: 240,              // 最大寬度：240px（與預覽 width: 240px 一致）
       fontSize: 36,               // 字體大小
       fontFamily: '"Noto Serif HK", serif',
