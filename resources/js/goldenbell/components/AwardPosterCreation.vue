@@ -25,12 +25,16 @@
             
             <!-- Description -->
             <div class="text-white text-center font-normal text-[14px] leading-[180%] tracking-[-0.266px] w-full">
-              <span class="font-normal text-[17px]">【</span>
-              <span class="font-normal text-[17px]"> </span>
-              <span class="font-bold text-[17px]">寫下你的金鐘60得獎感言</span>
-              <span class="font-normal text-[17px]"> </span>
-              <span class="font-normal text-[17px]">】</span>
-              <span class="font-bold text-[14px]"> 手握獎盃化身金鐘得主，寫下屬於你的獲獎感言</span>
+              <div>
+                <span class="font-normal text-[17px]">【</span>
+                <span class="font-normal text-[17px]"> </span>
+                <span class="font-bold text-[17px]">寫下你的金鐘60得獎感言</span>
+                <span class="font-normal text-[17px]"> </span>
+                <span class="font-normal text-[17px]">】</span>
+              </div>
+              <div class="font-bold text-[14px] mt-1">
+                手握獎盃化身金鐘得主，寫下屬於你的獲獎感言
+              </div>
             </div>
             
             <!-- Input Container -->
@@ -244,8 +248,21 @@ const isComposing = ref(false)
 // Default poster image for award speech
 const posterImage = computed(() => {
   const themeImages = getThemeImages('award_speech')
+  
+  // 檢查輸入文字狀態
+  const hasText = inputText.value && inputText.value.trim().length > 0
+  
+  console.log('🖼️ 計算感言卡圖片:', {
+    hasText: hasText,
+    inputText: inputText.value,
+    inputLength: inputText.value?.length || 0,
+    posterDefault: themeImages.poster,
+    posterWithText: themeImages.posterWithText,
+    willUse: hasText ? 'posterWithText' : 'poster'
+  })
+  
   // 如果有文字輸入，使用有文字的版本
-  if (inputText.value && inputText.value.trim().length > 0) {
+  if (hasText) {
     return themeImages.posterWithText
   }
   // 沒有文字時使用預設版本
