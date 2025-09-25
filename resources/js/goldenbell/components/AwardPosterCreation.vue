@@ -717,10 +717,10 @@ const downloadToOfficial = async () => {
     const downloadOptions = {
       textColor: '#000000',       // 黑色文字
       textAlign: 'left',          // 左對齊（與預覽一致）
-      x: 85,                      // X 位置：85px（與預覽 left: 85px 一致）
-      y: 105,                      // Y 位置：調整上去一點點（原本預覽是 105px）
+      x: 95,                      // X 位置：85px（與預覽 left: 85px 一致）
+      y: 125,                      // Y 位置：調整上去一點點（原本預覽是 105px）
       maxWidth: 240,              // 最大寬度：240px（與預覽 width: 240px 一致）
-      fontSize: 36,               // 字體大小
+      fontSize: 30,               // 字體大小
       fontFamily: '"Noto Serif HK", serif',
       // 添加文字傾斜效果 - 會在 posterImageService 中實現
       rotation: -7                // 向左傾斜 7 度（與預覽 rotate(-7deg) 一致）

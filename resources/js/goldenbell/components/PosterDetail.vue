@@ -155,8 +155,13 @@ const downloadToOfficial = async () => {
     const themeImages = getThemeImages(eventType)
     
     if (eventType === 'award_speech') {
-      // 感言卡使用主題圖片
-      imageUrl = themeImages.poster  // award_filtered.png
+      // 感言卡使用主題圖片 - 根據是否有文字選擇對應圖片
+      const hasText = props.recordData.text && props.recordData.text.trim().length > 0
+      if (hasText) {
+        imageUrl = themeImages.posterWithText  // award_filteredwithtext.png (有文字版本)
+      } else {
+        imageUrl = themeImages.poster  // award_filtered.png (無文字版本)
+      }
     } else {
       // 應援海報使用 entered1 圖片（與 PosterCreation 一致）
       imageUrl = themeImages.entered1  // Entered1.png
@@ -186,7 +191,7 @@ const downloadToOfficial = async () => {
         textColor: '#000000',       // 黑色文字
         textAlign: 'left',          // 左對齊（與預覽一致）
         x: 85,                      // X 位置：85px（與預覽 left: 85px 一致）
-        y: 115,                      // Y 位置：調整上下
+        y: 125,                      // Y 位置：調整上下
         maxWidth: 240,              // 最大寬度：240px（與預覽 width: 240px 一致）
         fontSize: 30,
         fontFamily: '"Noto Serif HK", serif',
