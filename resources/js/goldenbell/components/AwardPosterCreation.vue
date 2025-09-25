@@ -249,20 +249,14 @@ const isComposing = ref(false)
 const posterImage = computed(() => {
   const themeImages = getThemeImages('award_speech')
   
-  // 檢查輸入文字狀態
-  const hasText = inputText.value && inputText.value.trim().length > 0
+  // 檢查是否有任何文字（輸入中的或已生成的）
+  const hasInputText = inputText.value && inputText.value.trim().length > 0
+  const hasGeneratedText = generatedText.value && generatedText.value.trim().length > 0
+  const hasAnyText = hasInputText || hasGeneratedText
   
-  console.log('🖼️ 計算感言卡圖片:', {
-    hasText: hasText,
-    inputText: inputText.value,
-    inputLength: inputText.value?.length || 0,
-    posterDefault: themeImages.poster,
-    posterWithText: themeImages.posterWithText,
-    willUse: hasText ? 'posterWithText' : 'poster'
-  })
   
-  // 如果有文字輸入，使用有文字的版本
-  if (hasText) {
+  // 如果有任何文字（輸入中或已生成），使用有文字的版本
+  if (hasAnyText) {
     return themeImages.posterWithText
   }
   // 沒有文字時使用預設版本

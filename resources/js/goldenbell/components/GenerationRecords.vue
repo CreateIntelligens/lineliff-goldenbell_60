@@ -133,13 +133,6 @@ const isLoading = ref(false)
 const apiError = ref('')
 const eventType = getCurrentEventType() // 動態獲取當前事件類型
 
-// 調試：確認 eventType 取得正確
-console.log('🎯 [GenerationRecords] 當前事件類型:', {
-  eventType: eventType,
-  url: window.location.href,
-  urlParams: new URLSearchParams(window.location.search).get('event_type'),
-  configEventType: window.GOLDENBELL_CONFIG?.eventType
-})
 
 // Computed properties
 const records = computed(() => {
@@ -178,13 +171,6 @@ watch(() => props.refreshTrigger, async (newValue, oldValue) => {
  * 載入圖片歷史記錄
  */
 const loadImageHistory = async () => {
-  // 生產環境下隱藏詳細日誌
-  if (window.GOLDENBELL_CONFIG?.debug) {
-    console.log('🔍 [GenerationRecords] 開始載入圖片歷史記錄...', {
-      eventType: eventType,
-      pageTitle: pageTitle.value
-    })
-  }
   
   if (!apiService.isApiAvailable()) {
     console.warn('⚠️ API 服務不可用')
@@ -196,27 +182,9 @@ const loadImageHistory = async () => {
     isLoading.value = true
     apiError.value = ''
     
-    // 確保傳遞正確的 eventType 給 API
-    console.log('📡 準備呼叫 API:', {
-      eventType: eventType,
-      apiMethod: 'getImageHistory',
-      url: window.location.href,
-      pageTitle: pageTitle.value
-    })
     
     const result = await apiService.getImageHistory(eventType)
     
-    console.log('📦 API 原始回應 (詳細檢查):', {
-      eventType: eventType,
-      result: result,
-      resultKeys: result ? Object.keys(result) : null,
-      resultData: result?.data,
-      resultDataType: typeof result?.data,
-      resultResult: result?.result,
-      resultResultType: typeof result?.result,
-      resultResultData: result?.result?.data,
-      resultResultDataType: typeof result?.result?.data
-    })
     
     if (result) {
       // 根據不同的 API 回應格式處理數據
@@ -226,63 +194,41 @@ const loadImageHistory = async () => {
       let rawData = null
       if (result.result && result.result.data) {
         rawData = result.result.data
-        console.log('📍 使用 result.result.data 路徑')
       } else if (result.data) {
         rawData = result.data
-        console.log('📍 使用 result.data 路徑')
       } else if (result.result) {
         rawData = result.result
-        console.log('📍 使用 result.result 路徑')
       } else {
         rawData = result
-        console.log('📍 使用 result 根路徑')
       }
-      
-      console.log('📊 提取的原始資料:', {
-        rawData: rawData,
-        rawDataType: typeof rawData,
-        isArray: Array.isArray(rawData)
-      })
       
       if (typeof rawData === 'string') {
         try {
           historyData = JSON.parse(rawData)
-          console.log('✅ 成功解析 JSON 字串資料')
         } catch (e) {
           console.warn('⚠️ 無法解析歷史記錄數據:', rawData)
           historyData = []
         }
       } else if (Array.isArray(rawData)) {
         historyData = rawData
-        console.log('✅ 直接使用陣列資料')
       } else if (rawData && typeof rawData === 'object') {
         // 如果是物件，嘗試查找陣列屬性
         const possibleArrayKeys = ['data', 'items', 'records', 'list']
         for (const key of possibleArrayKeys) {
           if (Array.isArray(rawData[key])) {
             historyData = rawData[key]
-            console.log(`✅ 使用物件中的 ${key} 屬性作為陣列資料`)
             break
           }
         }
         if (historyData.length === 0) {
-          console.warn('⚠️ 無法在物件中找到陣列資料:', rawData)
+          console.warn('⚠️ 無法在物件中找到陣列資料')
         }
       } else {
-        console.warn('⚠️ 無法處理的資料格式:', rawData)
+        console.warn('⚠️ 無法處理的資料格式')
         historyData = []
       }
       
       // 轉換數據格式以符合元件需求，並過濾當前事件類型的記錄
-      console.log('🔍 開始過濾歷史記錄:', {
-        currentEventType: eventType,
-        totalItems: historyData.length,
-        items: historyData.map(item => ({
-          id: item.id,
-          event_type: item.event_type || item.eventType,
-          text: item.text?.substring(0, 20) + '...'
-        }))
-      })
       
       // 🔒 嚴格過濾：確保兩個主題完全隔離
       const strictlyFilteredData = historyData.filter(item => {
@@ -366,23 +312,10 @@ const loadImageHistory = async () => {
           }
         }
         
-        console.log(basicMatch ? '✅' : '❌', '過濾項目:', {
-          itemId: item.id,
-          itemEventType: itemEventType,
-          currentEventType: eventType,
-          match: basicMatch,
-          textPreview: (item.text || '').substring(0, 20) + '...'
-        })
         
         return basicMatch
       })
       
-      console.log('🔍 嚴格過濾結果:', {
-        原始記錄數: historyData.length,
-        過濾後記錄數: strictlyFilteredData.length,
-        當前事件類型: eventType,
-        被過濾掉的記錄數: historyData.length - strictlyFilteredData.length
-      })
       
       apiRecords.value = strictlyFilteredData
         .map((item, index) => ({
@@ -394,12 +327,6 @@ const loadImageHistory = async () => {
           ...item // 保留其他屬性
         }))
       
-      console.log('✅ 圖片歷史載入成功:', {
-        currentEventType: eventType,
-        totalRecords: historyData.length,
-        filteredRecords: apiRecords.value.length,
-        records: apiRecords.value
-      })
     } else {
       console.warn('❌ API 回應無效或為空:', result)
       apiRecords.value = []
