@@ -103,6 +103,7 @@ class PosterImageService {
     const textColor = options.textColor || this.defaultTextColor
     const textAlign = options.textAlign || 'center'
     const textBaseline = options.textBaseline || 'middle'
+    const rotation = options.rotation || 0  // 旋轉角度（度）
     
     // 設定字體樣式
     ctx.font = `bold ${fontSize}px ${fontFamily}`
@@ -124,8 +125,20 @@ class PosterImageService {
     const maxWidth = options.maxWidth || canvasWidth * 0.7  // 減少最大寬度讓文字更集中
     const lineHeight = options.lineHeight || fontSize * 1.3
     
-    // 繪製文字（支援多行）
-    this.drawMultilineText(ctx, text, x, y, maxWidth, lineHeight)
+    // 如果有旋轉角度，應用旋轉變換
+    if (rotation !== 0) {
+      ctx.save()  // 保存當前狀態
+      ctx.translate(x, y)  // 移動到文字位置
+      ctx.rotate(rotation * Math.PI / 180)  // 應用旋轉（轉換為弧度）
+      
+      // 繪製文字（支援多行），旋轉後的原點在 (0, 0)
+      this.drawMultilineText(ctx, text, 0, 0, maxWidth, lineHeight)
+      
+      ctx.restore()  // 恢復狀態
+    } else {
+      // 繪製文字（支援多行）
+      this.drawMultilineText(ctx, text, x, y, maxWidth, lineHeight)
+    }
     
     // 清除陰影設定
     ctx.shadowColor = 'transparent'
