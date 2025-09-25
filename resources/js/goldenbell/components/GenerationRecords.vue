@@ -206,26 +206,71 @@ const loadImageHistory = async () => {
     
     const result = await apiService.getImageHistory(eventType)
     
-    console.log('📦 API 原始回應 (呼叫前的檢查):', {
+    console.log('📦 API 原始回應 (詳細檢查):', {
       eventType: eventType,
       result: result,
+      resultKeys: result ? Object.keys(result) : null,
       resultData: result?.data,
-      resultType: typeof result?.data
+      resultDataType: typeof result?.data,
+      resultResult: result?.result,
+      resultResultType: typeof result?.result,
+      resultResultData: result?.result?.data,
+      resultResultDataType: typeof result?.result?.data
     })
     
-    if (result && result.data) {
-      // 根據 API 回應格式處理數據
+    if (result) {
+      // 根據不同的 API 回應格式處理數據
       let historyData = []
       
-      if (typeof result.data === 'string') {
+      // 嘗試多種可能的資料路徑
+      let rawData = null
+      if (result.result && result.result.data) {
+        rawData = result.result.data
+        console.log('📍 使用 result.result.data 路徑')
+      } else if (result.data) {
+        rawData = result.data
+        console.log('📍 使用 result.data 路徑')
+      } else if (result.result) {
+        rawData = result.result
+        console.log('📍 使用 result.result 路徑')
+      } else {
+        rawData = result
+        console.log('📍 使用 result 根路徑')
+      }
+      
+      console.log('📊 提取的原始資料:', {
+        rawData: rawData,
+        rawDataType: typeof rawData,
+        isArray: Array.isArray(rawData)
+      })
+      
+      if (typeof rawData === 'string') {
         try {
-          historyData = JSON.parse(result.data)
+          historyData = JSON.parse(rawData)
+          console.log('✅ 成功解析 JSON 字串資料')
         } catch (e) {
-          console.warn('⚠️ 無法解析歷史記錄數據:', result.data)
+          console.warn('⚠️ 無法解析歷史記錄數據:', rawData)
           historyData = []
         }
-      } else if (Array.isArray(result.data)) {
-        historyData = result.data
+      } else if (Array.isArray(rawData)) {
+        historyData = rawData
+        console.log('✅ 直接使用陣列資料')
+      } else if (rawData && typeof rawData === 'object') {
+        // 如果是物件，嘗試查找陣列屬性
+        const possibleArrayKeys = ['data', 'items', 'records', 'list']
+        for (const key of possibleArrayKeys) {
+          if (Array.isArray(rawData[key])) {
+            historyData = rawData[key]
+            console.log(`✅ 使用物件中的 ${key} 屬性作為陣列資料`)
+            break
+          }
+        }
+        if (historyData.length === 0) {
+          console.warn('⚠️ 無法在物件中找到陣列資料:', rawData)
+        }
+      } else {
+        console.warn('⚠️ 無法處理的資料格式:', rawData)
+        historyData = []
       }
       
       // 轉換數據格式以符合元件需求，並過濾當前事件類型的記錄
@@ -355,6 +400,9 @@ const loadImageHistory = async () => {
         filteredRecords: apiRecords.value.length,
         records: apiRecords.value
       })
+    } else {
+      console.warn('❌ API 回應無效或為空:', result)
+      apiRecords.value = []
     }
     
   } catch (error) {
