@@ -57,13 +57,26 @@ class PosterImageService {
           }
         }
         
-        img.onerror = () => {
-          const error = new Error('圖片載入失敗')
-          console.error('❌ 圖片載入失敗:', imageUrl)
+        img.onerror = (event) => {
+          const error = new Error(`圖片載入失敗: ${imageUrl}`)
+          console.error('❌ 圖片載入失敗:', {
+            imageUrl,
+            event,
+            imgSrc: img.src,
+            imgComplete: img.complete,
+            imgNaturalWidth: img.naturalWidth,
+            imgNaturalHeight: img.naturalHeight
+          })
           reject(error)
         }
         
         // 開始載入圖片
+        console.log('🔄 開始載入圖片:', {
+          imageUrl,
+          crossOrigin: img.crossOrigin,
+          protocol: window.location.protocol,
+          isHttps: window.location.protocol === 'https:'
+        })
         img.src = imageUrl
       })
       

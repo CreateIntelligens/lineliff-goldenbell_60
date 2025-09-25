@@ -146,7 +146,28 @@ const downloadToOfficial = async () => {
   try {
     console.log('📥 開始下載到官方帳號...')
     
-    const imageUrl = props.recordData.imageUrl || props.recordData.image_url || props.recordData.poster_image || getThemeImages(eventType).poster
+    // 🔧 修復圖片 URL 問題：優先使用可靠的主題圖片
+    let imageUrl
+    const themeImages = getThemeImages(eventType)
+    
+    if (eventType === 'award_speech') {
+      // 感言卡使用主題圖片
+      imageUrl = themeImages.poster  // award_filtered.png
+    } else {
+      // 應援海報使用 entered1 圖片（與 PosterCreation 一致）
+      imageUrl = themeImages.entered1  // Entered1.png
+    }
+    
+    // 如果主題圖片不存在，才使用 recordData 中的圖片
+    if (!imageUrl) {
+      imageUrl = props.recordData.imageUrl || 
+                 props.recordData.image_url || 
+                 props.recordData.poster_image || 
+                 themeImages.poster
+    }
+    
+    console.log('🖼️ 使用圖片 URL:', imageUrl)
+    
     const text = props.recordData.text || ''
     const fileName = eventType === 'award_speech' 
       ? `金鐘60得獎感言卡_${props.recordData.id || new Date().getTime()}`
@@ -172,6 +193,8 @@ const downloadToOfficial = async () => {
       }
     }
     
+    console.log('⚙️ 下載選項:', downloadOptions)
+    
     await posterImageService.generateAndDownloadPoster(
       imageUrl,
       text,
@@ -183,7 +206,12 @@ const downloadToOfficial = async () => {
     
   } catch (error) {
     console.error('❌ 下載失敗:', error)
-    alert('下載失敗，請稍後再試')
+    console.error('錯誤詳情:', {
+      message: error.message,
+      stack: error.stack,
+      recordData: props.recordData
+    })
+    alert(`下載失敗：${error.message || '請稍後再試'}`)
   }
 }
 
