@@ -54,7 +54,3 @@ const goBack = () => {
   emit('goBack')
 }
 </script>
-
-<style scoped>
-/* 如果需要特定樣式可以在這裡添加 */
-</style>

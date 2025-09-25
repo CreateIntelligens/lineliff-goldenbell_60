@@ -19,7 +19,7 @@
       <PageHeader
         :title="pageTitle"
         :showBadge="true"
-        :badgeText="`已生成：${generatedCount}/10`"
+        :badgeText="`已生成：${generatedCount}/${maxGenerations}`"
         @goBack="goBack"
       />
 
@@ -141,6 +141,12 @@ const records = computed(() => {
 })
 
 const generatedCount = computed(() => records.value.length)
+
+// 計算最大生成次數
+const maxGenerations = computed(() => {
+  // 預設值為 10，可以根據 API 或其他邏輯調整
+  return 10
+})
 
 // 根據 event_type 動態標題
 const pageTitle = computed(() => {

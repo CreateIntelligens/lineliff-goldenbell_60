@@ -55,7 +55,8 @@
       <PosterDetail
         v-else-if="currentView === 'detail' && selectedRecord"
         :recordData="selectedRecord"
-        :generatedCount="generationRecords.length"
+        :generatedCount="getCurrentEventTypeCount()"
+        :maxGenerations="getCurrentMaxGenerations()"
         @goBack="goBackToRecords"
         @regeneratePoster="regenerateFromDetail"
       />
@@ -473,6 +474,18 @@ function regenerateFromDetail(recordData) {
   
   // 導航到海報製作頁面
   currentView.value = 'poster'
+}
+
+// 取得當前事件類型的生成數量
+function getCurrentEventTypeCount() {
+  const currentEventType = getCurrentEventType()
+  return generationRecords.value.filter(record => record.event_type === currentEventType).length
+}
+
+// 取得當前事件類型的最大生成次數
+function getCurrentMaxGenerations() {
+  const currentEventType = getCurrentEventType()
+  return generationStates.value[currentEventType]?.maxGenerations || 10
 }
 
 // LIFF 分享功能

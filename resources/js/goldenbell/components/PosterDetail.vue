@@ -17,7 +17,7 @@
         <PageHeader
           :title="pageTitle"
           :showBadge="true"
-          :badgeText="`已生成：${generatedCount}/10`"
+          :badgeText="`已生成：${generatedCount}/${maxGenerations}`"
           @goBack="goBack"
         />
 
@@ -110,6 +110,10 @@ const props = defineProps({
   generatedCount: {
     type: Number,
     default: 0
+  },
+  maxGenerations: {
+    type: Number,
+    default: 10
   }
 })
 
