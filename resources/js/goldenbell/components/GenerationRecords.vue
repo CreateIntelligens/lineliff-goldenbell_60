@@ -296,8 +296,12 @@ const loadImageHistory = async () => {
             text.includes('感謝') ||
             text.includes('得獎') ||
             text.includes('感言') ||
+            text.includes('致詞') ||
+            text.includes('獲獎') ||
+            text.includes('頒獎') ||
             imageUrl.includes('award') ||
-            (text.length > 0 && text.length <= 20 && !text.includes('應援') && !text.includes('加油'))
+            imageUrl.includes('speech') ||
+            imageUrl.includes('filtered') // award_filtered 相關圖片
           
           if (hasAwardFeatures && basicMatch) {
             console.warn('🚫 cheer 模式下檢測到 award_speech 特徵，過濾掉:', {
@@ -309,6 +313,26 @@ const loadImageHistory = async () => {
               reason: '具有 award_speech 特徵'
             })
             return false
+          }
+          
+          // 額外檢查：cheer 應該有的特徵
+          const hasCheerFeatures = 
+            text.length > 50 || // cheer 文字通常較長
+            text.includes('應援') ||
+            text.includes('加油') ||
+            text.includes('打call') ||
+            text.includes('支持') ||
+            imageUrl.includes('cheer') ||
+            imageUrl.includes('poster') ||
+            imageUrl.includes('Entered1') // cheer 相關圖片
+          
+          if (!hasCheerFeatures && basicMatch && text.length > 0) {
+            console.warn('⚠️ cheer 模式下資料不符合應援海報特徵:', {
+              itemId: item.id,
+              text: text.substring(0, 30) + '...',
+              textLength: text.length,
+              imageUrl: imageUrl
+            })
           }
         }
         
