@@ -186,9 +186,9 @@ const downloadToOfficial = async () => {
         textColor: '#000000',       // 黑色文字
         textAlign: 'left',          // 左對齊（與預覽一致）
         x: 85,                      // X 位置：85px（與預覽 left: 85px 一致）
-        y: 105,                      // Y 位置：調整上去一點點（原本預覽是 105px）
+        y: 115,                      // Y 位置：調整上下
         maxWidth: 240,              // 最大寬度：240px（與預覽 width: 240px 一致）
-        // fontSize: 使用預設的動態計算 (圖片尺寸的8%，最小48px)
+        fontSize: 30,
         fontFamily: '"Noto Serif HK", serif',
         rotation: -7                // 向左傾斜 7 度（與預覽 rotate(-7deg) 一致）
       }
