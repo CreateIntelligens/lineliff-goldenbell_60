@@ -369,26 +369,9 @@ class LiffService {
         hasText: !!text
       })
 
-      // 先上傳圖片到伺服器取得公開 URL
-      console.log('☁️ 開始上傳圖片以取得公開 URL...')
-      const uploadResult = await apiService.saveImage(text || '', imageBlob, eventType || '')
-      console.log('📦 上傳結果:', uploadResult)
-      
-      // 提取圖片 URL
-      const imageUrl = uploadResult?.data?.image_url || 
-                      uploadResult?.data?.imageUrl || 
-                      uploadResult?.data?.url ||
-                      uploadResult?.image_url || 
-                      uploadResult?.imageUrl || 
-                      uploadResult?.url ||
-                      uploadResult?.data?.poster_image ||
-                      uploadResult?.poster_image
-
-      if (!imageUrl) {
-        console.error('❌ 無法從上傳結果中找到圖片 URL，完整回應:', uploadResult)
-        throw new Error('無法取得公開圖片 URL')
-      }
-      console.log('🔗 取得公開圖片 URL:', imageUrl)
+      // 直接使用 Blob URL（不需要上傳到後端）
+      const imageUrl = URL.createObjectURL(imageBlob)
+      console.log('🔗 使用 Blob URL:', imageUrl)
 
       // 發送圖片（使用 liff.sendMessages）
       const messages = []
