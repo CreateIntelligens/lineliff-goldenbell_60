@@ -312,6 +312,7 @@ class LiffService {
 
   /**
    * 發送訊息到當前聊天室
+   * 
    * @param {Array} messages - 訊息陣列
    * @returns {Promise<void>} 發送結果
    */
