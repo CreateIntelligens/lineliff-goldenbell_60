@@ -217,14 +217,18 @@ const downloadToOfficial = async () => {
     
     console.log('⚙️ 下載選項:', downloadOptions)
     
-    await posterImageService.generateAndDownloadPoster(
+    // 生成海報 Blob
+    const imageBlob = await posterImageService.generatePosterBlob(
       imageUrl,
       text,
-      fileName,
       downloadOptions
     )
     
-    console.log('✅ 海報下載完成')
+    // 發送到官方帳號
+    await liffService.sendImage(imageBlob, fileName, text)
+    
+    console.log('✅ 海報已發送到官方帳號')
+    alert('海報已發送到官方帳號！')
     
   } catch (error) {
     console.error('❌ 下載失敗:', error)
@@ -267,15 +271,24 @@ const sharePoster = async () => {
     const shareConfig = window.GOLDENBELL_CONFIG?.liff?.shareTargetPicker
     const shareConfigType = eventType === 'award_speech' ? 'award_speech' : 'cheer'
     
+    let shareText = ''
+    if (eventType === 'award_speech') {
+      if (text) {
+        shareText = `「金鐘60得獎感言卡｜我的金鐘夢想成真！」\n\n我的得獎感言：${text}\n\n金鐘盛典即將登場！快來製作你的專屬得獎感言卡，想像自己站在金鐘獎台上的光榮時刻！\n\n讓你的夢想化作「得獎感言卡」，閃耀金鐘榮光 ✨`
+      } else {
+        shareText = `「金鐘60得獎感言卡｜我的金鐘夢想成真！」\n\n金鐘盛典即將登場！快來製作你的專屬得獎感言卡，想像自己站在金鐘獎台上的光榮時刻！\n\n讓你的夢想化作「得獎感言卡」，閃耀金鐘榮光 ✨`
+      }
+    } else {
+      if (text) {
+        shareText = `「金鐘60星光打Call｜為心愛的節目瘋狂應援！」\n\n我的應援：${text}\n\n金鐘盛典即將登場！快來製作你的專屬應援海報，為最愛的節目和藝人加油打氣，一起點亮金鐘星光大道！\n\n讓你的心意化作「星光打Call卡」，在典禮閃耀 ❤`
+      } else {
+        shareText = `「金鐘60星光打Call｜為心愛的節目瘋狂應援！」\n\n金鐘盛典即將登場！快來製作你的專屬應援海報，為最愛的節目和藝人加油打氣，一起點亮金鐘星光大道！\n\n讓你的心意化作「星光打Call卡」，在典禮閃耀 ❤`
+      }
+    }
+    
     const messages = shareConfig?.messages?.[shareConfigType] || [{
       type: 'text',
-      text: eventType === 'award_speech' 
-        ? (text ? 
-            `「金鐘60得獎感言卡｜我的金鐘夢想成真！」\n\n我的得獎感言：${text}\n\n金鐘盛典即將登場！快來製作你的專屬得獎感言卡，想像自己站在金鐘獎台上的光榮時刻！\n\n讓你的夢想化作「得獎感言卡」，閃耀金鐘榮光 ✨` :
-            `「金鐘60得獎感言卡｜我的金鐘夢想成真！」\n\n金鐘盛典即將登場！快來製作你的專屬得獎感言卡，想像自己站在金鐘獎台上的光榮時刻！\n\n讓你的夢想化作「得獎感言卡」，閃耀金鐘榮光 ✨`)
-        : (text ? 
-            `「金鐘60星光打Call｜為心愛的節目瘋狂應援！」\n\n我的應援：${text}\n\n金鐘盛典即將登場！快來製作你的專屬應援海報，為最愛的節目和藝人加油打氣，一起點亮金鐘星光大道！\n\n讓你的心意化作「星光打Call卡」，在典禮閃耀 ❤` :
-            `「金鐘60星光打Call｜為心愛的節目瘋狂應援！」\n\n金鐘盛典即將登場！快來製作你的專屬應援海報，為最愛的節目和藝人加油打氣，一起點亮金鐘星光大道！\n\n讓你的心意化作「星光打Call卡」，在典禮閃耀 ❤`)
+      text: shareText
     }]
     
     console.log('📝 準備分享的訊息:', messages)

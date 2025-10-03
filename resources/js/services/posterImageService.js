@@ -11,6 +11,75 @@ class PosterImageService {
   }
 
   /**
+   * 生成包含文字的海報圖片 Blob
+   * @param {string} imageUrl - 背景圖片 URL
+   * @param {string} text - 要覆蓋的文字
+   * @param {Object} options - 生成選項
+   * @returns {Promise<Blob>} 圖片 Blob
+   */
+  async generatePosterBlob(imageUrl, text, options = {}) {
+    try {
+      console.log('📥 開始生成海報圖片 Blob...', { imageUrl, text })
+      
+      // 創建 Canvas 和圖片
+      const canvas = document.createElement('canvas')
+      const ctx = canvas.getContext('2d')
+      const img = new Image()
+      
+      // 設定圖片跨域屬性
+      img.crossOrigin = 'anonymous'
+      
+      return new Promise((resolve, reject) => {
+        img.onload = async () => {
+          try {
+            // 設定 Canvas 尺寸
+            canvas.width = img.width
+            canvas.height = img.height
+            
+            // 繪製背景圖
+            ctx.drawImage(img, 0, 0)
+            
+            // 如果有文字，繪製文字
+            if (text && text.trim()) {
+              await this.drawTextOnCanvas(ctx, text, canvas.width, canvas.height, options)
+            }
+            
+            // 轉換為 Blob
+            const blob = await this.canvasToBlob(canvas)
+            console.log('✅ 海報 Blob 生成完成', { size: blob.size, type: blob.type })
+            resolve(blob)
+            
+          } catch (error) {
+            console.error('❌ 生成海報 Blob 失敗:', error)
+            reject(error)
+          }
+        }
+        
+        img.onerror = (event) => {
+          const error = new Error(`圖片載入失敗: ${imageUrl}`)
+          console.error('❌ 圖片載入失敗:', {
+            imageUrl,
+            event,
+            imgSrc: img.src,
+            imgComplete: img.complete,
+            imgNaturalWidth: img.naturalWidth,
+            imgNaturalHeight: img.naturalHeight
+          })
+          reject(error)
+        }
+        
+        // 開始載入圖片
+        console.log('🖼️ 載入背景圖片:', imageUrl)
+        img.src = imageUrl
+      })
+      
+    } catch (error) {
+      console.error('❌ 生成海報 Blob 失敗:', error)
+      throw error
+    }
+  }
+
+  /**
    * 生成包含文字的海報圖片並下載
    * @param {string} imageUrl - 背景圖片 URL
    * @param {string} text - 要覆蓋的文字

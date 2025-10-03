@@ -739,6 +739,7 @@ const downloadToOfficial = async () => {
   }
 
   try {
+    console.log('📤 開始發送感言卡到官方帳號...')
     
     const fileName = `金鐘60得獎感言卡_${new Date().getTime()}`
     
@@ -754,23 +755,27 @@ const downloadToOfficial = async () => {
       rotation: 0                 // 不傾斜，保持水平
     }
     
-    await posterImageService.generateAndDownloadPoster(
+    // 生成感言卡 Blob
+    const imageBlob = await posterImageService.generatePosterBlob(
       posterImage.value,
       generatedText.value,
-      fileName,
       downloadOptions
     )
     
+    // 發送到官方帳號
+    await liffService.sendImage(imageBlob, fileName, generatedText.value)
+    
+    console.log('✅ 感言卡已發送到官方帳號')
+    alert('感言卡已發送到官方帳號！')
     
   } catch (error) {
-    alert('下載失敗，請稍後再試')
+    console.error('❌ 發送失敗:', error)
+    alert(`發送失敗：${error.message || '請稍後再試'}`)
   }
 }
 
 const sharePoster = async () => {
-  
   try {
-    
     // 檢查是否有生成的海報
     if (!hasGenerated.value) {
       alert('請先生成感言卡再進行分享')

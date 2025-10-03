@@ -332,6 +332,54 @@ class LiffService {
   }
 
   /**
+   * 發送圖片到當前聊天室
+   * 
+   * @param {Blob} imageBlob - 圖片 Blob
+   * @param {string} fileName - 檔案名稱
+   * @param {string} text - 可選的文字訊息
+   * @returns {Promise<void>} 發送結果
+   */
+  async sendImage(imageBlob, fileName, text = '') {
+    try {
+      if (!this.isInitialized || typeof liff === 'undefined') {
+        throw new Error('LIFF 尚未初始化')
+      }
+
+      console.log('📤 準備發送圖片到官方帳號...', {
+        fileName,
+        blobSize: imageBlob.size,
+        blobType: imageBlob.type,
+        hasText: !!text
+      })
+
+      // 創建訊息陣列
+      const messages = []
+      
+      // 如果有文字，先發送文字訊息
+      if (text && text.trim()) {
+        messages.push({
+          type: 'text',
+          text: text
+        })
+      }
+      
+      // 發送圖片訊息
+      messages.push({
+        type: 'image',
+        originalContentUrl: URL.createObjectURL(imageBlob),
+        previewImageUrl: URL.createObjectURL(imageBlob)
+      })
+
+      await liff.sendMessages(messages)
+      console.log('✅ 圖片發送成功')
+      
+    } catch (error) {
+      console.error('❌ 發送圖片失敗:', error)
+      throw error
+    }
+  }
+
+  /**
    * 開啟分享選擇器 (Share Target Picker)
    * @param {Array} messages - 要分享的訊息陣列
    * @returns {Promise<void>} 分享結果

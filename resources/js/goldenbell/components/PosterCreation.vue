@@ -721,18 +721,25 @@ const downloadToOfficial = async () => {
   }
 
   try {
+    console.log('📤 開始發送海報到官方帳號...')
     
     const fileName = `金鐘60應援海報_${new Date().getTime()}`
     
-    await posterImageService.generateAndDownloadPoster(
+    // 生成海報 Blob
+    const imageBlob = await posterImageService.generatePosterBlob(
       posterImage.value,
-      generatedText.value,
-      fileName
+      generatedText.value
     )
     
+    // 發送到官方帳號
+    await liffService.sendImage(imageBlob, fileName, generatedText.value)
+    
+    console.log('✅ 海報已發送到官方帳號')
+    alert('海報已發送到官方帳號！')
     
   } catch (error) {
-    alert('下載失敗，請稍後再試')
+    console.error('❌ 發送失敗:', error)
+    alert(`發送失敗：${error.message || '請稍後再試'}`)
   }
 }
 
