@@ -44,8 +44,10 @@ class PosterImageService {
               await this.drawTextOnCanvas(ctx, text, canvas.width, canvas.height, options)
             }
             
-            // 轉換為 Blob
-            const blob = await this.canvasToBlob(canvas)
+            // 轉換為 Blob（預設改為 jpeg 並壓縮，以符合 LINE 分享限制並提高成功率）
+            const mimeType = options.mimeType || 'image/jpeg'
+            const quality = typeof options.quality === 'number' ? options.quality : 0.85
+            const blob = await this.canvasToBlob(canvas, mimeType, quality)
             console.log('✅ 海報 Blob 生成完成', { size: blob.size, type: blob.type })
             resolve(blob)
             

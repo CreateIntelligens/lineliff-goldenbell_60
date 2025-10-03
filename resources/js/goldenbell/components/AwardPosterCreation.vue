@@ -759,11 +759,11 @@ const downloadToOfficial = async () => {
     const imageBlob = await posterImageService.generatePosterBlob(
       posterImage.value,
       generatedText.value,
-      downloadOptions
+      { ...downloadOptions, mimeType: 'image/jpeg', quality: 0.85 }
     )
     
     // 發送到官方帳號
-    await liffService.sendImage(imageBlob, fileName, generatedText.value)
+    await liffService.sendImage(imageBlob, fileName, generatedText.value, 'award_speech')
     
     console.log('✅ 感言卡已發送到官方帳號')
     alert('感言卡已發送到官方帳號！')

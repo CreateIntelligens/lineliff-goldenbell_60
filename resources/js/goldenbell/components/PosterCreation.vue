@@ -728,11 +728,12 @@ const downloadToOfficial = async () => {
     // 生成海報 Blob
     const imageBlob = await posterImageService.generatePosterBlob(
       posterImage.value,
-      generatedText.value
+      generatedText.value,
+      { mimeType: 'image/jpeg', quality: 0.85 }
     )
     
     // 發送到官方帳號
-    await liffService.sendImage(imageBlob, fileName, generatedText.value)
+    await liffService.sendImage(imageBlob, fileName, generatedText.value, 'cheer')
     
     console.log('✅ 海報已發送到官方帳號')
     alert('海報已發送到官方帳號！')

@@ -5,6 +5,7 @@
  */
 
 import { API_CONFIG } from '../config/config.js'
+import { apiService } from './apiService.js'
 
 class LiffService {
   constructor() {
@@ -343,7 +344,7 @@ class LiffService {
    * @param {string} text - 可選的文字訊息
    * @returns {Promise<void>} 分享結果
    */
-  async sendImage(imageBlob, fileName, text = '') {
+  async sendImage(imageBlob, fileName, text = '', eventType = '') {
     try {
       if (!this.isInitialized || typeof liff === 'undefined') {
         throw new Error('LIFF 尚未初始化')
@@ -367,22 +368,27 @@ class LiffService {
         return
       }
 
-      // 創建訊息陣列
-      const messages = []
-      
-      // 如果有文字，先發送文字訊息
-      if (text && text.trim()) {
-        messages.push({
-          type: 'text',
-          text: text
-        })
+      // 先上傳圖片 Blob 以獲取可公開存取的 HTTPS 圖片 URL（LINE 需可存取的 URL）
+      console.log('☁️ 開始上傳圖片以取得公開 URL...')
+      const uploadResult = await apiService.saveImage(text || '', imageBlob, eventType || '')
+      const publicImageUrl = uploadResult?.data?.image_url || uploadResult?.data?.imageUrl || uploadResult?.image_url || uploadResult?.imageUrl
+
+      if (!publicImageUrl) {
+        throw new Error('無法取得公開圖片 URL')
       }
-      
-      // 發送圖片訊息
+      console.log('🔗 取得公開圖片 URL:', publicImageUrl)
+
+      // 建立訊息（使用公開 URL）
+      const messages = []
+
+      if (text && text.trim()) {
+        messages.push({ type: 'text', text })
+      }
+
       messages.push({
         type: 'image',
-        originalContentUrl: URL.createObjectURL(imageBlob),
-        previewImageUrl: URL.createObjectURL(imageBlob)
+        originalContentUrl: publicImageUrl,
+        previewImageUrl: publicImageUrl
       })
 
       // 使用 shareTargetPicker 讓用戶選擇分享目標
