@@ -429,6 +429,29 @@ class PosterImageService {
   }
 
   /**
+   * 將 Canvas 轉換為 Blob
+   * @param {HTMLCanvasElement} canvas - Canvas 元素
+   * @param {string} mimeType - MIME 類型
+   * @param {number} quality - 圖片品質
+   * @returns {Promise<Blob>} Blob 物件
+   */
+  canvasToBlob(canvas, mimeType = 'image/png', quality = 0.9) {
+    return new Promise((resolve, reject) => {
+      try {
+        canvas.toBlob((blob) => {
+          if (!blob) {
+            reject(new Error('Canvas 轉換為 Blob 失敗'))
+            return
+          }
+          resolve(blob)
+        }, mimeType, quality)
+      } catch (error) {
+        reject(error)
+      }
+    })
+  }
+
+  /**
    * 獲取文字度量信息
    * @param {string} text - 文字內容
    * @param {string} font - 字體設定
