@@ -213,7 +213,6 @@ const downloadToOfficial = async () => {
       : `金鐘60應援海報_${props.recordData.id || new Date().getTime()}`
     
     // 根據事件類型設定下載選項
-    // 🔧 移除 fontSize 設定，讓它使用與 PosterCreation 相同的動態字體大小
     let downloadOptions = {}
     if (eventType === 'award_speech') {
       // 感言卡使用黑色文字和正中間位置 - 與 AwardPosterCreation 一致
@@ -221,7 +220,6 @@ const downloadToOfficial = async () => {
         textColor: '#000000',       // 黑色文字
         textAlign: 'center',        // 居中對齊
         textBaseline: 'middle',     // 垂直居中
-        // x, y 不設定，讓它使用預設的畫面中央位置
         maxWidth: 300,              // 稍微增加最大寬度
         fontSize: 30,
         fontFamily: '"Noto Serif HK", serif',
@@ -232,15 +230,28 @@ const downloadToOfficial = async () => {
       downloadOptions = {
         textColor: '#FFFFFF',  // 白色文字
         textAlign: 'center',
-        // fontSize: 使用預設的動態計算 (圖片尺寸的8%，最小48px)
         fontFamily: '"Noto Serif HK", serif'
       }
     }
     
     console.log('⚙️ 下載選項:', downloadOptions)
     
-    // 直接使用現有的圖片 URL 發送
-    await liffService.sendImage(imageUrl, fileName, text, eventType)
+    // 🔧 使用 posterImageService 生成包含文字的圖片 Blob
+    console.log('🎨 開始生成包含文字的圖片...')
+    const imageBlob = await posterImageService.generatePosterBlob(
+      imageUrl,
+      text,
+      { 
+        mimeType: 'image/jpeg', 
+        quality: 0.85,
+        ...downloadOptions
+      }
+    )
+    
+    console.log('✅ 圖片生成完成，開始發送...')
+    
+    // 發送生成的圖片 Blob（不包含文字訊息，因為文字已經在圖片上了）
+    await liffService.sendImage(imageBlob, fileName, '', eventType)
     
     console.log('✅ 海報已發送到官方帳號')
     alert('海報已發送到官方帳號！')
