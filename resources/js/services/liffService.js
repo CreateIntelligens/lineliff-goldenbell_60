@@ -100,8 +100,12 @@ class LiffService {
         throw new Error('LIFF SDK 未載入')
       }
 
-      // 初始化 LIFF
-      await liff.init({ liffId })
+      // 初始化 LIFF，請求必要的權限
+      await liff.init({ 
+        liffId,
+        // 請求發送訊息的權限
+        withLoginOnExternalBrowser: true
+      })
       console.log('✅ LIFF SDK 初始化成功')
       
       if (!liff.isLoggedIn()) {
@@ -332,12 +336,12 @@ class LiffService {
   }
 
   /**
-   * 發送圖片到當前聊天室
+   * 分享圖片到聊天室（使用 shareTargetPicker）
    * 
    * @param {Blob} imageBlob - 圖片 Blob
    * @param {string} fileName - 檔案名稱
    * @param {string} text - 可選的文字訊息
-   * @returns {Promise<void>} 發送結果
+   * @returns {Promise<void>} 分享結果
    */
   async sendImage(imageBlob, fileName, text = '') {
     try {
@@ -345,12 +349,23 @@ class LiffService {
         throw new Error('LIFF 尚未初始化')
       }
 
-      console.log('📤 準備發送圖片到官方帳號...', {
+      console.log('📤 準備分享圖片到聊天室...', {
         fileName,
         blobSize: imageBlob.size,
         blobType: imageBlob.type,
         hasText: !!text
       })
+
+      // 檢查 shareTargetPicker API 是否可用
+      if (!this.isApiAvailable('shareTargetPicker')) {
+        throw new Error('分享功能在此環境中不可用，請在 LINE 應用內使用')
+      }
+
+      // 防止重複分享
+      if (this.shareInProgress) {
+        console.log('⚠️ 分享已在進行中，請稍後再試')
+        return
+      }
 
       // 創建訊息陣列
       const messages = []
@@ -370,11 +385,12 @@ class LiffService {
         previewImageUrl: URL.createObjectURL(imageBlob)
       })
 
-      await liff.sendMessages(messages)
-      console.log('✅ 圖片發送成功')
+      // 使用 shareTargetPicker 讓用戶選擇分享目標
+      await this.shareTargetPicker(messages)
+      console.log('✅ 圖片分享成功')
       
     } catch (error) {
-      console.error('❌ 發送圖片失敗:', error)
+      console.error('❌ 分享圖片失敗:', error)
       throw error
     }
   }
