@@ -337,15 +337,15 @@ class LiffService {
   }
 
   /**
-   * 發送圖片到官方帳號（使用現有的 imageUrl）
+   * 發送圖片到官方帳號（支援 URL 字串或 Blob 物件）
    * 
-   * @param {string} imageUrl - 現有的圖片 URL
+   * @param {string|Blob} imageData - 圖片 URL 或 Blob 物件
    * @param {string} fileName - 檔案名稱
    * @param {string} text - 可選的文字訊息
    * @param {string} eventType - 事件類型
    * @returns {Promise<void>} 發送結果
    */
-  async sendImage(imageUrl, fileName, text = '', eventType = '') {
+  async sendImage(imageData, fileName, text = '', eventType = '') {
     try {
       // 檢查 LIFF 是否可用
       if (typeof liff === 'undefined') {
@@ -364,11 +364,25 @@ class LiffService {
 
       console.log('📤 準備發送圖片到官方帳號...', {
         fileName,
-        imageUrl,
+        imageDataType: typeof imageData,
+        isBlob: imageData instanceof Blob,
         hasText: !!text
       })
 
-      console.log('🔗 使用現有圖片 URL:', imageUrl)
+      let imageUrl
+      
+      // 處理不同類型的圖片資料
+      if (imageData instanceof Blob) {
+        // 如果是 Blob，轉換為 URL
+        imageUrl = URL.createObjectURL(imageData)
+        console.log('🔗 將 Blob 轉換為 URL:', imageUrl)
+      } else if (typeof imageData === 'string') {
+        // 如果是字串，直接使用
+        imageUrl = imageData
+        console.log('🔗 使用現有圖片 URL:', imageUrl)
+      } else {
+        throw new Error('不支援的圖片資料類型')
+      }
 
       // 發送圖片（使用 liff.sendMessages）
       const messages = []
@@ -390,6 +404,12 @@ class LiffService {
 
       await liff.sendMessages(messages)
       console.log('✅ 圖片發送成功')
+      
+      // 如果是 Blob 生成的 URL，清理記憶體
+      if (imageData instanceof Blob) {
+        URL.revokeObjectURL(imageUrl)
+        console.log('🧹 已清理 Blob URL 記憶體')
+      }
       
     } catch (error) {
       console.error('❌ 發送圖片失敗:', error)

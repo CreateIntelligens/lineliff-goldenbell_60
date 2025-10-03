@@ -152,6 +152,25 @@ const regeneratePoster = (event) => {
   emit('regeneratePoster', props.recordData)
 }
 
+// 將相對路徑轉換為絕對 URL 的輔助函數
+const convertToAbsoluteUrl = (url) => {
+  if (!url) return url
+  
+  // 如果已經是絕對 URL，直接返回
+  if (url.startsWith('http://') || url.startsWith('https://')) {
+    return url
+  }
+  
+  // 如果是相對路徑，轉換為絕對 URL
+  if (url.startsWith('/')) {
+    // 使用當前頁面的 origin 作為基礎 URL
+    return `${window.location.origin}${url}`
+  }
+  
+  // 如果沒有前導斜線，添加當前路徑
+  return `${window.location.origin}/${url}`
+}
+
 const downloadToOfficial = async () => {
   console.log('下載到官方帳號:', props.recordData)
   
@@ -182,6 +201,9 @@ const downloadToOfficial = async () => {
                  props.recordData.poster_image || 
                  themeImages.poster
     }
+    
+    // 🔧 將相對路徑轉換為絕對 URL
+    imageUrl = convertToAbsoluteUrl(imageUrl)
     
     console.log('🖼️ 使用圖片 URL:', imageUrl)
     
@@ -240,9 +262,14 @@ const sharePoster = async () => {
     console.log('分享海報:', props.recordData)
     
     // 取得海報資訊
-    const imageUrl = props.recordData.imageUrl || props.recordData.image_url || props.recordData.poster_image
+    let imageUrl = props.recordData.imageUrl || props.recordData.image_url || props.recordData.poster_image
     const text = props.recordData.text || ''
     const posterId = props.recordData.id || props.recordData.poster_id
+    
+    // 🔧 將相對路徑轉換為絕對 URL（為將來可能的圖片分享做準備）
+    if (imageUrl) {
+      imageUrl = convertToAbsoluteUrl(imageUrl)
+    }
     
     // 🔧 根據 LINE 官方文檔實現純前端分享
     console.log('📝 實現前端分享功能')
