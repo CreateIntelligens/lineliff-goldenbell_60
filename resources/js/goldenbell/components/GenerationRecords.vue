@@ -121,6 +121,14 @@ const props = defineProps({
   refreshTrigger: {
     type: Number,
     default: 0
+  },
+  generationState: {
+    type: Object,
+    default: () => ({
+      generationCount: 0,
+      maxGenerations: 10,
+      remainingCount: 10
+    })
   }
 })
 
@@ -140,12 +148,16 @@ const records = computed(() => {
   return apiRecords.value.length > 0 ? apiRecords.value : props.records
 })
 
-const generatedCount = computed(() => records.value.length)
+// 使用從 App.vue 傳來的正確計數資料
+const generatedCount = computed(() => {
+  // 優先使用從 generationState 傳來的正確計數
+  return props.generationState?.generationCount || records.value.length
+})
 
 // 計算最大生成次數
 const maxGenerations = computed(() => {
-  // 預設值為 10，可以根據 API 或其他邏輯調整
-  return 10
+  // 優先使用從 generationState 傳來的正確限制
+  return props.generationState?.maxGenerations || 10
 })
 
 // 根據 event_type 動態標題

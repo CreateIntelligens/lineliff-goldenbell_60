@@ -49,6 +49,7 @@
         v-else-if="currentView === 'records'"
         :records="generationRecords"
         :refreshTrigger="recordsRefreshTrigger"
+        :generationState="generationStates[getCurrentEventType()]"
         @goBack="goBackFromRecords"
         @viewItem="viewGenerationRecord"
       />
