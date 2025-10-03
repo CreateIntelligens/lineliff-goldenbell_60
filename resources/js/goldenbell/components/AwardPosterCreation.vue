@@ -47,7 +47,7 @@
                   <!-- Input Textarea -->
                   <textarea 
                     ref="textInput"
-                    v-model="inputText"
+                    v-model="displayText"
                     class="h-[101px] w-full text-[13px] font-semibold leading-[160%] tracking-[-0.247px] outline-none resize-none bg-transparent border-none"
                     :class="{ 
                       'text-white': isEditing || inputText,
@@ -281,8 +281,20 @@ const hasWarnings = computed(() => {
   return warnings.value.length > 0
 })
 
+const displayText = computed({
+  get() {
+    return filteredText.value || inputText.value
+  },
+  set(value) {
+    inputText.value = value
+    if (!isComposing.value) {
+      processInput()
+    }
+  }
+})
+
 const displayLength = computed(() => {
-  return filteredText.value.length || inputText.value.length
+  return displayText.value.length
 })
 
 const isOverLimit = computed(() => {
@@ -408,26 +420,16 @@ const onTextInput = (event) => {
   
   if (lines.length > maxLines) {
     newText = lines.slice(0, maxLines).join('\n')
-    inputText.value = newText
-    nextTick(() => {
-      if (textInput.value) {
-        textInput.value.value = newText
-      }
-    })
   }
   
   if (newText.length > maxLength) {
     newText = newText.substring(0, maxLength)
-    inputText.value = newText
-    nextTick(() => {
-      if (textInput.value) {
-        textInput.value.value = newText
-      }
-    })
-  } else {
-    inputText.value = newText
   }
   
+  // 更新原始輸入文字，計算屬性會自動處理過濾
+  inputText.value = newText
+  
+  // 只有在非中文輸入法狀態下才進行過濾處理
   if (!isComposing.value) {
     processInput()
   }
