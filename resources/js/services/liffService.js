@@ -337,15 +337,15 @@ class LiffService {
   }
 
   /**
-   * 發送圖片到官方帳號（參考您提供的正確方式）
+   * 發送圖片到官方帳號（使用現有的 imageUrl）
    * 
-   * @param {Blob} imageBlob - 圖片 Blob
+   * @param {string} imageUrl - 現有的圖片 URL
    * @param {string} fileName - 檔案名稱
    * @param {string} text - 可選的文字訊息
    * @param {string} eventType - 事件類型
    * @returns {Promise<void>} 發送結果
    */
-  async sendImage(imageBlob, fileName, text = '', eventType = '') {
+  async sendImage(imageUrl, fileName, text = '', eventType = '') {
     try {
       // 檢查 LIFF 是否可用
       if (typeof liff === 'undefined') {
@@ -364,31 +364,11 @@ class LiffService {
 
       console.log('📤 準備發送圖片到官方帳號...', {
         fileName,
-        blobSize: imageBlob.size,
-        blobType: imageBlob.type,
+        imageUrl,
         hasText: !!text
       })
 
-      // 先上傳圖片到伺服器取得公開 URL（LINE 需要 HTTPS URL）
-      console.log('☁️ 開始上傳圖片以取得公開 URL...')
-      const uploadResult = await apiService.saveImage(text || '', imageBlob, eventType || '')
-      console.log('📦 上傳結果:', uploadResult)
-      
-      // 提取圖片 URL
-      const imageUrl = uploadResult?.data?.image_url || 
-                      uploadResult?.data?.imageUrl || 
-                      uploadResult?.data?.url ||
-                      uploadResult?.image_url || 
-                      uploadResult?.imageUrl || 
-                      uploadResult?.url ||
-                      uploadResult?.data?.poster_image ||
-                      uploadResult?.poster_image
-
-      if (!imageUrl) {
-        console.error('❌ 無法從上傳結果中找到圖片 URL，完整回應:', uploadResult)
-        throw new Error('無法取得公開圖片 URL')
-      }
-      console.log('🔗 取得公開圖片 URL:', imageUrl)
+      console.log('🔗 使用現有圖片 URL:', imageUrl)
 
       // 發送圖片（使用 liff.sendMessages）
       const messages = []

@@ -217,15 +217,8 @@ const downloadToOfficial = async () => {
     
     console.log('⚙️ 下載選項:', downloadOptions)
     
-    // 生成海報 Blob
-    const imageBlob = await posterImageService.generatePosterBlob(
-      imageUrl,
-      text,
-      { ...downloadOptions, mimeType: 'image/jpeg', quality: 0.85 }
-    )
-    
-    // 發送到官方帳號
-    await liffService.sendImage(imageBlob, fileName, text, eventType)
+    // 直接使用現有的圖片 URL 發送
+    await liffService.sendImage(imageUrl, fileName, text, eventType)
     
     console.log('✅ 海報已發送到官方帳號')
     alert('海報已發送到官方帳號！')
