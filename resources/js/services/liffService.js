@@ -13,6 +13,7 @@ class LiffService {
     this.userProfile = null
     this.liffId = null
     this.basicId = null
+    this.shareInProgress = false // 防止重複分享
   }
 
   /**
@@ -327,10 +328,17 @@ class LiffService {
    */
   async shareTargetPicker(messages) {
     try {
+      // 防止重複分享
+      if (this.shareInProgress) {
+        console.log('⚠️ 分享功能已在進行中，跳過重複分享')
+        throw new Error('分享功能已在進行中，請稍後再試')
+      }
+
       if (!this.isInitialized || typeof liff === 'undefined') {
         throw new Error('LIFF 尚未初始化')
       }
 
+      this.shareInProgress = true
       console.log('🔗 準備分享訊息:', messages)
 
       // 根據 LINE 官方文檔：檢查 API 是否可用
@@ -365,6 +373,9 @@ class LiffService {
       } else {
         throw error
       }
+    } finally {
+      // 無論成功或失敗都重置分享狀態
+      this.shareInProgress = false
     }
   }
 

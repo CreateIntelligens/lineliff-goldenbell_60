@@ -189,7 +189,7 @@
 </template>
 
 <script setup>
-import { ref, computed, defineEmits, onMounted, nextTick } from 'vue'
+import { ref, computed, defineEmits, onMounted, nextTick, watch } from 'vue'
 import { contentFilterService } from '../../services/contentFilterService.js'
 import { liffService } from '../../services/liffService.js'
 import { apiService } from '../../services/apiService.js'
@@ -207,6 +207,10 @@ const props = defineProps({
       maxGenerations: 10,
       remainingCount: 10
     })
+  },
+  regenerateData: {
+    type: Object,
+    default: null
   }
 })
 
@@ -284,6 +288,33 @@ onMounted(async () => {
   // 然後嘗試從 API 載入最新數據（如果可用）
   await loadUserData()
 })
+
+// 監聽重新生成資料
+watch(() => props.regenerateData, (newData) => {
+  if (newData && newData.isRegenerate) {
+    console.log('🔄 收到重新生成請求:', newData)
+    
+    // 設置要重新生成的文字
+    inputText.value = newData.text || ''
+    generatedText.value = newData.text || ''
+    
+    // 設置為已生成狀態，但不實際生成圖片
+    hasGenerated.value = true
+    isCreating.value = true
+    
+    // 不消耗生成次數，不調用 API
+    console.log('✅ 重新生成模式：已設置文字內容，不消耗生成次數')
+    
+    // 更新 App.vue 中的狀態
+    emit('stateUpdated', eventType, {
+      hasGenerated: hasGenerated.value,
+      generatedText: generatedText.value,
+      generationCount: generationCount.value,
+      maxGenerations: maxGenerations.value,
+      remainingCount: remainingCount.value
+    })
+  }
+}, { immediate: true })
 
 // Methods
 /**
@@ -632,55 +663,51 @@ const goToImageRecord = () => {
 const regeneratePoster = async () => {
   if (remainingCount.value <= 0 || isLoading.value || !generatedText.value) return
   
+  console.log('🔄 重新生成按鈕被點擊 - 只重新生成圖片，不消耗次數')
+  
   try {
     isLoading.value = true
     apiError.value = ''
     
-    // 使用已生成的文字重新創建海報
+    // 使用已生成的文字，但不消耗生成次數
     const textToUse = generatedText.value
     
-    // 儲存海報到後端（這會消耗一次生成次數）
-    let savedResult = null
-    try {
-      savedResult = await savePosterToAPI(textToUse, posterImage.value)
-    } catch (saveError) {
-      // 開發環境下 API 錯誤是正常的，不影響用戶體驗
-      console.warn('API 儲存失敗:', saveError.message)
-    }
+    // 清空輸入框，讓用戶知道已經重新生成
+    inputText.value = ''
+    filteredText.value = ''
+    warnings.value = []
     
-    // 重新載入用戶資料以獲取最新計數（重要：這會更新剩餘次數）
-    try {
-      await loadUserData()
-    } catch (loadError) {
-      // 如果 API 不可用，本地更新計數器
-      generationCount.value++
-      remainingCount.value = Math.max(0, remainingCount.value - 1)
-    }
+    // ❌ 移除：不再實際儲存到後端或消耗次數
+    console.log('✅ 重新生成完成：使用現有文字', textToUse)
+    console.log('🧹 已清空輸入框')
     
-    // 更新 App.vue 中的狀態
+    // ❌ 移除：不重新載入用戶資料或更新計數器
+    
+    // 更新 App.vue 中的狀態（但不改變計數）
     emit('stateUpdated', eventType, {
       hasGenerated: hasGenerated.value,
       generatedText: generatedText.value,
-      generationCount: generationCount.value,
+      generationCount: generationCount.value, // 保持原計數
       maxGenerations: maxGenerations.value,
-      remainingCount: remainingCount.value
+      remainingCount: remainingCount.value    // 保持原剩餘次數
     })
     
-    // 創建海報數據
+    // 創建海報數據（但不觸發實際生成）
     const posterData = {
       text: textToUse,
       imageUrl: posterImage.value,
       generationCount: generationCount.value,
-      savedResult: savedResult,
-      isRegeneration: true // 標記這是重新生成
+      savedResult: null, // 沒有實際保存
+      isRegeneration: true, // 標記這是重新生成
+      skipGeneration: true  // 標記跳過實際生成
     }
     
-    // 發送海報生成事件到父元件
-    emit('posterGenerated', posterData)
+    // 不發送 posterGenerated 事件，避免觸發實際生成
+    console.log('🎯 重新生成完成，不觸發實際圖片生成')
     
   } catch (error) {
     apiError.value = error.message
-    alert(`重新生成海報失敗: ${error.message}`)
+    alert(`重新生成失敗: ${error.message}`)
   } finally {
     isLoading.value = false
   }
@@ -785,6 +812,12 @@ const sharePoster = async () => {
     // 檢查 shareTargetPicker API 是否可用
     if (!liffService.isApiAvailable('shareTargetPicker')) {
       alert('分享功能在此環境中不可用，請在 LINE 應用內使用')
+      return
+    }
+    
+    // 防止重複點擊
+    if (liffService.shareInProgress) {
+      console.log('⚠️ 分享已在進行中，請稍後再試')
       return
     }
     // 準備分享訊息 - 包含用戶的應援文字

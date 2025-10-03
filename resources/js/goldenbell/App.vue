@@ -26,6 +26,7 @@
       <PosterCreation
         v-else-if="currentView === 'poster' && getCurrentEventType() === 'cheer'"
         :initialState="generationStates.cheer"
+        :regenerateData="regenerateData"
         @goToImageRecord="goToImageRecord"
         @goBack="goToHomepage"
         @posterGenerated="addGenerationRecord"
@@ -36,6 +37,7 @@
       <AwardPosterCreation
         v-else-if="currentView === 'poster' && getCurrentEventType() === 'award_speech'"
         :initialState="generationStates.award_speech"
+        :regenerateData="regenerateData"
         @goToImageRecord="goToImageRecord"
         @goBack="goToHomepage"
         @posterGenerated="addGenerationRecord"
@@ -94,6 +96,7 @@ const currentView = ref('homepage') // 'homepage', 'poster', 'records', 'detail'
 const generationRecords = ref([])
 const selectedRecord = ref(null) // 當前查看的紀錄
 const recordsRefreshTrigger = ref(0) // 用於觸發記錄頁面刷新
+const regenerateData = ref(null) // 重新生成時要使用的資料
 
 // 各事件類型的生成狀態追蹤
 const generationStates = ref({
@@ -187,6 +190,8 @@ async function initializeApp() {
 // 導航功能函數
 async function goToPosterCreation() {
   console.log('導航到應援海報製作頁面')
+  // 清除重新生成資料，這樣就是正常的新建模式
+  regenerateData.value = null
   currentView.value = 'poster'
   
   // 進入海報製作頁面時，確保載入最新的計數資料
@@ -471,6 +476,13 @@ function goBackToRecords() {
 
 function regenerateFromDetail(recordData) {
   console.log('從詳細頁面重新生成，導航到製作頁面:', recordData)
+  
+  // 設置重新生成的資料
+  regenerateData.value = {
+    text: recordData.text || '',
+    isRegenerate: true,
+    originalRecord: recordData
+  }
   
   // 導航到海報製作頁面
   currentView.value = 'poster'
