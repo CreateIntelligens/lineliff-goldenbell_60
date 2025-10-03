@@ -265,7 +265,7 @@ const sharePoster = async () => {
     
     // 準備分享訊息 - 根據事件類型從配置中讀取文案模板
     const shareConfig = window.GOLDENBELL_CONFIG?.liff?.shareTargetPicker
-    const shareConfigType = eventType === 'award_speech' ? 'award' : 'cheer'
+    const shareConfigType = eventType === 'award_speech' ? 'award_speech' : 'cheer'
     
     const messages = shareConfig?.messages?.[shareConfigType] || [{
       type: 'text',

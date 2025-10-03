@@ -795,7 +795,12 @@ const sharePoster = async () => {
     const shareConfig = window.GOLDENBELL_CONFIG?.liff?.shareTargetPicker
     
     
-    const messages = shareConfig.messages[eventType];
+    const messages = shareConfig?.messages?.award_speech || [{
+      type: 'text',
+      text: generatedText.value ? 
+        `「金鐘60得獎感言卡｜我的金鐘夢想成真！」\n\n我的得獎感言：${generatedText.value}\n\n金鐘盛典即將登場！快來製作你的專屬得獎感言卡，想像自己站在金鐘獎台上的光榮時刻！\n\n讓你的夢想化作「得獎感言卡」，閃耀金鐘榮光 ✨` :
+        `「金鐘60得獎感言卡｜我的金鐘夢想成真！」\n\n金鐘盛典即將登場！快來製作你的專屬得獎感言卡，想像自己站在金鐘獎台上的光榮時刻！\n\n讓你的夢想化作「得獎感言卡」，閃耀金鐘榮光 ✨`
+    }]
     
     
     // 檢查 LIFF 服務狀態
