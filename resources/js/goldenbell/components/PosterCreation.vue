@@ -821,17 +821,15 @@ const sharePoster = async () => {
       console.log('⚠️ 分享已在進行中，請稍後再試')
       return
     }
-    // 準備分享訊息 - 包含用戶的應援文字
-    const shareText = generatedText.value ? 
-      `「金鐘60星光打Call｜為心愛的節目瘋狂應援！」\n\n我的應援：${generatedText.value}\n\n金鐘盛典即將登場！快來製作你的專屬應援海報，為最愛的節目和藝人加油打氣，一起點亮金鐘星光大道！\n\n讓你的心意化作「星光打Call卡」，在典禮閃耀 ❤` :
-      `「金鐘60星光打Call｜為心愛的節目瘋狂應援！」\n\n金鐘盛典即將登場！快來製作你的專屬應援海報，為最愛的節目和藝人加油打氣，一起點亮金鐘星光大道！\n\n讓你的心意化作「星光打Call卡」，在典禮閃耀 ❤`
+    // 準備分享訊息 - 從配置中讀取文案模板
+    const shareConfig = window.GOLDENBELL_CONFIG?.liff?.shareTargetPicker
     
-    const messages = [
-      {
-        type: 'text',
-        text: shareText
-      }
-    ]
+    const messages = shareConfig?.messages?.cheer || [{
+      type: 'text',
+      text: generatedText.value ? 
+        `「金鐘60星光打Call｜為心愛的節目瘋狂應援！」\n\n我的應援：${generatedText.value}\n\n金鐘盛典即將登場！快來製作你的專屬應援海報，為最愛的節目和藝人加油打氣，一起點亮金鐘星光大道！\n\n讓你的心意化作「星光打Call卡」，在典禮閃耀 ❤` :
+        `「金鐘60星光打Call｜為心愛的節目瘋狂應援！」\n\n金鐘盛典即將登場！快來製作你的專屬應援海報，為最愛的節目和藝人加油打氣，一起點亮金鐘星光大道！\n\n讓你的心意化作「星光打Call卡」，在典禮閃耀 ❤`
+    }]
     
     
     // 檢查 LIFF 服務狀態

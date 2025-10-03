@@ -61,7 +61,32 @@
       // ===== LIFF 配置 =====
       liff: {
         liffId: '2006948092-RxDrPENM', // 🔧 統一使用此 LIFF ID
-        enableLiff: true // 🔧 開發時設為 false，生產時設為 true
+        enableLiff: true, // 🔧 開發時設為 false，生產時設為 true
+        
+        // ===== ShareTargetPicker 配置 =====
+        shareTargetPicker: {
+          
+          // 分享訊息配置
+          messages: {
+            // 應援海報分享訊息模板 - 使用 Array 格式
+            cheer: [{
+              type: 'text',
+              // 有用戶輸入時的完整文案模板 ({{userText}} 會被替換成用戶輸入)
+              textWithUser: '「金鐘60星光打Call｜為心愛的節目瘋狂應援！」\n\n我的應援：{{userText}}\n\n金鐘盛典即將登場！快來製作你的專屬應援海報，為最愛的節目和藝人加油打氣，一起點亮金鐘星光大道！\n\n讓你的心意化作「星光打Call卡」，在典禮閃耀 ❤',
+              // 沒有用戶輸入時的文案模板
+              textWithoutUser: '「金鐘60星光打Call｜為心愛的節目瘋狂應援！」\n\n金鐘盛典即將登場！快來製作你的專屬應援海報，為最愛的節目和藝人加油打氣，一起點亮金鐘星光大道！\n\n讓你的心意化作「星光打Call卡」，在典禮閃耀 ❤'
+            }],
+            
+            // 得獎感言分享訊息模板 - 使用 Array 格式
+            award: [{
+              type: 'text',
+              // 有用戶輸入時的完整文案模板 ({{userText}} 會被替換成用戶輸入)
+              textWithUser: '「金鐘60得獎感言卡｜我的金鐘夢想成真！」\n\n我的得獎感言：{{userText}}\n\n金鐘盛典即將登場！快來製作你的專屬得獎感言卡，想像自己站在金鐘獎台上的光榮時刻！\n\n讓你的夢想化作「得獎感言卡」，閃耀金鐘榮光 ✨',
+              // 沒有用戶輸入時的文案模板
+              textWithoutUser: '「金鐘60得獎感言卡｜我的金鐘夢想成真！」\n\n金鐘盛典即將登場！快來製作你的專屬得獎感言卡，想像自己站在金鐘獎台上的光榮時刻！\n\n讓你的夢想化作「得獎感言卡」，閃耀金鐘榮光 ✨'
+            }]
+          }
+        }
       },
       
       // ===== 功能開關 =====
@@ -94,7 +119,9 @@
       console.log('🔧 金鐘60配置已載入:', window.GOLDENBELL_CONFIG);
       console.log('📡 API 端點:', window.GOLDENBELL_CONFIG.api.baseURL);
       console.log('🌍 環境:', window.GOLDENBELL_CONFIG.environment.name);
+      console.log('📤 ShareTargetPicker 配置:', window.GOLDENBELL_CONFIG.liff.shareTargetPicker);
     }
+    
   </script>
   
   <!-- 開發環境特殊配置 -->

@@ -14,6 +14,15 @@ class LiffService {
     this.liffId = null
     this.basicId = null
     this.shareInProgress = false // 防止重複分享
+    
+    // 從配置中讀取 ShareTargetPicker 設定
+    this.shareConfig = window.GOLDENBELL_CONFIG?.liff?.shareTargetPicker || {
+      enabled: true,
+      messages: {
+        cheer: [{ type: 'flex', altText: '我製作了金鐘60應援海報！快來一起為心愛的節目加油！' }],
+        award: [{ type: 'flex', altText: '我寫了金鐘60得獎感言！快來看看我的感謝話語！' }]
+      }
+    }
   }
 
   /**
@@ -328,6 +337,12 @@ class LiffService {
    */
   async shareTargetPicker(messages) {
     try {
+      // 檢查分享功能是否啟用
+      if (!this.shareConfig.enabled) {
+        console.log('⚠️ 分享功能已被停用')
+        throw new Error('分享功能暫時不可用')
+      }
+
       // 防止重複分享
       if (this.shareInProgress) {
         console.log('⚠️ 分享功能已在進行中，跳過重複分享')
@@ -340,6 +355,7 @@ class LiffService {
 
       this.shareInProgress = true
       console.log('🔗 準備分享訊息:', messages)
+      console.log('🔧 使用分享配置:', this.shareConfig)
 
       // 根據 LINE 官方文檔：檢查 API 是否可用
       if (!liff.isApiAvailable('shareTargetPicker')) {
@@ -378,6 +394,7 @@ class LiffService {
       this.shareInProgress = false
     }
   }
+
 
   /**
    * 檢查 LIFF API 是否可用
