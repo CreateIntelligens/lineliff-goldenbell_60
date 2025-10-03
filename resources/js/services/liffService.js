@@ -371,9 +371,20 @@ class LiffService {
       // 先上傳圖片 Blob 以獲取可公開存取的 HTTPS 圖片 URL（LINE 需可存取的 URL）
       console.log('☁️ 開始上傳圖片以取得公開 URL...')
       const uploadResult = await apiService.saveImage(text || '', imageBlob, eventType || '')
-      const publicImageUrl = uploadResult?.data?.image_url || uploadResult?.data?.imageUrl || uploadResult?.image_url || uploadResult?.imageUrl
+      console.log('📦 上傳結果:', uploadResult)
+      
+      // 嘗試多種可能的 URL 欄位名稱
+      const publicImageUrl = uploadResult?.data?.image_url || 
+                           uploadResult?.data?.imageUrl || 
+                           uploadResult?.data?.url ||
+                           uploadResult?.image_url || 
+                           uploadResult?.imageUrl || 
+                           uploadResult?.url ||
+                           uploadResult?.data?.poster_image ||
+                           uploadResult?.poster_image
 
       if (!publicImageUrl) {
+        console.error('❌ 無法從上傳結果中找到圖片 URL，完整回應:', uploadResult)
         throw new Error('無法取得公開圖片 URL')
       }
       console.log('🔗 取得公開圖片 URL:', publicImageUrl)
