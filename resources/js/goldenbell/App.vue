@@ -492,7 +492,7 @@ function regenerateFromDetail(recordData) {
 // 取得當前事件類型的生成數量
 function getCurrentEventTypeCount() {
   const currentEventType = getCurrentEventType()
-  return generationRecords.value.filter(record => record.event_type === currentEventType).length
+  return generationStates.value[currentEventType]?.generationCount || 0
 }
 
 // 取得當前事件類型的最大生成次數
