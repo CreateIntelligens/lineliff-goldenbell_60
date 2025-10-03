@@ -337,77 +337,82 @@ class LiffService {
   }
 
   /**
-   * 分享圖片到聊天室（使用 shareTargetPicker）
+   * 發送圖片到官方帳號（參考您提供的正確方式）
    * 
    * @param {Blob} imageBlob - 圖片 Blob
    * @param {string} fileName - 檔案名稱
    * @param {string} text - 可選的文字訊息
-   * @returns {Promise<void>} 分享結果
+   * @param {string} eventType - 事件類型
+   * @returns {Promise<void>} 發送結果
    */
   async sendImage(imageBlob, fileName, text = '', eventType = '') {
     try {
-      if (!this.isInitialized || typeof liff === 'undefined') {
-        throw new Error('LIFF 尚未初始化')
+      // 檢查 LIFF 是否可用
+      if (typeof liff === 'undefined') {
+        throw new Error('LIFF 不可用,無法發送圖片')
       }
 
-      console.log('📤 準備分享圖片到聊天室...', {
+      // 檢查是否在 LINE 應用內
+      if (!liff.isInClient()) {
+        throw new Error('請在 LINE 應用內使用此功能')
+      }
+
+      // 檢查是否已登入
+      if (!liff.isLoggedIn()) {
+        throw new Error('請先登入LINE')
+      }
+
+      console.log('📤 準備發送圖片到官方帳號...', {
         fileName,
         blobSize: imageBlob.size,
         blobType: imageBlob.type,
         hasText: !!text
       })
 
-      // 檢查 shareTargetPicker API 是否可用
-      if (!this.isApiAvailable('shareTargetPicker')) {
-        throw new Error('分享功能在此環境中不可用，請在 LINE 應用內使用')
-      }
-
-      // 防止重複分享
-      if (this.shareInProgress) {
-        console.log('⚠️ 分享已在進行中，請稍後再試')
-        return
-      }
-
-      // 先上傳圖片 Blob 以獲取可公開存取的 HTTPS 圖片 URL（LINE 需可存取的 URL）
+      // 先上傳圖片到伺服器取得公開 URL
       console.log('☁️ 開始上傳圖片以取得公開 URL...')
       const uploadResult = await apiService.saveImage(text || '', imageBlob, eventType || '')
       console.log('📦 上傳結果:', uploadResult)
       
-      // 嘗試多種可能的 URL 欄位名稱
-      const publicImageUrl = uploadResult?.data?.image_url || 
-                           uploadResult?.data?.imageUrl || 
-                           uploadResult?.data?.url ||
-                           uploadResult?.image_url || 
-                           uploadResult?.imageUrl || 
-                           uploadResult?.url ||
-                           uploadResult?.data?.poster_image ||
-                           uploadResult?.poster_image
+      // 提取圖片 URL
+      const imageUrl = uploadResult?.data?.image_url || 
+                      uploadResult?.data?.imageUrl || 
+                      uploadResult?.data?.url ||
+                      uploadResult?.image_url || 
+                      uploadResult?.imageUrl || 
+                      uploadResult?.url ||
+                      uploadResult?.data?.poster_image ||
+                      uploadResult?.poster_image
 
-      if (!publicImageUrl) {
+      if (!imageUrl) {
         console.error('❌ 無法從上傳結果中找到圖片 URL，完整回應:', uploadResult)
         throw new Error('無法取得公開圖片 URL')
       }
-      console.log('🔗 取得公開圖片 URL:', publicImageUrl)
+      console.log('🔗 取得公開圖片 URL:', imageUrl)
 
-      // 建立訊息（使用公開 URL）
+      // 發送圖片（使用 liff.sendMessages）
       const messages = []
-
+      
+      // 如果有文字，先發送文字訊息
       if (text && text.trim()) {
-        messages.push({ type: 'text', text })
+        messages.push({
+          type: 'text',
+          text: text
+        })
       }
-
+      
+      // 發送圖片訊息
       messages.push({
         type: 'image',
-        originalContentUrl: publicImageUrl,
-        previewImageUrl: publicImageUrl
+        originalContentUrl: imageUrl,
+        previewImageUrl: imageUrl
       })
 
-      // 使用 shareTargetPicker 讓用戶選擇分享目標
-      await this.shareTargetPicker(messages)
-      console.log('✅ 圖片分享成功')
+      await liff.sendMessages(messages)
+      console.log('✅ 圖片發送成功')
       
     } catch (error) {
-      console.error('❌ 分享圖片失敗:', error)
+      console.error('❌ 發送圖片失敗:', error)
       throw error
     }
   }
