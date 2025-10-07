@@ -397,7 +397,8 @@ const savePosterToAPI = async (text, imageUrl) => {
   }
 
   try {
-    const imageBlob = await apiService.createPosterBlob(imageUrl, text)
+    // 🔧 創建包含文字的感言卡圖片，傳入事件類型以應用正確樣式
+    const imageBlob = await apiService.createPosterBlob(imageUrl, text, eventType)
     const result = await apiService.saveImage(text, imageBlob, eventType)
     return result
   } catch (error) {

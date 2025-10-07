@@ -31,15 +31,7 @@
               alt="Poster Detail"
             />
             
-            <!-- 文字覆蓋層 - 根據事件類型調整位置和顏色 -->
-            <div v-if="recordData.text" :class="getTextOverlayClass()" class="absolute">
-              <div :class="getTextContainerClass()">
-                <div :class="getTextClass(recordData.text)" 
-                     :style="getDetailTextStyle(recordData.text)">
-                  {{ recordData.text }}
-                </div>
-              </div>
-            </div>
+            <!-- 移除文字覆蓋層 - 後端圖片已包含文字 -->
           </div>
           
           <!-- Generation Info -->

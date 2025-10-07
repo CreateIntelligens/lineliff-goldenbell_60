@@ -386,9 +386,10 @@ class ApiService {
    * 從圖片URL創建Canvas並轉換為Blob
    * @param {string} imageUrl - 圖片URL
    * @param {string} text - 要覆蓋的文字
+   * @param {string} eventType - 事件類型 (可選，用於判斷樣式)
    * @returns {Promise<Blob>} 處理後的圖片Blob
    */
-  async createPosterBlob(imageUrl, text) {
+  async createPosterBlob(imageUrl, text, eventType = '') {
     return new Promise((resolve, reject) => {
       const img = new Image()
       img.crossOrigin = 'anonymous'
@@ -405,34 +406,64 @@ class ApiService {
           // 繪製背景圖
           ctx.drawImage(img, 0, 0)
           
-          // 🔧 根據圖片大小動態計算字體大小，確保文字夠大
-          const baseFontSize = Math.min(canvas.width, canvas.height) * 0.12  // 提高到圖片尺寸的12%
-          const fontSize = Math.max(baseFontSize, 60)  // 最小60px（比原來的24px大很多）
+          // 🔧 根據圖片大小和事件類型動態計算字體大小
+          const baseFontSize = Math.min(canvas.width, canvas.height) * 0.15  // 提高到圖片尺寸的15%
+          const fontSize = Math.max(baseFontSize, 80)  // 最小80px（更大！）
           
-          // 設定文字樣式
-          ctx.fillStyle = 'white'
-          ctx.font = `bold ${fontSize}px "Noto Serif HK", serif`
-          ctx.textAlign = 'center'
-          ctx.textBaseline = 'middle'
+          console.log('🎨 圖片生成參數:', {
+            canvasSize: `${canvas.width}x${canvas.height}`,
+            baseFontSize,
+            finalFontSize: fontSize,
+            eventType,
+            textLength: text.length
+          })
           
-          // 添加文字陰影提高可讀性
-          ctx.shadowColor = 'rgba(0, 0, 0, 0.8)'
-          ctx.shadowBlur = 4
-          ctx.shadowOffsetX = 2
-          ctx.shadowOffsetY = 2
-          
-          // 計算文字位置 (置中)
-          const x = canvas.width / 2
-          const y = canvas.height / 2
-          
-          // 檢查文字是否需要換行
-          const maxWidth = canvas.width * 0.8  // 最大寬度為畫布的80%
-          this.drawMultilineText(ctx, text, x, y, maxWidth, fontSize * 1.2)
+          // 根據事件類型設定不同的文字樣式
+          if (eventType === 'award_speech') {
+            // 感言卡：黑色文字，左上角位置，旋轉
+            ctx.fillStyle = '#000000'
+            ctx.font = `bold ${fontSize}px "Noto Serif HK", serif`
+            ctx.textAlign = 'left'
+            ctx.textBaseline = 'top'
+            
+            // 感言卡位置和旋轉
+            const x = canvas.width * 0.25  // 左側25%位置
+            const y = canvas.height * 0.3   // 上方30%位置
+            const maxWidth = canvas.width * 0.6  // 最大寬度60%
+            
+            ctx.save()
+            ctx.translate(x, y)
+            ctx.rotate(-7 * Math.PI / 180)  // -7度旋轉
+            this.drawMultilineText(ctx, text, 0, 0, maxWidth, fontSize * 1.2)
+            ctx.restore()
+            
+          } else {
+            // 應援海報：白色文字，居中，有陰影
+            ctx.fillStyle = 'white'
+            ctx.font = `bold ${fontSize}px "Noto Serif HK", serif`
+            ctx.textAlign = 'center'
+            ctx.textBaseline = 'middle'
+            
+            // 添加文字陰影提高可讀性
+            ctx.shadowColor = 'rgba(0, 0, 0, 0.9)'
+            ctx.shadowBlur = 6
+            ctx.shadowOffsetX = 3
+            ctx.shadowOffsetY = 3
+            
+            // 居中位置
+            const x = canvas.width / 2
+            const y = canvas.height / 2
+            const maxWidth = canvas.width * 0.8
+            
+            this.drawMultilineText(ctx, text, x, y, maxWidth, fontSize * 1.2)
+          }
           
           // 轉換為 Blob
           const blob = await this.canvasToBlob(canvas)
+          console.log('✅ 圖片生成完成:', { blobSize: blob.size, blobType: blob.type })
           resolve(blob)
         } catch (error) {
+          console.error('❌ 圖片生成失敗:', error)
           reject(error)
         }
       }
