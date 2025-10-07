@@ -121,7 +121,14 @@
               alt="Award Speech Poster Preview"
             />
             
-            <!-- 移除文字覆蓋層 - 後端圖片已包含文字 -->
+            <!-- 🔧 前端預覽文字覆蓋層 - 只用於預覽，後端會生成完整圖片 -->
+            <div v-if="generatedText" 
+                 class="absolute text-black font-bold break-words whitespace-pre-wrap"
+                 :class="getTextSizeClass(generatedText)"
+                 :style="getAbsoluteTextStyle(generatedText)"
+                 style="top: 105px; left: 85px; transform: rotate(-7deg); width: 240px; line-height: 1.2; padding: 10px; text-align: left;">
+              {{ generatedText }}
+            </div>
           </div>
           
           <!-- Generation Count -->

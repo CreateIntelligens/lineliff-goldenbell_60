@@ -407,8 +407,8 @@ class ApiService {
           ctx.drawImage(img, 0, 0)
           
           // 🔧 根據圖片大小和事件類型動態計算字體大小
-          const baseFontSize = Math.min(canvas.width, canvas.height) * 0.15  // 提高到圖片尺寸的15%
-          const fontSize = Math.max(baseFontSize, 80)  // 最小80px（更大！）
+          const baseFontSize = Math.min(canvas.width, canvas.height) * 0.12  // 調整到圖片尺寸的12%
+          const fontSize = Math.max(baseFontSize, 65)  // 最小65px（適中大小）
           
           console.log('🎨 圖片生成參數:', {
             canvasSize: `${canvas.width}x${canvas.height}`,

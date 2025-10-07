@@ -113,7 +113,16 @@
               alt="Poster Preview"
             />
             
-            <!-- 移除文字覆蓋層 - 後端圖片已包含文字 -->
+            <!-- 🔧 前端預覽文字覆蓋層 - 只用於預覽，後端會生成完整圖片 -->
+            <div v-if="generatedText" class="absolute inset-0 flex items-center justify-center p-[15px]">
+              <div class="w-full max-w-[300px] text-center px-[10px]">
+                <div class="text-white font-bold text-center break-words whitespace-pre-wrap"
+                     :class="getTextSizeClass(generatedText)"
+                     :style="getTextStyle(generatedText)">
+                  {{ generatedText }}
+                </div>
+              </div>
+            </div>
           </div>
           
           <!-- Generation Count -->
