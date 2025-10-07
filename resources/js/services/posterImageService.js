@@ -65,13 +65,26 @@ class PosterImageService {
             imgSrc: img.src,
             imgComplete: img.complete,
             imgNaturalWidth: img.naturalWidth,
-            imgNaturalHeight: img.naturalHeight
+            imgNaturalHeight: img.naturalHeight,
+            crossOrigin: img.crossOrigin,
+            protocol: window.location.protocol
           })
           reject(error)
         }
         
-        // 開始載入圖片
+        // 🔧 改善圖片載入邏輯
         console.log('🖼️ 載入背景圖片:', imageUrl)
+        
+        // 對本地圖片不設置 crossOrigin，避免 CORS 問題
+        if (imageUrl.startsWith(window.location.origin) || 
+            imageUrl.startsWith('/') || 
+            !imageUrl.startsWith('http')) {
+          console.log('🏠 本地圖片，移除 crossOrigin 設定')
+          img.removeAttribute('crossOrigin')
+        } else {
+          console.log('🌐 外部圖片，保持 crossOrigin 設定')
+        }
+        
         img.src = imageUrl
       })
       

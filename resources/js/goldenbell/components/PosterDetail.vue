@@ -161,14 +161,20 @@ const convertToAbsoluteUrl = (url) => {
     return url
   }
   
-  // 如果是相對路徑，轉換為絕對 URL
+  // 對於本地圖片路徑，確保正確處理
   if (url.startsWith('/')) {
     // 使用當前頁面的 origin 作為基礎 URL
     return `${window.location.origin}${url}`
   }
   
-  // 如果沒有前導斜線，添加當前路徑
-  return `${window.location.origin}/${url}`
+  // 如果是相對路徑（如 'images/xxx.png'），添加正確的前綴
+  if (!url.startsWith('./') && !url.startsWith('../')) {
+    return `${window.location.origin}/${url}`
+  }
+  
+  // 處理 ./ 和 ../ 開頭的路徑
+  const baseUrl = new URL(window.location.href)
+  return new URL(url, baseUrl).href
 }
 
 const downloadToOfficial = async () => {
