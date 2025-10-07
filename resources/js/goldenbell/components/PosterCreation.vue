@@ -725,15 +725,36 @@ const downloadToOfficial = async () => {
     
     const fileName = `金鐘60應援海報_${new Date().getTime()}`
     
+    // 🔧 應援海報：白色文字，居中位置，與畫面顯示一致
+    const downloadOptions = {
+      textColor: '#FFFFFF',       // 白色文字
+      textAlign: 'center',        // 居中對齊
+      textBaseline: 'middle',     // 垂直居中
+      // x, y 使用預設（畫面中央）
+      maxWidth: 300,              // 最大寬度
+      fontSize: getDownloadFontSize(generatedText.value),  // 根據文字長度動態調整
+      fontFamily: '"Noto Serif HK", serif',
+      rotation: 0,                // 不旋轉
+      lineHeight: 1.4,
+      textShadow: {
+        color: 'rgba(0, 0, 0, 0.8)',
+        blur: 2,
+        offsetX: 1,
+        offsetY: 1
+      }
+    }
+    
+    console.log('⚙️ 文字選項:', downloadOptions)
+    
     // 生成海報 Blob
     const imageBlob = await posterImageService.generatePosterBlob(
       posterImage.value,
       generatedText.value,
-      { mimeType: 'image/jpeg', quality: 0.85 }
+      { ...downloadOptions, mimeType: 'image/jpeg', quality: 0.85 }
     )
     
     // 發送到官方帳號
-    await liffService.sendImage(imageBlob, fileName, generatedText.value, 'cheer')
+    await liffService.sendImage(imageBlob, fileName, '', 'cheer')
     
     console.log('✅ 海報已發送到官方帳號')
     alert('海報已發送到官方帳號！')
@@ -741,6 +762,26 @@ const downloadToOfficial = async () => {
   } catch (error) {
     console.error('❌ 發送失敗:', error)
     alert(`發送失敗：${error.message || '請稍後再試'}`)
+  }
+}
+
+// 根據文字長度計算下載用的字體大小（應援海報版本）
+const getDownloadFontSize = (text) => {
+  if (!text) return 50
+  
+  const length = text.length
+  
+  // 應援海報字體大小（比原來大一些）
+  if (length <= 4) {
+    return 60  // 非常短的文字，如"加油"
+  } else if (length <= 8) {
+    return 50  // 短文字
+  } else if (length <= 12) {
+    return 40  // 中等長度
+  } else if (length <= 16) {
+    return 35  // 較長文字
+  } else {
+    return 30  // 很長的文字
   }
 }
 

@@ -177,29 +177,88 @@ const downloadToOfficial = async () => {
   try {
     console.log('📥 開始下載到官方帳號...')
     
-    // 🔧 直接使用後端傳來的已生成圖片 URL（已包含文字）
-    let imageUrl = props.recordData.imageUrl || 
-                   props.recordData.image_url || 
-                   props.recordData.poster_image
+    // 🔧 使用主題圖片重新生成，確保文字大小與畫面顯示一致
+    const themeImages = getThemeImages(eventType)
+    let baseImageUrl
     
-    if (!imageUrl) {
-      throw new Error('找不到圖片 URL')
+    if (eventType === 'award_speech') {
+      // 感言卡使用主題圖片
+      const hasText = props.recordData.text && props.recordData.text.trim().length > 0
+      if (hasText) {
+        baseImageUrl = themeImages.posterWithText  // award_filteredwithtext.png
+      } else {
+        baseImageUrl = themeImages.poster  // award_filtered.png
+      }
+    } else {
+      // 應援海報使用 entered1 圖片
+      baseImageUrl = themeImages.entered1  // Entered1.png
     }
     
-    // 🔧 將相對路徑轉換為絕對 URL
-    imageUrl = convertToAbsoluteUrl(imageUrl)
+    // 轉換為絕對 URL
+    baseImageUrl = convertToAbsoluteUrl(baseImageUrl)
     
-    console.log('🖼️ 直接使用後端圖片 URL:', imageUrl)
+    console.log('🖼️ 使用基礎圖片 URL:', baseImageUrl)
     
+    const text = props.recordData.text || ''
     const fileName = eventType === 'award_speech' 
       ? `金鐘60得獎感言卡_${props.recordData.id || new Date().getTime()}`
       : `金鐘60應援海報_${props.recordData.id || new Date().getTime()}`
     
-    // 🔧 直接使用後端 URL，不需要重新生成 Blob
-    console.log('✅ 直接發送後端圖片 URL...')
+    // 🔧 根據事件類型設定文字樣式，與畫面顯示保持一致
+    let textOptions = {}
+    if (eventType === 'award_speech') {
+      // 感言卡：黑色文字，左上角位置，輕微旋轉
+      textOptions = {
+        textColor: '#000000',
+        textAlign: 'left',
+        textBaseline: 'top',
+        x: 85,
+        y: 105,
+        maxWidth: 240,
+        fontSize: getDownloadFontSize(text),  // 根據文字長度動態調整
+        fontFamily: '"Noto Serif HK", serif',
+        rotation: -7,  // 旋轉角度
+        lineHeight: 1.2
+      }
+    } else {
+      // 應援海報：白色文字，居中位置
+      textOptions = {
+        textColor: '#FFFFFF',
+        textAlign: 'center',
+        textBaseline: 'middle',
+        // x, y 使用預設（畫面中央）
+        maxWidth: 300,
+        fontSize: getDownloadFontSize(text),  // 根據文字長度動態調整
+        fontFamily: '"Noto Serif HK", serif',
+        rotation: 0,
+        lineHeight: 1.4,
+        textShadow: {
+          color: 'rgba(0, 0, 0, 0.8)',
+          blur: 2,
+          offsetX: 1,
+          offsetY: 1
+        }
+      }
+    }
     
-    // 發送圖片 URL（後端圖片已包含文字，不需要額外文字訊息）
-    await liffService.sendImage(imageUrl, fileName, '', eventType)
+    console.log('⚙️ 文字選項:', textOptions)
+    
+    // 🔧 重新生成包含合適大小文字的圖片 Blob
+    console.log('🎨 重新生成包含文字的圖片，確保文字大小正確...')
+    const imageBlob = await posterImageService.generatePosterBlob(
+      baseImageUrl,
+      text,
+      { 
+        mimeType: 'image/jpeg', 
+        quality: 0.85,
+        ...textOptions
+      }
+    )
+    
+    console.log('✅ 圖片重新生成完成，開始發送...')
+    
+    // 發送重新生成的圖片 Blob
+    await liffService.sendImage(imageBlob, fileName, '', eventType)
     
     console.log('✅ 海報已發送到官方帳號')
     alert('海報已發送到官方帳號！')
@@ -212,6 +271,39 @@ const downloadToOfficial = async () => {
       recordData: props.recordData
     })
     alert(`下載失敗：${error.message || '請稍後再試'}`)
+  }
+}
+
+// 根據文字長度計算下載用的字體大小（比畫面顯示稍大一些）
+const getDownloadFontSize = (text) => {
+  if (!text) return 40
+  
+  const length = text.length
+  
+  if (eventType === 'award_speech') {
+    // 感言卡字體大小
+    if (length <= 8) {
+      return 32  // 短文字
+    } else if (length <= 15) {
+      return 28  // 中等長度
+    } else if (length <= 25) {
+      return 24  // 較長文字
+    } else {
+      return 20  // 很長的文字
+    }
+  } else {
+    // 應援海報字體大小（比原來大一些）
+    if (length <= 4) {
+      return 60  // 非常短的文字，如"加油"
+    } else if (length <= 8) {
+      return 50  // 短文字
+    } else if (length <= 12) {
+      return 40  // 中等長度
+    } else if (length <= 16) {
+      return 35  // 較長文字
+    } else {
+      return 30  // 很長的文字
+    }
   }
 }
 

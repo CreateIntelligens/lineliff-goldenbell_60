@@ -743,17 +743,21 @@ const downloadToOfficial = async () => {
     
     const fileName = `金鐘60得獎感言卡_${new Date().getTime()}`
     
-    // 感言卡使用黑色文字和正中間位置
+    // 🔧 感言卡：黑色文字，左上角位置，輕微旋轉，與畫面顯示一致
     const downloadOptions = {
       textColor: '#000000',       // 黑色文字
-      textAlign: 'center',        // 居中對齊
-      textBaseline: 'middle',     // 垂直居中
-      // x, y 不設定，讓它使用預設的畫面中央位置
-      maxWidth: 300,              // 稍微增加最大寬度
-      fontSize: 30,               // 字體大小
+      textAlign: 'left',          // 左對齊
+      textBaseline: 'top',        // 頂部對齊
+      x: 85,                      // X 座標
+      y: 105,                     // Y 座標
+      maxWidth: 240,              // 最大寬度
+      fontSize: getDownloadFontSize(generatedText.value),  // 根據文字長度動態調整
       fontFamily: '"Noto Serif HK", serif',
-      rotation: 0                 // 不傾斜，保持水平
+      rotation: -7,               // -7度旋轉
+      lineHeight: 1.2
     }
+    
+    console.log('⚙️ 文字選項:', downloadOptions)
     
     // 生成感言卡 Blob
     const imageBlob = await posterImageService.generatePosterBlob(
@@ -763,7 +767,7 @@ const downloadToOfficial = async () => {
     )
     
     // 發送到官方帳號
-    await liffService.sendImage(imageBlob, fileName, generatedText.value, 'award_speech')
+    await liffService.sendImage(imageBlob, fileName, '', 'award_speech')
     
     console.log('✅ 感言卡已發送到官方帳號')
     alert('感言卡已發送到官方帳號！')
@@ -771,6 +775,24 @@ const downloadToOfficial = async () => {
   } catch (error) {
     console.error('❌ 發送失敗:', error)
     alert(`發送失敗：${error.message || '請稍後再試'}`)
+  }
+}
+
+// 根據文字長度計算下載用的字體大小（感言卡版本）
+const getDownloadFontSize = (text) => {
+  if (!text) return 32
+  
+  const length = text.length
+  
+  // 感言卡字體大小
+  if (length <= 8) {
+    return 32  // 短文字
+  } else if (length <= 15) {
+    return 28  // 中等長度
+  } else if (length <= 25) {
+    return 24  // 較長文字
+  } else {
+    return 20  // 很長的文字
   }
 }
 
