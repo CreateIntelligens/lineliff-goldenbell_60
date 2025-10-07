@@ -399,10 +399,9 @@ class LiffService {
         throw new Error('不支援的圖片資料類型')
       }
 
-      // 檢查 sendMessages API 是否可用
-      if (!this.isApiAvailable('sendMessages')) {
-        console.warn('⚠️ sendMessages API 可能不可用，但仍嘗試發送')
-      }
+      // 檢查 sendMessages API 是否可用 - 移除此檢查因為會導致錯誤
+      // sendMessages 是 LIFF 的基本功能，不需要透過 isApiAvailable 檢查
+      console.log('📤 準備使用 liff.sendMessages 發送圖片...')
 
       // 發送圖片（使用 liff.sendMessages）
       const messages = []
@@ -591,12 +590,12 @@ class LiffService {
       userProfile: this.userProfile,
       environment: this.getEnvironment(),
       liffEnabled: window.endpoint?.enableLiff || false,
-      // 檢查各種 LIFF API 是否可用
+      // 檢查各種 LIFF API 是否可用 - 移除有問題的 API 檢查
       apiAvailability: {
         shareTargetPicker: this.checkShareTargetPickerAvailability(), // 使用自定義檢查
-        sendMessages: this.isApiAvailable('sendMessages'),
-        bluetoothLeFunction: this.isApiAvailable('bluetoothLeFunction'),
-        subwindow: this.isApiAvailable('subwindow')
+        // sendMessages 是基本功能，不需要檢查
+        // bluetoothLeFunction: this.isApiAvailable('bluetoothLeFunction'),
+        // subwindow: this.isApiAvailable('subwindow')
       }
     }
   }
