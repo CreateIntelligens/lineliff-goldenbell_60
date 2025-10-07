@@ -349,24 +349,39 @@ class LiffService {
     try {
       // 檢查 LIFF 是否可用
       if (typeof liff === 'undefined') {
-        throw new Error('LIFF 不可用,無法發送圖片')
+        throw new Error('LIFF SDK 未載入，無法發送圖片')
       }
 
-      // 檢查是否在 LINE 應用內
-      if (!liff.isInClient()) {
-        throw new Error('請在 LINE 應用內使用此功能')
+      // 檢查 LIFF 是否已初始化
+      if (!this.isInitialized) {
+        throw new Error('LIFF 尚未初始化，無法發送圖片')
       }
 
-      // 檢查是否已登入
+      // 檢查是否已登入 - 這是最重要的檢查
       if (!liff.isLoggedIn()) {
-        throw new Error('請先登入LINE')
+        throw new Error('請先登入 LINE 才能發送圖片')
       }
+
+      // 檢查用戶 ID 是否存在
+      if (!this.userId) {
+        throw new Error('無法獲取用戶 ID，請重新登入')
+      }
+
+      // 記錄環境資訊以供調試
+      const environment = this.getEnvironment()
+      console.log('🔍 LIFF 環境資訊:', {
+        isInClient: environment?.isInClient,
+        isLoggedIn: environment?.isLoggedIn,
+        version: environment?.version,
+        userId: this.userId
+      })
 
       console.log('📤 準備發送圖片到官方帳號...', {
         fileName,
         imageDataType: typeof imageData,
         isBlob: imageData instanceof Blob,
-        hasText: !!text
+        hasText: !!text,
+        userId: this.userId
       })
 
       let imageUrl
@@ -382,6 +397,11 @@ class LiffService {
         console.log('🔗 使用現有圖片 URL:', imageUrl)
       } else {
         throw new Error('不支援的圖片資料類型')
+      }
+
+      // 檢查 sendMessages API 是否可用
+      if (!this.isApiAvailable('sendMessages')) {
+        console.warn('⚠️ sendMessages API 可能不可用，但仍嘗試發送')
       }
 
       // 發送圖片（使用 liff.sendMessages）
@@ -402,6 +422,12 @@ class LiffService {
         previewImageUrl: imageUrl
       })
 
+      console.log('🚀 開始發送訊息...', {
+        messageCount: messages.length,
+        hasTextMessage: messages.some(m => m.type === 'text'),
+        hasImageMessage: messages.some(m => m.type === 'image')
+      })
+
       await liff.sendMessages(messages)
       console.log('✅ 圖片發送成功')
       
@@ -413,7 +439,29 @@ class LiffService {
       
     } catch (error) {
       console.error('❌ 發送圖片失敗:', error)
-      throw error
+      
+      // 提供更詳細的錯誤資訊
+      const errorDetails = {
+        message: error.message,
+        liffAvailable: typeof liff !== 'undefined',
+        liffInitialized: this.isInitialized,
+        userLoggedIn: typeof liff !== 'undefined' ? liff.isLoggedIn() : false,
+        userId: this.userId,
+        environment: this.getEnvironment()
+      }
+      
+      console.error('🔍 錯誤詳細資訊:', errorDetails)
+      
+      // 根據不同錯誤類型提供更好的用戶提示
+      if (error.message.includes('LIFF SDK')) {
+        throw new Error('系統初始化失敗，請重新整理頁面')
+      } else if (error.message.includes('登入')) {
+        throw new Error('請重新登入 LINE 後再試')
+      } else if (error.message.includes('用戶 ID')) {
+        throw new Error('無法識別用戶身份，請重新登入')
+      } else {
+        throw new Error(`發送失敗：${error.message}`)
+      }
     }
   }
 
