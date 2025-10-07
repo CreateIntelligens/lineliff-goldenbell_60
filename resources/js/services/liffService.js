@@ -122,8 +122,8 @@ class LiffService {
           console.log('💡 提示：建議設置 enableLiff: false 進行瀏覽器開發')
         }
         
-        const redirectUrl = window.location.origin + window.location.pathname
-        console.log('🔗 登入後重定向到:', redirectUrl)
+        const redirectUrl = new URL(window.location);
+        console.log('🔗 登入重新定向 URL:', redirectUrl.toString());
         liff.login({ redirectUri: redirectUrl })
         
         return {
