@@ -181,102 +181,52 @@ const downloadToOfficial = async () => {
   console.log('下載到官方帳號:', props.recordData)
   
   try {
-    console.log('📥 開始下載到官方帳號...')
+    // 🔧 簡化方案：直接使用後端圖片 URL，避免本地圖片載入問題
+    let imageUrl = props.recordData.imageUrl || 
+                   props.recordData.image_url || 
+                   props.recordData.poster_image
     
-    // 🔧 使用主題圖片重新生成，確保文字大小與畫面顯示一致
-    const themeImages = getThemeImages(eventType)
-    let baseImageUrl
-    
-    if (eventType === 'award_speech') {
-      // 感言卡使用主題圖片
-      const hasText = props.recordData.text && props.recordData.text.trim().length > 0
-      if (hasText) {
-        baseImageUrl = themeImages.posterWithText  // award_filteredwithtext.png
-      } else {
-        baseImageUrl = themeImages.poster  // award_filtered.png
-      }
-    } else {
-      // 應援海報使用 entered1 圖片
-      baseImageUrl = themeImages.entered1  // Entered1.png
+    if (!imageUrl) {
+      alert('找不到圖片，請重新生成海報')
+      return
     }
     
-    // 轉換為絕對 URL
-    baseImageUrl = convertToAbsoluteUrl(baseImageUrl)
+    // 確保使用完整 URL
+    if (!imageUrl.startsWith('http')) {
+      imageUrl = convertToAbsoluteUrl(imageUrl)
+    }
     
-    console.log('🖼️ 使用基礎圖片 URL:', baseImageUrl)
+    console.log('🖼️ 使用後端圖片 URL:', imageUrl)
     
     const text = props.recordData.text || ''
     const fileName = eventType === 'award_speech' 
       ? `金鐘60得獎感言卡_${props.recordData.id || new Date().getTime()}`
       : `金鐘60應援海報_${props.recordData.id || new Date().getTime()}`
     
-    // 🔧 根據事件類型設定文字樣式，與畫面顯示保持一致
-    let textOptions = {}
-    if (eventType === 'award_speech') {
-      // 感言卡：黑色文字，左上角位置，輕微旋轉
-      textOptions = {
-        textColor: '#000000',
-        textAlign: 'left',
-        textBaseline: 'top',
-        x: 85,
-        y: 105,
-        maxWidth: 240,
-        fontSize: getDownloadFontSize(text),  // 根據文字長度動態調整
-        fontFamily: '"Noto Serif HK", serif',
-        rotation: -7,  // 旋轉角度
-        lineHeight: 1.2
-      }
-    } else {
-      // 應援海報：白色文字，居中位置
-      textOptions = {
-        textColor: '#FFFFFF',
-        textAlign: 'center',
-        textBaseline: 'middle',
-        // x, y 使用預設（畫面中央）
-        maxWidth: 300,
-        fontSize: getDownloadFontSize(text),  // 根據文字長度動態調整
-        fontFamily: '"Noto Serif HK", serif',
-        rotation: 0,
-        lineHeight: 1.4,
-        textShadow: {
-          color: 'rgba(0, 0, 0, 0.8)',
-          blur: 2,
-          offsetX: 1,
-          offsetY: 1
-        }
-      }
-    }
-    
-    console.log('⚙️ 文字選項:', textOptions)
-    
-    // 🔧 重新生成包含合適大小文字的圖片 Blob
-    console.log('🎨 重新生成包含文字的圖片，確保文字大小正確...')
-    const imageBlob = await posterImageService.generatePosterBlob(
-      baseImageUrl,
-      text,
-      { 
-        mimeType: 'image/jpeg', 
-        quality: 0.85,
-        ...textOptions
-      }
-    )
-    
-    console.log('✅ 圖片重新生成完成，開始發送...')
-    
-    // 發送重新生成的圖片 Blob
-    await liffService.sendImage(imageBlob, fileName, '', eventType)
+    // 🔧 測試：先試試直接發送 URL，看是否是圖片生成的問題
+    console.log('📤 直接發送後端圖片 URL...')
+    await liffService.sendImage(imageUrl, fileName, '', eventType)
     
     console.log('✅ 海報已發送到官方帳號')
     alert('海報已發送到官方帳號！')
     
   } catch (error) {
     console.error('❌ 下載失敗:', error)
-    console.error('錯誤詳情:', {
-      message: error.message,
-      stack: error.stack,
-      recordData: props.recordData
-    })
-    alert(`下載失敗：${error.message || '請稍後再試'}`)
+    
+    // 提供更詳細的用戶可見錯誤訊息
+    let userMessage = '下載失敗：'
+    
+    if (error.message.includes('load failed') || error.message.includes('圖片載入失敗')) {
+      userMessage += '圖片載入失敗，請檢查網路連線'
+    } else if (error.message.includes('LIFF')) {
+      userMessage += '請在 LINE 應用內使用此功能'
+    } else if (error.message.includes('登入')) {
+      userMessage += '請重新登入 LINE'
+    } else {
+      userMessage += error.message || '系統錯誤，請稍後再試'
+    }
+    
+    alert(userMessage)
   }
 }
 

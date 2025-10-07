@@ -113,17 +113,7 @@
               alt="Poster Preview"
             />
             
-            <!-- 應援文字覆蓋層 - 只有在生成後才顯示 -->
-            
-            <div v-if="isCreating && generatedText" class="absolute inset-0 flex items-center justify-center p-[15px]">
-              <div class="w-full max-w-[300px] text-center px-[10px]">
-                <div class="text-white font-bold text-center break-words whitespace-pre-wrap"
-                     :class="getTextSizeClass(generatedText)"
-                     :style="getTextStyle(generatedText)">
-                  {{ generatedText }}
-                </div>
-              </div>
-            </div>
+            <!-- 移除文字覆蓋層 - 後端圖片已包含文字 -->
           </div>
           
           <!-- Generation Count -->
@@ -609,6 +599,12 @@ const createPoster = async () => {
     let savedResult = null
     try {
       savedResult = await savePosterToAPI(textToUse, posterImage.value)
+      
+      // 🔧 儲存後端返回的圖片 URL
+      if (savedResult && savedResult.image_url) {
+        backendImageUrl.value = savedResult.image_url
+        console.log('✅ 儲存後端圖片 URL:', savedResult.image_url)
+      }
     } catch (saveError) {
       // 開發環境下 API 錯誤是正常的，不影響用戶體驗
       // 在生產環境中，這會是真正的錯誤
@@ -714,6 +710,9 @@ const regeneratePoster = async () => {
   }
 }
 
+// 儲存後端返回的圖片 URL
+const backendImageUrl = ref('')
+
 const downloadToOfficial = async () => {
   if (!hasGenerated.value) {
     alert('請先生成海報')
@@ -725,43 +724,34 @@ const downloadToOfficial = async () => {
     
     const fileName = `金鐘60應援海報_${new Date().getTime()}`
     
-    // 🔧 應援海報：白色文字，居中位置，與畫面顯示一致
-    const downloadOptions = {
-      textColor: '#FFFFFF',       // 白色文字
-      textAlign: 'center',        // 居中對齊
-      textBaseline: 'middle',     // 垂直居中
-      // x, y 使用預設（畫面中央）
-      maxWidth: 300,              // 最大寬度
-      fontSize: getDownloadFontSize(generatedText.value),  // 根據文字長度動態調整
-      fontFamily: '"Noto Serif HK", serif',
-      rotation: 0,                // 不旋轉
-      lineHeight: 1.4,
-      textShadow: {
-        color: 'rgba(0, 0, 0, 0.8)',
-        blur: 2,
-        offsetX: 1,
-        offsetY: 1
-      }
-    }
+    // 🔧 使用後端返回的圖片 URL，如果沒有則回退到本地圖片
+    const imageUrlToUse = backendImageUrl.value || posterImage.value
     
-    console.log('⚙️ 文字選項:', downloadOptions)
+    console.log('📤 使用圖片 URL:', imageUrlToUse)
+    console.log('📤 是否使用後端圖片:', !!backendImageUrl.value)
     
-    // 生成海報 Blob
-    const imageBlob = await posterImageService.generatePosterBlob(
-      posterImage.value,
-      generatedText.value,
-      { ...downloadOptions, mimeType: 'image/jpeg', quality: 0.85 }
-    )
-    
-    // 發送到官方帳號
-    await liffService.sendImage(imageBlob, fileName, '', 'cheer')
+    await liffService.sendImage(imageUrlToUse, fileName, '', 'cheer')
     
     console.log('✅ 海報已發送到官方帳號')
     alert('海報已發送到官方帳號！')
     
   } catch (error) {
     console.error('❌ 發送失敗:', error)
-    alert(`發送失敗：${error.message || '請稍後再試'}`)
+    
+    // 提供更詳細的用戶可見錯誤訊息
+    let userMessage = '發送失敗：'
+    
+    if (error.message.includes('load failed') || error.message.includes('圖片載入失敗')) {
+      userMessage += '圖片載入失敗，請檢查網路連線'
+    } else if (error.message.includes('LIFF')) {
+      userMessage += '請在 LINE 應用內使用此功能'
+    } else if (error.message.includes('登入')) {
+      userMessage += '請重新登入 LINE'
+    } else {
+      userMessage += error.message || '系統錯誤，請稍後再試'
+    }
+    
+    alert(userMessage)
   }
 }
 

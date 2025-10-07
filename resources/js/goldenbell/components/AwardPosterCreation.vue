@@ -121,14 +121,7 @@
               alt="Award Speech Poster Preview"
             />
             
-            <!-- 感言文字覆蓋層 - 只有在生成後才顯示 -->
-            <div v-if="isCreating && generatedText" 
-                 class="absolute text-black font-bold break-words whitespace-pre-wrap"
-                 :class="getTextSizeClass(generatedText)"
-                 :style="getAbsoluteTextStyle(generatedText)"
-                 style="top: 105px; left: 85px; transform: rotate(-7deg); width: 240px; line-height: 1.2; padding: 10px; text-align: left;">
-              {{ generatedText }}
-            </div>
+            <!-- 移除文字覆蓋層 - 後端圖片已包含文字 -->
           </div>
           
           <!-- Generation Count -->
@@ -579,6 +572,12 @@ const createPoster = async () => {
     let savedResult = null
     try {
       savedResult = await savePosterToAPI(textToUse, posterImage.value)
+      
+      // 🔧 儲存後端返回的圖片 URL
+      if (savedResult && savedResult.image_url) {
+        backendImageUrl.value = savedResult.image_url
+        console.log('✅ 儲存後端圖片 URL:', savedResult.image_url)
+      }
     } catch (saveError) {
       // API error is normal in development
     }
@@ -731,6 +730,9 @@ const regeneratePoster = async () => {
   }
 }
 
+// 儲存後端返回的圖片 URL
+const backendImageUrl = ref('')
+
 // 下載至官方帳號
 const downloadToOfficial = async () => {
   if (!hasGenerated.value) {
@@ -743,38 +745,34 @@ const downloadToOfficial = async () => {
     
     const fileName = `金鐘60得獎感言卡_${new Date().getTime()}`
     
-    // 🔧 感言卡：黑色文字，左上角位置，輕微旋轉，與畫面顯示一致
-    const downloadOptions = {
-      textColor: '#000000',       // 黑色文字
-      textAlign: 'left',          // 左對齊
-      textBaseline: 'top',        // 頂部對齊
-      x: 85,                      // X 座標
-      y: 105,                     // Y 座標
-      maxWidth: 240,              // 最大寬度
-      fontSize: getDownloadFontSize(generatedText.value),  // 根據文字長度動態調整
-      fontFamily: '"Noto Serif HK", serif',
-      rotation: -7,               // -7度旋轉
-      lineHeight: 1.2
-    }
+    // 🔧 使用後端返回的圖片 URL，如果沒有則回退到本地圖片
+    const imageUrlToUse = backendImageUrl.value || posterImage.value
     
-    console.log('⚙️ 文字選項:', downloadOptions)
+    console.log('📤 使用圖片 URL:', imageUrlToUse)
+    console.log('📤 是否使用後端圖片:', !!backendImageUrl.value)
     
-    // 生成感言卡 Blob
-    const imageBlob = await posterImageService.generatePosterBlob(
-      posterImage.value,
-      generatedText.value,
-      { ...downloadOptions, mimeType: 'image/jpeg', quality: 0.85 }
-    )
-    
-    // 發送到官方帳號
-    await liffService.sendImage(imageBlob, fileName, '', 'award_speech')
+    await liffService.sendImage(imageUrlToUse, fileName, '', 'award_speech')
     
     console.log('✅ 感言卡已發送到官方帳號')
     alert('感言卡已發送到官方帳號！')
     
   } catch (error) {
     console.error('❌ 發送失敗:', error)
-    alert(`發送失敗：${error.message || '請稍後再試'}`)
+    
+    // 提供更詳細的用戶可見錯誤訊息
+    let userMessage = '發送失敗：'
+    
+    if (error.message.includes('load failed') || error.message.includes('圖片載入失敗')) {
+      userMessage += '圖片載入失敗，請檢查網路連線'
+    } else if (error.message.includes('LIFF')) {
+      userMessage += '請在 LINE 應用內使用此功能'
+    } else if (error.message.includes('登入')) {
+      userMessage += '請重新登入 LINE'
+    } else {
+      userMessage += error.message || '系統錯誤，請稍後再試'
+    }
+    
+    alert(userMessage)
   }
 }
 
