@@ -110,21 +110,33 @@ class LiffService {
       console.log('✅ LIFF SDK 初始化成功')
       
       if (!liff.isLoggedIn()) {
-        console.log('用戶未登入 LIFF，重定向至登入頁面')
+        console.log('⚠️ 用戶未登入 LIFF')
         
         // 檢查是否在 LINE 應用內
         const isInClient = liff.isInClient()
+        console.log('📱 環境檢查:', {
+          isInClient,
+          userAgent: navigator.userAgent,
+          location: window.location.href
+        })
         
         if (isInClient) {
-          console.log('在 LINE 應用內，執行登入重定向')
+          console.log('✅ 在 LINE 應用內，準備執行登入重定向')
         } else {
           console.log('🌐 在瀏覽器中，嘗試 LINE 登入')
           console.log('💡 提示：建議設置 enableLiff: false 進行瀏覽器開發')
         }
         
-        const redirectUrl = new URL(window.location);
-        console.log('🔗 登入重新定向 URL:', redirectUrl.toString());
-        liff.login({ redirectUri: redirectUrl })
+        const redirectUrl = new URL(window.location)
+        console.log('🔗 登入重新定向 URL:', redirectUrl.toString())
+        console.log('⏳ 即將執行 liff.login()，頁面將重定向...')
+        console.log('🔄 重定向後會回到此頁面並重新初始化 LIFF')
+        
+        // 延遲執行，確保 console.log 能顯示
+        setTimeout(() => {
+          console.log('🚀 正在執行 liff.login()...')
+          liff.login({ redirectUri: redirectUrl.toString() })
+        }, 100)
         
         return {
           success: false,
@@ -135,12 +147,20 @@ class LiffService {
         }
       }
       
+      console.log('✅ 用戶已登入，繼續 LIFF 初始化流程...')
+      
       // 獲取用戶 ID
       const context = liff.getContext()
       const decodedToken = liff.getDecodedIDToken()
       this.userId = context.userId || decodedToken.sub
       
-      console.log('成功獲取用戶 ID:', this.userId)
+      console.log('👤 成功獲取用戶 ID:', this.userId)
+      console.log('📋 用戶 Context:', context)
+      console.log('🔐 Decoded ID Token:', {
+        sub: decodedToken.sub,
+        name: decodedToken.name,
+        picture: decodedToken.picture
+      })
       
       // 跳過好友關係檢查（LINE Login Channel 不支援 friendship API）
       console.log('跳過好友關係檢查（LINE Login Channel）')
