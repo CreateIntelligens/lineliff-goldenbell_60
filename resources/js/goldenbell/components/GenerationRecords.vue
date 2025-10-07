@@ -83,14 +83,7 @@
                   <span class="text-[#999999] text-xs">無圖片</span>
                 </div>
                 
-                <!-- 文字覆蓋層 - 根據事件類型調整位置 -->
-                <div v-if="item.text" :class="getTextOverlayClass()" class="absolute p-1">
-                  <div :class="getTextContainerClass()">
-                    <div :class="getTextClass()" :style="getTextStyle()">
-                      {{ item.text }}
-                    </div>
-                  </div>
-                </div>
+                <!-- 移除文字覆蓋層 - 後端圖片已包含文字 -->
               </div>
               
               <!-- 時間戳記 -->
@@ -444,52 +437,7 @@ const formatDate = (dateString) => {
   return `${year}/${month}/${day} ${hours}:${minutes}`
 }
 
-// 文字覆蓋層樣式函數
-const getTextOverlayClass = () => {
-  if (eventType === 'award_speech') {
-    // 感言卡：文字在白色信紙區域（大約在圖片中央偏上的位置）
-    return 'top-[20%] left-[30px] w-[70%]'
-  } else {
-    // 應援海報：文字居中
-    return 'inset-0 flex items-center justify-center'
-  }
-}
-
-const getTextContainerClass = () => {
-  if (eventType === 'award_speech') {
-    return 'w-full'  // 使用完整寬度，位置已經在 overlay 層控制
-  } else {
-    return 'text-center max-w-[90%]'
-  }
-}
-
-const getTextClass = () => {
-  if (eventType === 'award_speech') {
-    // 感言卡：黑色文字，稍微大一點以便在小圖中顯示
-    return 'text-black font-bold text-[10px] leading-[120%] break-words whitespace-pre-wrap'
-  } else {
-    // 應援海報：白色文字
-    return 'text-white font-bold text-[9px] leading-[110%] break-words whitespace-pre-wrap'
-  }
-}
-
-const getTextStyle = () => {
-  if (eventType === 'award_speech') {
-    return {
-      wordBreak: 'break-word',
-      overflowWrap: 'break-word',
-      textAlign: 'left',
-      transform: 'rotate(-3deg)',  // 配合信紙角度
-      transformOrigin: 'top left'
-    }
-  } else {
-    return {
-      textShadow: '1px 1px 2px rgba(0, 0, 0, 0.9)',
-      wordBreak: 'break-word',
-      overflowWrap: 'break-word'
-    }
-  }
-}
+// 移除不再需要的文字樣式函數 - 後端圖片已包含文字
 </script>
 
 <style scoped>

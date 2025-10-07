@@ -405,18 +405,29 @@ class ApiService {
           // 繪製背景圖
           ctx.drawImage(img, 0, 0)
           
+          // 🔧 根據圖片大小動態計算字體大小，確保文字夠大
+          const baseFontSize = Math.min(canvas.width, canvas.height) * 0.12  // 提高到圖片尺寸的12%
+          const fontSize = Math.max(baseFontSize, 60)  // 最小60px（比原來的24px大很多）
+          
           // 設定文字樣式
           ctx.fillStyle = 'white'
-          ctx.font = 'bold 24px "Noto Serif HK", serif'
+          ctx.font = `bold ${fontSize}px "Noto Serif HK", serif`
           ctx.textAlign = 'center'
           ctx.textBaseline = 'middle'
+          
+          // 添加文字陰影提高可讀性
+          ctx.shadowColor = 'rgba(0, 0, 0, 0.8)'
+          ctx.shadowBlur = 4
+          ctx.shadowOffsetX = 2
+          ctx.shadowOffsetY = 2
           
           // 計算文字位置 (置中)
           const x = canvas.width / 2
           const y = canvas.height / 2
           
-          // 繪製文字
-          ctx.fillText(text, x, y)
+          // 檢查文字是否需要換行
+          const maxWidth = canvas.width * 0.8  // 最大寬度為畫布的80%
+          this.drawMultilineText(ctx, text, x, y, maxWidth, fontSize * 1.2)
           
           // 轉換為 Blob
           const blob = await this.canvasToBlob(canvas)
@@ -431,6 +442,46 @@ class ApiService {
       }
       
       img.src = imageUrl
+    })
+  }
+
+  /**
+   * 繪製多行文字（簡化版）
+   * @param {CanvasRenderingContext2D} ctx - Canvas 上下文
+   * @param {string} text - 文字內容
+   * @param {number} x - X 座標
+   * @param {number} y - Y 座標
+   * @param {number} maxWidth - 最大寬度
+   * @param {number} lineHeight - 行高
+   */
+  drawMultilineText(ctx, text, x, y, maxWidth, lineHeight) {
+    const words = text.split('')
+    const lines = []
+    let currentLine = ''
+    
+    // 將文字分割成適合的行
+    for (let i = 0; i < words.length; i++) {
+      const testLine = currentLine + words[i]
+      const metrics = ctx.measureText(testLine)
+      const testWidth = metrics.width
+      
+      if (testWidth > maxWidth && currentLine.length > 0) {
+        lines.push(currentLine)
+        currentLine = words[i]
+      } else {
+        currentLine = testLine
+      }
+    }
+    lines.push(currentLine)
+    
+    // 計算起始 Y 位置（垂直置中）
+    const totalHeight = lines.length * lineHeight
+    const startY = y - (totalHeight / 2) + (lineHeight / 2)
+    
+    // 繪製每一行
+    lines.forEach((line, index) => {
+      const lineY = startY + (index * lineHeight)
+      ctx.fillText(line, x, lineY)
     })
   }
 
