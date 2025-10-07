@@ -116,32 +116,22 @@ class LiffService {
         const isInClient = liff.isInClient()
         
         if (isInClient) {
-          // 在 LINE 應用內，執行登入重定向
           console.log('在 LINE 應用內，執行登入重定向')
-          const redirectUrl = window.location.origin + window.location.pathname
-          console.log('🔗 登入後重定向到:', redirectUrl)
-          liff.login({ redirectUri: redirectUrl })
-          return {
-            success: false,
-            isLoggedIn: false,
-            message: '用戶未登入，已重定向至登入頁面'
-          }
         } else {
-          // 在瀏覽器中，嘗試 LINE 登入
           console.log('🌐 在瀏覽器中，嘗試 LINE 登入')
           console.log('💡 提示：建議設置 enableLiff: false 進行瀏覽器開發')
-          
-          const redirectUrl = window.location.origin + window.location.pathname
-          console.log('🔗 登入後重定向到:', redirectUrl)
-          liff.login({ redirectUri: redirectUrl })
-          
-          return {
-            success: false,
-            isLoggedIn: false,
-            isFriend: false,
-            userId: null,
-            message: '在瀏覽器中嘗試 LINE 登入，已跳轉到登入頁面'
-          }
+        }
+        
+        const redirectUrl = window.location.origin + window.location.pathname
+        console.log('🔗 登入後重定向到:', redirectUrl)
+        liff.login({ redirectUri: redirectUrl })
+        
+        return {
+          success: false,
+          isLoggedIn: false,
+          isFriend: false,
+          userId: null,
+          message: isInClient ? '用戶未登入，已重定向至登入頁面' : '在瀏覽器中嘗試 LINE 登入，已跳轉到登入頁面'
         }
       }
       
