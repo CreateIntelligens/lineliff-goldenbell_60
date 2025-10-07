@@ -581,12 +581,26 @@ const createPoster = async () => {
     try {
       savedResult = await savePosterToAPI(textToUse, posterImage.value)
       
-      // 🔧 儲存後端返回的圖片 URL
-      if (savedResult && savedResult.image_url) {
-        backendImageUrl.value = savedResult.image_url
-        console.log('✅ 儲存後端圖片 URL:', savedResult.image_url)
+      console.log('📦 API 完整回應:', savedResult)
+      
+      // 🔧 儲存後端返回的圖片 URL - 修正數據結構處理
+      let imageUrl = null
+      
+      if (savedResult) {
+        // 嘗試不同的數據結構路徑
+        imageUrl = savedResult.image_url ||           // 直接在 savedResult
+                   savedResult.result?.data?.image_url ||  // 在 result.data 中
+                   savedResult.data?.image_url             // 在 data 中
+      }
+      
+      if (imageUrl) {
+        backendImageUrl.value = imageUrl
+        console.log('✅ 成功儲存後端圖片 URL:', imageUrl)
+      } else {
+        console.log('⚠️ 未找到 image_url 在回應中:', savedResult)
       }
     } catch (saveError) {
+      console.error('❌ 儲存感言卡失敗:', saveError)
       // API error is normal in development
     }
     
@@ -741,6 +755,31 @@ const regeneratePoster = async () => {
 // 儲存後端返回的圖片 URL
 const backendImageUrl = ref('')
 
+// 將相對路徑轉換為絕對 URL 的輔助函數
+const convertToAbsoluteUrl = (url) => {
+  if (!url) return url
+  
+  // 如果已經是絕對 URL，直接返回
+  if (url.startsWith('http://') || url.startsWith('https://')) {
+    return url
+  }
+  
+  // 對於本地圖片路徑，確保正確處理
+  if (url.startsWith('/')) {
+    // 使用當前頁面的 origin 作為基礎 URL
+    return `${window.location.origin}${url}`
+  }
+  
+  // 如果是相對路徑（如 'images/xxx.png'），添加正確的前綴
+  if (!url.startsWith('./') && !url.startsWith('../')) {
+    return `${window.location.origin}/${url}`
+  }
+  
+  // 處理 ./ 和 ../ 開頭的路徑
+  const baseUrl = new URL(window.location.href)
+  return new URL(url, baseUrl).href
+}
+
 // 下載至官方帳號
 const downloadToOfficial = async () => {
   if (!hasGenerated.value) {
@@ -750,28 +789,27 @@ const downloadToOfficial = async () => {
 
   try {
     console.log('📤 開始發送感言卡到官方帳號...')
+    console.log('🔍 檢查 backendImageUrl:', backendImageUrl.value)
     
     const fileName = `金鐘60得獎感言卡_${new Date().getTime()}`
     
-    // 🔧 優先使用後端圖片 URL，如果沒有則使用 Blob 物件
+    // 🔧 如果有後端圖片 URL，直接使用（最佳情況）
     if (backendImageUrl.value) {
-      // 使用後端圖片 URL
-      console.log('📤 使用後端圖片 URL:', backendImageUrl.value)
-      await liffService.sendImage(backendImageUrl.value, fileName, '', 'award_speech')
-    } else {
-      console.log('⚠️ 沒有後端圖片 URL，重新生成圖片 Blob...')
+      let imageUrl = backendImageUrl.value
       
-      // 如果沒有後端圖片，重新生成圖片 Blob
-      try {
-        const imageBlob = await apiService.createPosterBlob(posterImage.value, generatedText.value, eventType)
-        console.log('✅ 重新生成圖片 Blob，大小:', imageBlob.size, 'bytes')
-        
-        // 直接使用 Blob 物件，不轉換為 URL
-        await liffService.sendImage(imageBlob, fileName, '', 'award_speech')
-      } catch (generateError) {
-        console.error('❌ 重新生成圖片失敗:', generateError)
-        throw new Error('無法生成圖片，請重新嘗試')
+      // 確保使用完整 URL
+      if (!imageUrl.startsWith('http')) {
+        imageUrl = convertToAbsoluteUrl(imageUrl)
       }
+      
+      console.log('🖼️ 使用後端圖片 URL:', imageUrl)
+      await liffService.sendImage(imageUrl, fileName, '', 'award_speech')
+      
+    } else {
+      // 🔧 如果沒有後端 URL，提示用戶重新生成
+      console.log('⚠️ 沒有後端圖片 URL，無法下載')
+      alert('圖片尚未準備好，請重新生成感言卡後再試')
+      return
     }
     
     console.log('✅ 感言卡已發送到官方帳號')
@@ -785,8 +823,6 @@ const downloadToOfficial = async () => {
     
     if (error.message.includes('load failed') || error.message.includes('圖片載入失敗')) {
       userMessage += '圖片載入失敗，請檢查網路連線'
-    } else if (error.message.includes('Invalid URL')) {
-      userMessage += '圖片 URL 無效，請重新生成感言卡'
     } else if (error.message.includes('LIFF')) {
       userMessage += '請在 LINE 應用內使用此功能'
     } else if (error.message.includes('登入')) {

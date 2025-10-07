@@ -391,11 +391,32 @@ class ApiService {
    */
   async createPosterBlob(imageUrl, text, eventType = '') {
     return new Promise((resolve, reject) => {
+      console.log('🎯 開始生成圖片 Blob:', { imageUrl, text, eventType })
+      
       const img = new Image()
-      img.crossOrigin = 'anonymous'
+      
+      // 🔧 改善圖片載入設定，避免 CORS 問題
+      const isLocalImage = imageUrl.startsWith(window.location.origin) || 
+                          imageUrl.startsWith('/') || 
+                          imageUrl.startsWith('./') ||
+                          !imageUrl.startsWith('http')
+      
+      if (!isLocalImage) {
+        img.crossOrigin = 'anonymous'
+        console.log('🌐 外部圖片，設定 crossOrigin')
+      } else {
+        console.log('🏠 本地圖片，不設定 crossOrigin')
+      }
       
       img.onload = async () => {
         try {
+          console.log('✅ 圖片載入成功:', {
+            width: img.width,
+            height: img.height,
+            naturalWidth: img.naturalWidth,
+            naturalHeight: img.naturalHeight
+          })
+          
           const canvas = document.createElement('canvas')
           const ctx = canvas.getContext('2d')
           
@@ -403,75 +424,101 @@ class ApiService {
           canvas.width = img.width
           canvas.height = img.height
           
+          console.log('📐 Canvas 尺寸設定:', { width: canvas.width, height: canvas.height })
+          
           // 繪製背景圖
           ctx.drawImage(img, 0, 0)
+          console.log('🖼️ 背景圖繪製完成')
           
-          // 🔧 根據圖片大小和事件類型動態計算字體大小
-          const baseFontSize = Math.min(canvas.width, canvas.height) * 0.12  // 調整到圖片尺寸的12%
-          const fontSize = Math.max(baseFontSize, 65)  // 最小65px（適中大小）
-          
-          console.log('🎨 圖片生成參數:', {
-            canvasSize: `${canvas.width}x${canvas.height}`,
-            baseFontSize,
-            finalFontSize: fontSize,
-            eventType,
-            textLength: text.length
-          })
-          
-          // 根據事件類型設定不同的文字樣式
-          if (eventType === 'award_speech') {
-            // 感言卡：黑色文字，左上角位置，旋轉
-            ctx.fillStyle = '#000000'
-            ctx.font = `bold ${fontSize}px "Noto Serif HK", serif`
-            ctx.textAlign = 'left'
-            ctx.textBaseline = 'top'
+          // 如果有文字，添加文字
+          if (text && text.trim()) {
+            // 🔧 根據圖片大小和事件類型動態計算字體大小
+            const baseFontSize = Math.min(canvas.width, canvas.height) * 0.12  // 調整到圖片尺寸的12%
+            const fontSize = Math.max(baseFontSize, 58)  // 最小65px（適中大小）
             
-            // 感言卡位置和旋轉
-            const x = canvas.width * 0.25  // 左側25%位置
-            const y = canvas.height * 0.3   // 上方30%位置
-            const maxWidth = canvas.width * 0.6  // 最大寬度60%
+            console.log('🎨 文字渲染參數:', {
+              canvasSize: `${canvas.width}x${canvas.height}`,
+              baseFontSize,
+              finalFontSize: fontSize,
+              eventType,
+              textLength: text.length
+            })
             
-            ctx.save()
-            ctx.translate(x, y)
-            ctx.rotate(-7 * Math.PI / 180)  // -7度旋轉
-            this.drawMultilineText(ctx, text, 0, 0, maxWidth, fontSize * 1.2)
-            ctx.restore()
-            
+            // 根據事件類型設定不同的文字樣式
+            if (eventType === 'award_speech') {
+              // 感言卡：黑色文字，左上角位置，旋轉
+              ctx.fillStyle = '#000000'
+              ctx.font = `bold ${fontSize}px "Noto Serif HK", serif`
+              ctx.textAlign = 'left'
+              ctx.textBaseline = 'top'
+              
+              // 感言卡位置和旋轉
+              const x = canvas.width * 0.25  // 左側25%位置
+              const y = canvas.height * 0.3   // 上方30%位置
+              const maxWidth = canvas.width * 0.6  // 最大寬度60%
+              
+              ctx.save()
+              ctx.translate(x, y)
+              ctx.rotate(-7 * Math.PI / 180)  // -7度旋轉
+              this.drawMultilineText(ctx, text, 0, 0, maxWidth, fontSize * 1.2)
+              ctx.restore()
+              
+              console.log('✅ 感言卡文字渲染完成')
+              
+            } else {
+              // 應援海報：白色文字，居中，有陰影
+              ctx.fillStyle = 'white'
+              ctx.font = `bold ${fontSize}px "Noto Serif HK", serif`
+              ctx.textAlign = 'center'
+              ctx.textBaseline = 'middle'
+              
+              // 添加文字陰影提高可讀性
+              ctx.shadowColor = 'rgba(0, 0, 0, 0.9)'
+              ctx.shadowBlur = 6
+              ctx.shadowOffsetX = 3
+              ctx.shadowOffsetY = 3
+              
+              // 居中位置
+              const x = canvas.width / 2
+              const y = canvas.height / 2
+              const maxWidth = canvas.width * 0.8
+              
+              this.drawMultilineText(ctx, text, x, y, maxWidth, fontSize * 1.2)
+              
+              console.log('✅ 應援海報文字渲染完成')
+            }
           } else {
-            // 應援海報：白色文字，居中，有陰影
-            ctx.fillStyle = 'white'
-            ctx.font = `bold ${fontSize}px "Noto Serif HK", serif`
-            ctx.textAlign = 'center'
-            ctx.textBaseline = 'middle'
-            
-            // 添加文字陰影提高可讀性
-            ctx.shadowColor = 'rgba(0, 0, 0, 0.9)'
-            ctx.shadowBlur = 6
-            ctx.shadowOffsetX = 3
-            ctx.shadowOffsetY = 3
-            
-            // 居中位置
-            const x = canvas.width / 2
-            const y = canvas.height / 2
-            const maxWidth = canvas.width * 0.8
-            
-            this.drawMultilineText(ctx, text, x, y, maxWidth, fontSize * 1.2)
+            console.log('⚠️ 沒有文字，只生成背景圖片')
           }
           
           // 轉換為 Blob
+          console.log('🔄 開始轉換為 Blob...')
           const blob = await this.canvasToBlob(canvas)
-          console.log('✅ 圖片生成完成:', { blobSize: blob.size, blobType: blob.type })
+          console.log('✅ Blob 轉換完成:', { 
+            size: blob.size, 
+            type: blob.type,
+            sizeKB: Math.round(blob.size / 1024) + 'KB'
+          })
+          
           resolve(blob)
         } catch (error) {
-          console.error('❌ 圖片生成失敗:', error)
-          reject(error)
+          console.error('❌ Canvas 處理失敗:', error)
+          console.error('錯誤堆疊:', error.stack)
+          reject(new Error(`Canvas 處理失敗: ${error.message}`))
         }
       }
       
-      img.onerror = () => {
-        reject(new Error('圖片載入失敗'))
+      img.onerror = (event) => {
+        console.error('❌ 圖片載入失敗:', {
+          imageUrl,
+          event,
+          imgSrc: img.src,
+          crossOrigin: img.crossOrigin
+        })
+        reject(new Error(`圖片載入失敗: ${imageUrl}`))
       }
       
+      console.log('🔄 開始載入圖片:', imageUrl)
       img.src = imageUrl
     })
   }
