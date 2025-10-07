@@ -274,18 +274,18 @@ class LiffService {
    * 登入
    * @param {string} redirectUri - 登入後重定向的 URI
    */
-  login(redirectUri = null) {
-    if (!this.isInitialized || typeof liff === 'undefined') {
-      console.warn('⚠️ LIFF 尚未初始化')
-      return
-    }
+  // login(redirectUri = null) {
+  //   if (!this.isInitialized || typeof liff === 'undefined') {
+  //     console.warn('⚠️ LIFF 尚未初始化')
+  //     return
+  //   }
 
-    if (redirectUri) {
-      liff.login({ redirectUri })
-    } else {
-      liff.login()
-    }
-  }
+  //   if (redirectUri) {
+  //     liff.login({ redirectUri })
+  //   } else {
+  //     liff.login()
+  //   }
+  // }
 
   /**
    * 登出
