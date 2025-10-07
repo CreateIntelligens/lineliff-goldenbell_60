@@ -127,15 +127,25 @@ class LiffService {
           console.log('💡 提示：建議設置 enableLiff: false 進行瀏覽器開發')
         }
         
-        const redirectUrl = new URL(window.location)
-        console.log('🔗 登入重新定向 URL:', redirectUrl.toString())
+        // 🔧 從配置中讀取重定向 URL，支援部署後直接修改 index.html
+        let redirectUri = window.GOLDENBELL_CONFIG?.liff?.redirectUri
+        
+        if (!redirectUri) {
+          // 如果配置中沒有設置，則自動使用當前頁面 URL
+          redirectUri = new URL(window.location).toString()
+          console.log('🔗 使用自動生成的重定向 URL:', redirectUri)
+        } else {
+          console.log('🔗 使用配置中的重定向 URL:', redirectUri)
+        }
+        
         console.log('⏳ 即將執行 liff.login()，頁面將重定向...')
         console.log('🔄 重定向後會回到此頁面並重新初始化 LIFF')
+        console.log('💡 提示：可在 index.html 的 GOLDENBELL_CONFIG.liff.redirectUri 中修改重定向 URL')
         
         // 延遲執行，確保 console.log 能顯示
         setTimeout(() => {
           console.log('🚀 正在執行 liff.login()...')
-          liff.login({ redirectUri: redirectUrl.toString() })
+          liff.login({ redirectUri })
         }, 100)
         
         return {
@@ -154,13 +164,7 @@ class LiffService {
       const decodedToken = liff.getDecodedIDToken()
       this.userId = context.userId || decodedToken.sub
       
-      console.log('👤 成功獲取用戶 ID:', this.userId)
-      console.log('📋 用戶 Context:', context)
-      console.log('🔐 Decoded ID Token:', {
-        sub: decodedToken.sub,
-        name: decodedToken.name,
-        picture: decodedToken.picture
-      })
+      console.log('成功獲取用戶 ID:', this.userId)
       
       // 跳過好友關係檢查（LINE Login Channel 不支援 friendship API）
       console.log('跳過好友關係檢查（LINE Login Channel）')

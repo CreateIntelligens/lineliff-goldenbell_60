@@ -63,6 +63,10 @@
         liffId: '2006948092-RxDrPENM', // 🔧 統一使用此 LIFF ID
         enableLiff: true, // 🔧 開發時設為 false，生產時設為 true
         
+        // ===== 登入重定向配置 =====
+        // 🔧 後端可直接修改此 URL 來控制登入後的重定向位置
+        redirectUri: null, // null = 自動使用當前頁面 URL，或設置完整 URL 如: 'https://your-domain.com/path'
+        
         // ===== ShareTargetPicker 配置 =====
         shareTargetPicker: {
           // 是否啟用分享功能
