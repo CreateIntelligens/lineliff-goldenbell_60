@@ -753,8 +753,24 @@ const downloadToOfficial = async () => {
     
     const fileName = `金鐘60得獎感言卡_${new Date().getTime()}`
     
-    // 🔧 使用後端返回的圖片 URL，如果沒有則回退到本地圖片
-    const imageUrlToUse = backendImageUrl.value || posterImage.value
+    // 🔧 優先使用後端圖片 URL，如果沒有則需要重新生成
+    let imageUrlToUse = backendImageUrl.value
+    
+    if (!imageUrlToUse) {
+      console.log('⚠️ 沒有後端圖片 URL，重新生成圖片...')
+      
+      // 如果沒有後端圖片，重新生成包含文字的圖片
+      try {
+        const imageBlob = await apiService.createPosterBlob(posterImage.value, generatedText.value, eventType)
+        
+        // 將 Blob 轉換為 URL
+        imageUrlToUse = URL.createObjectURL(imageBlob)
+        console.log('✅ 重新生成圖片 URL:', imageUrlToUse)
+      } catch (generateError) {
+        console.error('❌ 重新生成圖片失敗:', generateError)
+        throw new Error('無法生成圖片，請重新嘗試')
+      }
+    }
     
     console.log('📤 使用圖片 URL:', imageUrlToUse)
     console.log('📤 是否使用後端圖片:', !!backendImageUrl.value)
@@ -764,6 +780,14 @@ const downloadToOfficial = async () => {
     console.log('✅ 感言卡已發送到官方帳號')
     alert('感言卡已發送到官方帳號！')
     
+    // 如果使用了臨時 URL，清理它
+    if (imageUrlToUse.startsWith('blob:')) {
+      setTimeout(() => {
+        URL.revokeObjectURL(imageUrlToUse)
+        console.log('🧹 清理臨時圖片 URL')
+      }, 5000)
+    }
+    
   } catch (error) {
     console.error('❌ 發送失敗:', error)
     
@@ -772,6 +796,8 @@ const downloadToOfficial = async () => {
     
     if (error.message.includes('load failed') || error.message.includes('圖片載入失敗')) {
       userMessage += '圖片載入失敗，請檢查網路連線'
+    } else if (error.message.includes('Invalid URL')) {
+      userMessage += '圖片 URL 無效，請重新生成感言卡'
     } else if (error.message.includes('LIFF')) {
       userMessage += '請在 LINE 應用內使用此功能'
     } else if (error.message.includes('登入')) {
