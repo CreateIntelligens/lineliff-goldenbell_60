@@ -103,9 +103,7 @@ class LiffService {
 
       // 初始化 LIFF，請求必要的權限
       await liff.init({ 
-        liffId,
-        // 請求發送訊息的權限
-        withLoginOnExternalBrowser: true
+        liffId
       })
       console.log('✅ LIFF SDK 初始化成功')
       
