@@ -177,81 +177,29 @@ const downloadToOfficial = async () => {
   try {
     console.log('📥 開始下載到官方帳號...')
     
-    // 🔧 修復圖片 URL 問題：優先使用可靠的主題圖片
-    let imageUrl
-    const themeImages = getThemeImages(eventType)
+    // 🔧 直接使用後端傳來的已生成圖片 URL（已包含文字）
+    let imageUrl = props.recordData.imageUrl || 
+                   props.recordData.image_url || 
+                   props.recordData.poster_image
     
-    if (eventType === 'award_speech') {
-      // 感言卡使用主題圖片 - 根據是否有文字選擇對應圖片
-      const hasText = props.recordData.text && props.recordData.text.trim().length > 0
-      if (hasText) {
-        imageUrl = themeImages.posterWithText  // award_filteredwithtext.png (有文字版本)
-      } else {
-        imageUrl = themeImages.poster  // award_filtered.png (無文字版本)
-      }
-    } else {
-      // 應援海報使用 entered1 圖片（與 PosterCreation 一致）
-      imageUrl = themeImages.entered1  // Entered1.png
-    }
-    
-    // 如果主題圖片不存在，才使用 recordData 中的圖片
     if (!imageUrl) {
-      imageUrl = props.recordData.imageUrl || 
-                 props.recordData.image_url || 
-                 props.recordData.poster_image || 
-                 themeImages.poster
+      throw new Error('找不到圖片 URL')
     }
     
     // 🔧 將相對路徑轉換為絕對 URL
     imageUrl = convertToAbsoluteUrl(imageUrl)
     
-    console.log('🖼️ 使用圖片 URL:', imageUrl)
+    console.log('🖼️ 直接使用後端圖片 URL:', imageUrl)
     
-    const text = props.recordData.text || ''
     const fileName = eventType === 'award_speech' 
       ? `金鐘60得獎感言卡_${props.recordData.id || new Date().getTime()}`
       : `金鐘60應援海報_${props.recordData.id || new Date().getTime()}`
     
-    // 根據事件類型設定下載選項
-    let downloadOptions = {}
-    if (eventType === 'award_speech') {
-      // 感言卡使用黑色文字和正中間位置 - 與 AwardPosterCreation 一致
-      downloadOptions = {
-        textColor: '#000000',       // 黑色文字
-        textAlign: 'center',        // 居中對齊
-        textBaseline: 'middle',     // 垂直居中
-        maxWidth: 300,              // 稍微增加最大寬度
-        fontSize: 30,
-        fontFamily: '"Noto Serif HK", serif',
-        rotation: 0                 // 不傾斜，保持水平
-      }
-    } else {
-      // 應援海報使用白色文字
-      downloadOptions = {
-        textColor: '#FFFFFF',  // 白色文字
-        textAlign: 'center',
-        fontFamily: '"Noto Serif HK", serif'
-      }
-    }
+    // 🔧 直接使用後端 URL，不需要重新生成 Blob
+    console.log('✅ 直接發送後端圖片 URL...')
     
-    console.log('⚙️ 下載選項:', downloadOptions)
-    
-    // 🔧 使用 posterImageService 生成包含文字的圖片 Blob
-    console.log('🎨 開始生成包含文字的圖片...')
-    const imageBlob = await posterImageService.generatePosterBlob(
-      imageUrl,
-      text,
-      { 
-        mimeType: 'image/jpeg', 
-        quality: 0.85,
-        ...downloadOptions
-      }
-    )
-    
-    console.log('✅ 圖片生成完成，開始發送...')
-    
-    // 發送生成的圖片 Blob（不包含文字訊息，因為文字已經在圖片上了）
-    await liffService.sendImage(imageBlob, fileName, '', eventType)
+    // 發送圖片 URL（後端圖片已包含文字，不需要額外文字訊息）
+    await liffService.sendImage(imageUrl, fileName, '', eventType)
     
     console.log('✅ 海報已發送到官方帳號')
     alert('海報已發送到官方帳號！')

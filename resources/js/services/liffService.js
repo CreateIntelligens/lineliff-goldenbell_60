@@ -388,19 +388,21 @@ class LiffService {
       
       // 處理不同類型的圖片資料
       if (imageData instanceof Blob) {
-        // 如果是 Blob，轉換為 URL
-        imageUrl = URL.createObjectURL(imageData)
-        console.log('🔗 將 Blob 轉換為 URL:', imageUrl)
+        // LIFF sendMessages 不支援 blob: URL，需要轉換為 base64 data URL
+        imageUrl = await this.blobToDataURL(imageData)
+        console.log('🔗 將 Blob 轉換為 Data URL，大小:', imageData.size, 'bytes')
       } else if (typeof imageData === 'string') {
-        // 如果是字串，直接使用
+        // 如果是字串，檢查是否為 blob URL
+        if (imageData.startsWith('blob:')) {
+          throw new Error('不支援 blob: URL，請使用 Blob 物件或 HTTP URL')
+        }
+        // 如果是普通 URL，直接使用
         imageUrl = imageData
         console.log('🔗 使用現有圖片 URL:', imageUrl)
       } else {
         throw new Error('不支援的圖片資料類型')
       }
 
-      // 檢查 sendMessages API 是否可用 - 移除此檢查因為會導致錯誤
-      // sendMessages 是 LIFF 的基本功能，不需要透過 isApiAvailable 檢查
       console.log('📤 準備使用 liff.sendMessages 發送圖片...')
 
       // 發送圖片（使用 liff.sendMessages）
@@ -622,6 +624,20 @@ class LiffService {
         production: '🚀 生產環境：確保 enableLiff: true 且 LIFF ID 正確'
       }
     }
+  }
+
+  /**
+   * 將 Blob 轉換為 Data URL
+   * @param {Blob} blob - 要轉換的 Blob 物件
+   * @returns {Promise<string>} Data URL 字串
+   */
+  async blobToDataURL(blob) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader()
+      reader.onload = () => resolve(reader.result)
+      reader.onerror = () => reject(new Error('無法讀取 Blob 資料'))
+      reader.readAsDataURL(blob)
+    })
   }
 }
 
