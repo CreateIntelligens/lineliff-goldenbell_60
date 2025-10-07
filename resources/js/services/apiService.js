@@ -434,7 +434,7 @@ class ApiService {
           if (text && text.trim()) {
             // 🔧 根據圖片大小和事件類型動態計算字體大小
             const baseFontSize = Math.min(canvas.width, canvas.height) * 0.12  // 調整到圖片尺寸的12%
-            const fontSize = Math.max(baseFontSize, 58)  // 最小65px（適中大小）
+            const fontSize = Math.max(baseFontSize, 40)  
             
             console.log('🎨 文字渲染參數:', {
               canvasSize: `${canvas.width}x${canvas.height}`,
