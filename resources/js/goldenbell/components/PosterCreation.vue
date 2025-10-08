@@ -79,10 +79,10 @@
 
                     <!-- Create Button -->
                     <div 
-                      class="flex h-[36px] justify-center items-center gap-[10px] w-full rounded-[8px] cursor-pointer transition-all"
+                      class="flex h-[36px] justify-center items-center gap-[10px] w-full rounded-[8px] transition-all"
                       @click="createPoster"
-                      :class="{ 'opacity-50 cursor-not-allowed': !canCreate }"
-                      :style="isCreating ? 'background: linear-gradient(180deg, #E8FF02 -77.78%, #000 166.67%)' : 'background: #4C4C4C'"
+                      :class="{ 'opacity-50 cursor-not-allowed': !canCreate, 'cursor-pointer': canCreate }"
+                      :style="canCreate ? 'background: linear-gradient(180deg, #E8FF02 -77.78%, #000 166.67%)' : 'background: #4C4C4C'"
                     >
                       <div class="text-white font-bold text-[13px] leading-[100%] tracking-[-0.247px]">
                         {{ isLoading ? '處理中...' : '製作我的應援海報 ✨' }}
