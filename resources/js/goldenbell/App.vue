@@ -201,10 +201,31 @@ async function goToPosterCreation() {
     try {
       const countData = await apiService.getImageCount(currentEventType)
       if (countData && countData.data) {
-        generationStates.value[currentEventType].generationCount = parseInt(countData.data.current_count) || 0
-        generationStates.value[currentEventType].maxGenerations = parseInt(countData.data.limit) || 10
-        generationStates.value[currentEventType].remainingCount = parseInt(countData.data.remaining) || 10
-        console.log('🔄 更新海報製作頁面計數:', countData.data)
+        const oldRemaining = generationStates.value[currentEventType].remainingCount
+        
+        // 更新計數，但保持合理的範圍
+        const newCurrentCount = parseInt(countData.data.current_count) || 0
+        const newLimit = parseInt(countData.data.limit) || 10
+        const newRemaining = parseInt(countData.data.remaining) || 0
+        
+        // 確保計數不會異常增加
+        if (newCurrentCount >= generationStates.value[currentEventType].generationCount) {
+          generationStates.value[currentEventType].generationCount = newCurrentCount
+        }
+        
+        generationStates.value[currentEventType].maxGenerations = newLimit
+        
+        // 更新剩餘次數，但確保不會異常增加
+        if (newRemaining <= oldRemaining || oldRemaining === 0) {
+          generationStates.value[currentEventType].remainingCount = newRemaining
+        }
+        
+        console.log('🔄 更新海報製作頁面計數:', {
+          currentCount: generationStates.value[currentEventType].generationCount,
+          maxGenerations: generationStates.value[currentEventType].maxGenerations,
+          remainingCount: generationStates.value[currentEventType].remainingCount,
+          API剩餘次數: newRemaining
+        })
       }
     } catch (error) {
       console.warn('⚠️ 載入計數資料失敗:', error.message)
@@ -238,15 +259,31 @@ async function goBackFromRecords() {
       // API 回應格式：{status: 'success', result: {data: {...}}}
       const apiData = countData?.result?.data || countData?.data
       if (apiData && generationStates.value[eventType]) {
-        generationStates.value[eventType].generationCount = parseInt(apiData.current_count) || 0
-        generationStates.value[eventType].maxGenerations = parseInt(apiData.limit) || 10
-        generationStates.value[eventType].remainingCount = parseInt(apiData.remaining) || 10
+        const oldRemaining = generationStates.value[eventType].remainingCount
+        
+        // 更新計數，但保持合理的範圍
+        const newCurrentCount = parseInt(apiData.current_count) || 0
+        const newLimit = parseInt(apiData.limit) || 10
+        const newRemaining = parseInt(apiData.remaining) || 0
+        
+        // 確保計數不會異常增加
+        if (newCurrentCount >= generationStates.value[eventType].generationCount) {
+          generationStates.value[eventType].generationCount = newCurrentCount
+        }
+        
+        generationStates.value[eventType].maxGenerations = newLimit
+        
+        // 更新剩餘次數，但確保不會異常增加
+        if (newRemaining <= oldRemaining || oldRemaining === 0) {
+          generationStates.value[eventType].remainingCount = newRemaining
+        }
         
         console.log('✅ 計數資料更新成功:', {
           eventType,
           generationCount: generationStates.value[eventType].generationCount,
           maxGenerations: generationStates.value[eventType].maxGenerations,
-          remainingCount: generationStates.value[eventType].remainingCount
+          remainingCount: generationStates.value[eventType].remainingCount,
+          API剩餘次數: newRemaining
         })
       }
     } catch (error) {
@@ -340,10 +377,31 @@ async function loadUserHistory() {
       // API 回應格式：{status: 'success', result: {data: {...}}}
       const apiData = cheerCount.value?.result?.data || cheerCount.value?.data
       if (apiData) {
-        generationStates.value.cheer.generationCount = parseInt(apiData.current_count) || 0
-        generationStates.value.cheer.maxGenerations = parseInt(apiData.limit) || 10
-        generationStates.value.cheer.remainingCount = parseInt(apiData.remaining) || 10
-        console.log('✅ 載入應援海報計數:', apiData)
+        const oldRemaining = generationStates.value.cheer.remainingCount
+        
+        // 更新計數，但保持合理的範圍
+        const newCurrentCount = parseInt(apiData.current_count) || 0
+        const newLimit = parseInt(apiData.limit) || 10
+        const newRemaining = parseInt(apiData.remaining) || 0
+        
+        // 確保計數不會異常增加
+        if (newCurrentCount >= generationStates.value.cheer.generationCount) {
+          generationStates.value.cheer.generationCount = newCurrentCount
+        }
+        
+        generationStates.value.cheer.maxGenerations = newLimit
+        
+        // 更新剩餘次數，但確保不會異常增加
+        if (newRemaining <= oldRemaining || oldRemaining === 0) {
+          generationStates.value.cheer.remainingCount = newRemaining
+        }
+        
+        console.log('✅ 載入應援海報計數:', {
+          currentCount: generationStates.value.cheer.generationCount,
+          maxGenerations: generationStates.value.cheer.maxGenerations,
+          remainingCount: generationStates.value.cheer.remainingCount,
+          API剩餘次數: newRemaining
+        })
       } else {
         console.warn('⚠️ 應援海報計數 API 回應格式異常:', cheerCount.value)
       }
@@ -356,10 +414,31 @@ async function loadUserHistory() {
       // API 回應格式：{status: 'success', result: {data: {...}}}
       const apiData = awardCount.value?.result?.data || awardCount.value?.data
       if (apiData) {
-        generationStates.value.award_speech.generationCount = parseInt(apiData.current_count) || 0
-        generationStates.value.award_speech.maxGenerations = parseInt(apiData.limit) || 10
-        generationStates.value.award_speech.remainingCount = parseInt(apiData.remaining) || 10
-        console.log('✅ 載入感言卡計數:', apiData)
+        const oldRemaining = generationStates.value.award_speech.remainingCount
+        
+        // 更新計數，但保持合理的範圍
+        const newCurrentCount = parseInt(apiData.current_count) || 0
+        const newLimit = parseInt(apiData.limit) || 10
+        const newRemaining = parseInt(apiData.remaining) || 0
+        
+        // 確保計數不會異常增加
+        if (newCurrentCount >= generationStates.value.award_speech.generationCount) {
+          generationStates.value.award_speech.generationCount = newCurrentCount
+        }
+        
+        generationStates.value.award_speech.maxGenerations = newLimit
+        
+        // 更新剩餘次數，但確保不會異常增加
+        if (newRemaining <= oldRemaining || oldRemaining === 0) {
+          generationStates.value.award_speech.remainingCount = newRemaining
+        }
+        
+        console.log('✅ 載入感言卡計數:', {
+          currentCount: generationStates.value.award_speech.generationCount,
+          maxGenerations: generationStates.value.award_speech.maxGenerations,
+          remainingCount: generationStates.value.award_speech.remainingCount,
+          API剩餘次數: newRemaining
+        })
       } else {
         console.warn('⚠️ 感言卡計數 API 回應格式異常:', awardCount.value)
       }

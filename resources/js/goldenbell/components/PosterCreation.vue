@@ -349,18 +349,36 @@ const loadUserData = async () => {
     const apiData = countData?.result?.data || countData?.data
     if (apiData) {
       const oldCount = generationCount.value
-      generationCount.value = parseInt(apiData.current_count) || 0
-      maxGenerations.value = parseInt(apiData.limit) || 10
-      remainingCount.value = parseInt(apiData.remaining) || 10
+      const oldRemaining = remainingCount.value
+      
+      // 更新計數，但保持合理的範圍
+      const newCurrentCount = parseInt(apiData.current_count) || 0
+      const newLimit = parseInt(apiData.limit) || 10
+      const newRemaining = parseInt(apiData.remaining) || 0
+      
+      // 確保計數不會異常增加（防止 API 錯誤導致計數重置）
+      if (newCurrentCount >= generationCount.value) {
+        generationCount.value = newCurrentCount
+      }
+      
+      // 更新最大次數
+      maxGenerations.value = newLimit
+      
+      // 更新剩餘次數，但確保不會異常增加
+      if (newRemaining <= oldRemaining || oldRemaining === 0) {
+        remainingCount.value = newRemaining
+      }
       
       console.log('✅ 計數更新成功:', {
         舊計數: oldCount,
         新計數: generationCount.value,
         最大次數: maxGenerations.value,
-        剩餘次數: remainingCount.value
+        剩餘次數: remainingCount.value,
+        API剩餘次數: newRemaining
       })
     } else {
       console.warn('⚠️ API 回應格式異常:', countData)
+      // 不重置計數，保持現有狀態
     }
     
   } catch (error) {
