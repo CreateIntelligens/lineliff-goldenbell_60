@@ -180,8 +180,8 @@ class PosterImageService {
    */
   async drawTextOnCanvas(ctx, text, canvasWidth, canvasHeight, options = {}) {
     // 根據圖片大小動態調整字體大小
-    const baseFontSize = Math.min(canvasWidth, canvasHeight) * 0.08  // 圖片尺寸的8%
-    const fontSize = options.fontSize || Math.max(baseFontSize, 48)  // 最小48px
+    const baseFontSize = Math.min(canvasWidth, canvasHeight) * 0.12  // 調整到圖片尺寸的12%
+    const fontSize = options.fontSize || Math.max(baseFontSize, 12)  // 最小12px
     
     const fontFamily = options.fontFamily || this.defaultFont
     const textColor = options.textColor || this.defaultTextColor
