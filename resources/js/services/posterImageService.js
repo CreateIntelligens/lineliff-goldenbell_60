@@ -15,6 +15,8 @@ class PosterImageService {
    * @param {string} imageUrl - 背景圖片 URL
    * @param {string} text - 要覆蓋的文字
    * @param {Object} options - 生成選項
+   * @param {number} options.fontSizeMultiplier - 字體大小倍數 (預設: 1.0)
+   * @param {number} options.baseFontRatio - 基礎字體大小比例 (預設: 0.12)
    * @returns {Promise<Blob>} 圖片 Blob
    */
   async generatePosterBlob(imageUrl, text, options = {}) {
@@ -100,6 +102,8 @@ class PosterImageService {
    * @param {string} text - 要覆蓋的文字
    * @param {string} fileName - 下載檔案名稱
    * @param {Object} options - 生成選項
+   * @param {number} options.fontSizeMultiplier - 字體大小倍數 (預設: 1.0)
+   * @param {number} options.baseFontRatio - 基礎字體大小比例 (預設: 0.12)
    * @returns {Promise<void>}
    */
   async generateAndDownloadPoster(imageUrl, text, fileName, options = {}) {
@@ -179,8 +183,10 @@ class PosterImageService {
    * @param {Object} options - 繪製選項
    */
   async drawTextOnCanvas(ctx, text, canvasWidth, canvasHeight, options = {}) {
-    // 根據圖片大小動態調整字體大小
-    const baseFontSize = Math.min(canvasWidth, canvasHeight) * 0.12  // 調整到圖片尺寸的12%
+    // 根據圖片大小動態調整字體大小，支援自定義調整
+    const fontSizeMultiplier = options.fontSizeMultiplier || 1.0  // 字體大小倍數
+    const baseFontRatio = options.baseFontRatio || 0.12  // 基礎字體大小比例
+    const baseFontSize = Math.min(canvasWidth, canvasHeight) * baseFontRatio * fontSizeMultiplier
     const fontSize = options.fontSize || Math.max(baseFontSize, 12)  // 最小12px
     
     const fontFamily = options.fontFamily || this.defaultFont

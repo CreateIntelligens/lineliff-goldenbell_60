@@ -387,9 +387,12 @@ class ApiService {
    * @param {string} imageUrl - 圖片URL
    * @param {string} text - 要覆蓋的文字
    * @param {string} eventType - 事件類型 (可選，用於判斷樣式)
+   * @param {Object} options - 圖片生成選項
+   * @param {number} options.fontSizeMultiplier - 字體大小倍數 (預設: 1.0)
+   * @param {number} options.baseFontRatio - 基礎字體大小比例 (預設: 0.12)
    * @returns {Promise<Blob>} 處理後的圖片Blob
    */
-  async createPosterBlob(imageUrl, text, eventType = '') {
+  async createPosterBlob(imageUrl, text, eventType = '', options = {}) {
     return new Promise((resolve, reject) => {
       console.log('🎯 開始生成圖片 Blob:', { imageUrl, text, eventType })
       
@@ -430,19 +433,23 @@ class ApiService {
           ctx.drawImage(img, 0, 0)
           console.log('🖼️ 背景圖繪製完成')
           
-          // 如果有文字，添加文字
-          if (text && text.trim()) {
-            // 🔧 根據圖片大小和事件類型動態計算字體大小
-            const baseFontSize = Math.min(canvas.width, canvas.height) * 0.12  // 調整到圖片尺寸的12%
-            const fontSize = Math.max(baseFontSize, 12)  
-            
-            console.log('🎨 文字渲染參數:', {
-              canvasSize: `${canvas.width}x${canvas.height}`,
-              baseFontSize,
-              finalFontSize: fontSize,
-              eventType,
-              textLength: text.length
-            })
+            // 如果有文字，添加文字
+            if (text && text.trim()) {
+              // 🔧 根據圖片大小和事件類型動態計算字體大小，支援自定義調整
+              const fontSizeMultiplier = options.fontSizeMultiplier || 1.0  // 字體大小倍數
+              const baseFontRatio = options.baseFontRatio || 0.12  // 基礎字體大小比例
+              const baseFontSize = Math.min(canvas.width, canvas.height) * baseFontRatio * fontSizeMultiplier
+              const fontSize = Math.max(baseFontSize, 12)  
+              
+              console.log('🎨 文字渲染參數:', {
+                canvasSize: `${canvas.width}x${canvas.height}`,
+                fontSizeMultiplier,
+                baseFontRatio,
+                baseFontSize,
+                finalFontSize: fontSize,
+                eventType,
+                textLength: text.length
+              })
             
             // 根據事件類型設定不同的文字樣式
             if (eventType === 'award_speech') {

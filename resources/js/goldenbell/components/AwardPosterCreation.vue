@@ -416,14 +416,14 @@ const loadUserData = async () => {
   }
 }
 
-const savePosterToAPI = async (text, imageUrl) => {
+const savePosterToAPI = async (text, imageUrl, fontOptions = {}) => {
   if (!apiService.isApiAvailable()) {
     return null
   }
 
   try {
-    // 🔧 創建包含文字的感言卡圖片，傳入事件類型以應用正確樣式
-    const imageBlob = await apiService.createPosterBlob(imageUrl, text, eventType)
+    // 🔧 創建包含文字的感言卡圖片，傳入事件類型以應用正確樣式和字體選項
+    const imageBlob = await apiService.createPosterBlob(imageUrl, text, eventType, fontOptions)
     const result = await apiService.saveImage(text, imageBlob, eventType)
     return result
   } catch (error) {
@@ -595,9 +595,15 @@ const createPoster = async () => {
     isCreating.value = true
     hasGenerated.value = true
     
+    // 🔧 準備字體選項 - 支援字體大小調整
+    const fontOptions = {
+      fontSizeMultiplier: getFontSizeMultiplier(textToUse), // 根據文字長度動態調整
+      baseFontRatio: 0.12 // 可以在這裡調整基礎字體大小比例
+    }
+    
     let savedResult = null
     try {
-      savedResult = await savePosterToAPI(textToUse, posterImage.value)
+      savedResult = await savePosterToAPI(textToUse, posterImage.value, fontOptions)
       
       console.log('📦 API 完整回應:', savedResult)
       
@@ -854,7 +860,27 @@ const downloadToOfficial = async () => {
   }
 }
 
-// 根據文字長度計算下載用的字體大小（感言卡版本）
+// 🔧 根據文字長度計算字體大小倍數（感言卡版本）
+const getFontSizeMultiplier = (text) => {
+  if (!text) return 1.0
+  
+  const length = text.length
+  
+  // 感言卡字體大小倍數 - 可以在這裡調整整體字體大小
+  if (length <= 15) {
+    return 1.3  // 短文字，字體放大30%
+  } else if (length <= 30) {
+    return 1.1  // 中短文字，字體放大10%
+  } else if (length <= 50) {
+    return 1.0  // 中等長度，正常大小
+  } else if (length <= 75) {
+    return 0.9  // 較長文字，字體縮小10%
+  } else {
+    return 0.8  // 很長的文字，字體縮小20%
+  }
+}
+
+// 根據文字長度計算下載用的字體大小（感言卡版本）- 保留以供參考
 const getDownloadFontSize = (text) => {
   if (!text) return 32
   

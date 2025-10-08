@@ -399,14 +399,14 @@ const loadUserData = async () => {
 /**
  * 儲存生成的海報到後端
  */
-const savePosterToAPI = async (text, imageUrl) => {
+const savePosterToAPI = async (text, imageUrl, fontOptions = {}) => {
   if (!apiService.isApiAvailable()) {
     return null
   }
 
   try {
-    // 🔧 創建包含文字的海報圖片，傳入事件類型以應用正確樣式
-    const imageBlob = await apiService.createPosterBlob(imageUrl, text, eventType)
+    // 🔧 創建包含文字的海報圖片，傳入事件類型以應用正確樣式和字體選項
+    const imageBlob = await apiService.createPosterBlob(imageUrl, text, eventType, fontOptions)
     
     // 上傳到後端
     const result = await apiService.saveImage(text, imageBlob, eventType)
@@ -622,10 +622,16 @@ const createPoster = async () => {
     // 標記已經生成過海報，按鈕區域將一直顯示
     hasGenerated.value = true
     
+    // 🔧 準備字體選項 - 支援字體大小調整
+    const fontOptions = {
+      fontSizeMultiplier: getFontSizeMultiplier(textToUse), // 根據文字長度動態調整
+      baseFontRatio: 0.12 // 可以在這裡調整基礎字體大小比例
+    }
+    
     // 儲存海報到後端
     let savedResult = null
     try {
-      savedResult = await savePosterToAPI(textToUse, posterImage.value)
+      savedResult = await savePosterToAPI(textToUse, posterImage.value, fontOptions)
       
       console.log('📦 API 完整回應:', savedResult)
       
@@ -834,7 +840,27 @@ const downloadToOfficial = async () => {
   }
 }
 
-// 根據文字長度計算下載用的字體大小（應援海報版本）
+// 🔧 根據文字長度計算字體大小倍數（應援海報版本）
+const getFontSizeMultiplier = (text) => {
+  if (!text) return 1.0
+  
+  const length = text.length
+  
+  // 應援海報字體大小倍數 - 可以在這裡調整整體字體大小
+  if (length <= 4) {
+    return 1.4  // 非常短的文字，字體放大40%
+  } else if (length <= 8) {
+    return 1.2  // 短文字，字體放大20%
+  } else if (length <= 12) {
+    return 1.0  // 中等長度，正常大小
+  } else if (length <= 16) {
+    return 0.9  // 較長文字，字體縮小10%
+  } else {
+    return 0.8  // 很長的文字，字體縮小20%
+  }
+}
+
+// 根據文字長度計算下載用的字體大小（應援海報版本）- 保留以供參考
 const getDownloadFontSize = (text) => {
   if (!text) return 50
   
@@ -842,7 +868,7 @@ const getDownloadFontSize = (text) => {
   
   // 應援海報字體大小（比原來大一些）
   if (length <= 4) {
-    return 60  // 非常短的文字，如"加油"
+    return 60  // 非常短的文字，如"加油" 
   } else if (length <= 8) {
     return 50  // 短文字
   } else if (length <= 12) {
