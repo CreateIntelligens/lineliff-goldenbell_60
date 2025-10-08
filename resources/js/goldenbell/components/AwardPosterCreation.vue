@@ -114,7 +114,7 @@
         <div class="flex flex-col items-start gap-[8px] w-full">
           
           <!-- Poster Preview -->
-          <div class="relative h-[353px] w-full rounded-[4px] overflow-hidden">
+          <div class="relative aspect-square w-full rounded-[4px] overflow-hidden">
             <img 
               class="h-full w-full object-cover"
               :src="posterImage"

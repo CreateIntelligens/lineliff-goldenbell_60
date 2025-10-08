@@ -66,12 +66,12 @@
           <div 
             v-for="(item, index) in records" 
             :key="item.id || index"
-            class="flex w-full h-40 p-4 items-center gap-3 bg-[#6A6A6A] rounded-[5px] cursor-pointer hover:bg-[#7A7A7A] transition-colors"
+            class="flex w-full p-3 items-center gap-3 bg-[#6A6A6A] rounded-[5px] cursor-pointer hover:bg-[#7A7A7A] transition-colors"
             @click="viewHistoryItem(item)"
           >
             <div class="flex w-full flex-col items-start gap-3">
               <!-- 海報圖片區域 -->
-              <div class="relative h-24 w-full rounded overflow-hidden">
+              <div class="relative aspect-square w-full max-w-[150px] mx-auto rounded overflow-hidden">
                 <img 
                   v-if="getHistoryImage(item)"
                   :src="getHistoryImage(item)" 
