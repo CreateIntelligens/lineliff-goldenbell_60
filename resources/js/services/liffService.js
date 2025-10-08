@@ -164,6 +164,7 @@ class LiffService {
       
       console.log('成功獲取用戶 ID:', this.userId)
       
+      
       // 跳過好友關係檢查（LINE Login Channel 不支援 friendship API）
       console.log('跳過好友關係檢查（LINE Login Channel）')
       
