@@ -1,11 +1,11 @@
 <template>
-  <div class="golden-bell-homepage w-full min-h-screen bg-white relative sm:max-w-[393px] sm:mx-auto">
+  <div class="golden-bell-homepage w-full min-h-screen bg-black relative sm:max-w-[393px] sm:mx-auto">
     <!-- Background Image -->
-    <div class="absolute inset-0 w-full min-h-full">
+    <div class="absolute inset-0 w-full h-[120vh] overflow-hidden">
       <img 
         :src="getThemeImages(getCurrentEventType()).background" 
         alt="Background" 
-        class="w-full h-full min-h-screen object-cover"
+        class="w-full h-full object-cover object-bottom"
       />
     </div>
 
@@ -14,7 +14,7 @@
     </div>
 
     <!-- Main Content -->
-    <div class="flex w-full pt-[40px] px-[20px] pb-[40px] flex-col items-center gap-[25px] relative z-10">
+    <div class="flex w-full pt-[40px] px-[20px] pb-[80px] flex-col items-center gap-[25px] relative z-10">
       <div class="flex flex-col items-start gap-[104px] w-full">
         <!-- Awards Info -->
         <div class="flex flex-col items-start gap-[358px] w-full">
