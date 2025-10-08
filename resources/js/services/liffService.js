@@ -213,6 +213,40 @@ class LiffService {
   }
 
   /**
+   * 檢查是否為好友
+   * @returns {Promise<boolean>} 是否為好友
+   */
+  async isFriend() {
+    try {
+      // 如果 LIFF 未初始化，返回 false
+      if (!this.isInitialized || typeof liff === 'undefined') {
+        console.warn('⚠️ LIFF 尚未初始化')
+        return false
+      }
+
+      // 如果用戶未登入，返回 false
+      if (!this.isLoggedIn()) {
+        console.warn('⚠️ 用戶未登入')
+        return false
+      }
+
+      // 檢查好友關係
+      const friendShip = await liff.getFriendship()
+      
+      if (friendShip.friendFlag) {
+        console.log('✅ 用戶是好友')
+        return true
+      }
+      
+      console.log('❌ 用戶不是好友')
+      return false
+    } catch (error) {
+      console.error('❌ 檢查好友關係失敗:', error)
+      return false
+    }
+  }
+
+  /**
    * 獲取用戶資料
    * @returns {Promise<Object|null>} 用戶資料或 null
    */

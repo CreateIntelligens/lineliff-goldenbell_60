@@ -9,6 +9,26 @@
       />
     </div>
 
+    <!-- 好友檢查警告 -->
+    <div 
+      v-if="isFriendChecked && !isFriend" 
+      class="absolute inset-0 z-50 flex items-center justify-center bg-black bg-opacity-80"
+    >
+      <div class="bg-white rounded-lg p-6 mx-4 max-w-sm text-center">
+        <div class="text-red-600 text-xl font-bold mb-4">⚠️ 無法使用服務</div>
+        <div class="text-gray-800 text-base mb-4">
+          您尚未加為好友，無法使用此服務。<br>
+          請先加為好友後再試。
+        </div>
+        <button 
+          @click="closeAlert"
+          class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700 transition-colors"
+        >
+          確定
+        </button>
+      </div>
+    </div>
+
     <!-- Animation Queue -->
     <div class="flex w-full h-[47px] justify-center items-center relative z-10">
     </div>
@@ -116,7 +136,7 @@
 </template>
 
 <script setup>
-import { defineEmits, onMounted } from 'vue'
+import { defineEmits, defineProps, onMounted } from 'vue'
 import { 
   getThemeImage, 
   getThemeContent, 
@@ -127,12 +147,34 @@ import {
 } from '../../config/themeConfig.js'
 import { getThemeImages } from '../../assets/images.js'
 
+// Props
+const props = defineProps({
+  isFriendChecked: {
+    type: Boolean,
+    default: false
+  },
+  isFriend: {
+    type: Boolean,
+    default: true
+  }
+})
+
 // Emits
 const emit = defineEmits(['createPoster'])
 
 // Methods
 const handleCreatePoster = () => {
+  // 如果不是好友，不允許創建海報
+  if (props.isFriendChecked && !props.isFriend) {
+    return
+  }
   emit('createPoster')
+}
+
+const closeAlert = () => {
+  // 關閉警告後可以選擇重新檢查好友狀態或跳轉到其他頁面
+  // 這裡我們可以重新檢查好友狀態
+  window.location.reload()
 }
 
 // 生命週期

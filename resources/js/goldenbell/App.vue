@@ -13,11 +13,15 @@
       <!-- 根據 event_type 選擇不同的首頁 -->
       <GoldenBellHomepage
         v-if="currentView === 'homepage' && getCurrentEventType() === 'cheer'"
+        :isFriendChecked="isFriendChecked"
+        :isFriend="liffStatus.isFriend"
         @createPoster="goToPosterCreation"
       />
       
       <AwardSpeechHomepage
         v-else-if="currentView === 'homepage' && getCurrentEventType() === 'award_speech'"
+        :isFriendChecked="isFriendChecked"
+        :isFriend="liffStatus.isFriend"
         @createPoster="goToPosterCreation"
         @viewRecords="goToImageRecord"
       />
@@ -89,6 +93,7 @@ const liffStatus = ref({
   isFriend: false,
   message: '初始化中...'
 })
+const isFriendChecked = ref(false) // 是否已檢查過好友狀態
 
 // 視圖導航狀態
 const currentView = ref('homepage') // 'homepage', 'poster', 'records', 'detail'
@@ -135,6 +140,26 @@ async function initializeLiff() {
     if (result.success && result.userId) {
       userId.value = result.userId
       console.log('✅ LIFF 初始化成功，用戶 ID:', userId.value)
+      
+      // 登入成功後檢查好友狀態
+      if (result.isLoggedIn) {
+        console.log('🔍 開始檢查好友狀態...')
+        try {
+          const isFriend = await liffService.isFriend()
+          liffStatus.value.isFriend = isFriend
+          isFriendChecked.value = true
+          
+          if (!isFriend) {
+            console.log('⚠️ 用戶不是好友，將顯示警告')
+          } else {
+            console.log('✅ 用戶是好友，可以正常使用服務')
+          }
+        } catch (error) {
+          console.error('❌ 檢查好友狀態失敗:', error)
+          liffStatus.value.isFriend = false
+          isFriendChecked.value = true
+        }
+      }
     } else {
       console.log('⚠️ LIFF 初始化失敗或用戶未登入')
       userId.value = result.userId || 'unknown'
@@ -149,6 +174,7 @@ async function initializeLiff() {
       message: '初始化失敗: ' + error.message
     }
     userId.value = 'error_user'
+    isFriendChecked.value = true
   }
 }
 
