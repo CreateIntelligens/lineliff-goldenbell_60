@@ -729,9 +729,10 @@ const regeneratePoster = async () => {
     // 使用已生成的文字，但不消耗生成次數
     const textToUse = generatedText.value
     
-    // 清空輸入框，讓用戶知道已經重新生成
+    // 清空輸入框和生成結果，讓用戶知道已經重新生成
     inputText.value = ''
     filteredText.value = ''
+    generatedText.value = ''
     warnings.value = []
     
     // ❌ 移除：不再實際儲存到後端或消耗次數
