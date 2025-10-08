@@ -56,6 +56,7 @@ class LiffService {
       }
     }
     
+    
     // 優先從 window.endpoint 獲取 LIFF ID 和 Basic ID
     let liffId = window.endpoint?.liffId
     let basicId = window.endpoint?.basicId
