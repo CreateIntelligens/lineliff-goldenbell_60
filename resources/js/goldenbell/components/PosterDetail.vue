@@ -316,6 +316,15 @@ const sharePoster = async () => {
     await liffService.shareTargetPicker(messages)
     console.log('✅ 海報分享成功')
     
+    // 分享成功後顯示通知
+    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
+    
+    if (isMobile) {
+      alert('分享成功！')
+    } else {
+      alert('分享成功！請切換至手機版以獲得最佳體驗')
+    }
+    
   } catch (error) {
     console.error('❌ 分享海報失敗:', error)
     

@@ -910,6 +910,15 @@ const sharePoster = async () => {
     // 使用 LIFF 分享功能
     await liffService.shareTargetPicker(messages)
     
+    // 分享成功後顯示通知
+    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
+    
+    if (isMobile) {
+      alert('分享成功！')
+    } else {
+      alert('分享成功！請切換至手機版以獲得最佳體驗')
+    }
+    
   } catch (error) {
     
     // 根據環境顯示不同的錯誤訊息
