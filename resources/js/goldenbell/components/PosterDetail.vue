@@ -314,16 +314,10 @@ const sharePoster = async () => {
     
     // 使用 LIFF 分享功能
     await liffService.shareTargetPicker(messages)
-    console.log('✅ 海報分享成功')
     
-    // 分享成功後顯示通知
-    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
-    
-    if (isMobile) {
-      alert('分享成功！')
-    } else {
-      alert('分享成功！請切換至手機版以獲得最佳體驗')
-    }
+    // 注意：liff.shareTargetPicker 只是開啟分享選擇器，不代表用戶真的完成了分享
+    // 因此我們不應該在這裡顯示「分享成功」訊息
+    console.log('✅ 分享選擇器已開啟，等待用戶操作')
     
   } catch (error) {
     console.error('❌ 分享海報失敗:', error)
