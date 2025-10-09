@@ -14,17 +14,27 @@
       v-if="isFriendChecked && !isFriend" 
       class="absolute inset-0 z-50 flex items-center justify-center bg-black bg-opacity-80"
     >
-      <div class="bg-white rounded-lg p-6 mx-4 max-w-sm text-center">
-        <div class="text-gray-800 mb-4">
-          您尚未加為好友，無法使用此服務。<br>
-          請先加為好友後再試。
+      <div class="bg-white rounded-lg mx-4 max-w-sm text-center shadow-lg">
+        <!-- 主要訊息 -->
+        <div class="px-6 py-6">
+          <div class="text-gray-800 text-base font-medium">
+            您尚未加為好友，無法使用此服務。<br>
+            請先加為好友後再試。
+          </div>
         </div>
-        <button 
-          @click="closeAlert"
-          class="text-gray-800 px-4 py-2 rounded"
-        >
-          確定
-        </button>
+        
+        <!-- 分隔線 -->
+        <div class="border-t border-gray-200"></div>
+        
+        <!-- 按鈕區域 -->
+        <div class="px-6 py-4">
+          <button 
+            @click="closeAlert"
+            class="w-full text-gray-800 text-base font-medium py-2 rounded hover:bg-gray-50 transition-colors"
+          >
+            確定
+          </button>
+        </div>
       </div>
     </div>
 
