@@ -561,8 +561,11 @@ class LiffService {
 
       // 使用官方 API 調用分享選擇器
       console.log('🚀 調用 liff.shareTargetPicker...')
-      await liff.shareTargetPicker(messages)
-      console.log('✅ 分享選擇器已開啟')
+      const result = await liff.shareTargetPicker(messages)
+      console.log('✅ 分享選擇器已開啟，結果:', result)
+      
+      // 返回分享結果
+      return result
       
     } catch (error) {
       console.error('❌ 開啟分享選擇器失敗:', error)

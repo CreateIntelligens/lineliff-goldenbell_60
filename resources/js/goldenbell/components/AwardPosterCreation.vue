@@ -935,11 +935,22 @@ const sharePoster = async () => {
     // 檢查 LIFF 服務狀態
     
     // 使用 LIFF 分享功能
-    await liffService.shareTargetPicker(messages)
+    const result = await liffService.shareTargetPicker(messages)
     
-    // 注意：liff.shareTargetPicker 只是開啟分享選擇器，不代表用戶真的完成了分享
-    // 因此我們不應該在這裡顯示「分享成功」訊息
-    console.log('✅ 分享選擇器已開啟，等待用戶操作')
+    // 根據返回值判斷分享是否真的完成
+    if (result && result.status === 'success') {
+      // 分享真的完成了，顯示成功訊息
+      const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
+      
+      if (isMobile) {
+        alert('分享成功！')
+      } else {
+        alert('分享成功！請切換至手機版以獲得最佳體驗')
+      }
+    } else {
+      // 分享被取消或失敗，不顯示成功訊息
+      console.log('分享被取消或失敗')
+    }
     
   } catch (error) {
     
