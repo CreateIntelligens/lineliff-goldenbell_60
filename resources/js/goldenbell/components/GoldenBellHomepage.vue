@@ -15,14 +15,13 @@
       class="absolute inset-0 z-50 flex items-center justify-center bg-black bg-opacity-80"
     >
       <div class="bg-white rounded-lg p-6 mx-4 max-w-sm text-center">
-        <div class="text-red-600 text-xl font-bold mb-4">⚠️ 無法使用服務</div>
-        <div class="text-gray-800 text-base mb-4">
+        <div class="text-gray-800 mb-4">
           您尚未加為好友，無法使用此服務。<br>
           請先加為好友後再試。
         </div>
         <button 
           @click="closeAlert"
-          class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700 transition-colors"
+          class="text-gray-800 px-4 py-2 rounded"
         >
           確定
         </button>
