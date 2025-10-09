@@ -8,38 +8,30 @@
         class="w-full h-full object-cover object-bottom"
       />
     </div>
-
+    
     <!-- 好友檢查警告 -->
-    <div 
-      v-if="isFriendChecked && !isFriend" 
+    <div
+      v-if="isFriendChecked && !isFriend"
       class="absolute inset-0 z-50 flex items-center justify-center bg-black bg-opacity-80"
     >
       <div class="bg-white rounded-lg mx-4 max-w-sm text-center shadow-lg">
         <!-- 主要訊息 -->
         <div class="px-6 py-6">
           <div class="text-gray-800 text-base font-medium">
-            您尚未加為好友，無法使用此服務。<br>
+            您尚未加為好友，無法使用此服務。<br />
             請先加為好友後再試。
           </div>
         </div>
-        
-        <!-- 分隔線 -->
-        <div class="border-t border-gray-200"></div>
-        
         <!-- 按鈕區域 -->
         <div class="px-6 py-4">
-          <button 
+          <button
             @click="closeAlert"
-            class="w-full text-gray-800 text-base font-medium py-2 rounded hover:bg-gray-50 transition-colors"
+            class="w-full text-gray-800 text-base font-bold py-2 rounded hover:bg-gray-50 transition-colors"
           >
             確定
           </button>
         </div>
       </div>
-    </div>
-
-    <!-- Animation Queue -->
-    <div class="flex w-full h-[47px] justify-center items-center relative z-10">
     </div>
 
     <!-- Main Content -->
