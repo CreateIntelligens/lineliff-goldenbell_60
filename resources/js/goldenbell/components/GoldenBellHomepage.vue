@@ -16,17 +16,17 @@
     >
       <div class="bg-white rounded-lg mx-4 max-w-sm text-center shadow-lg">
         <!-- 主要訊息 -->
-        <div class="px-6 py-6">
-          <div class="text-gray-800 text-base font-medium">
-            您尚未加為好友，無法使用此服務。<br />
-            請先加為好友後再試。
+        <div class="px-6 pt-6 pb-2">
+          <div class="text-gray-500 text-sm font-[400] font-sans">
+            您尚未加入好友，無法使用此服務。<br />
+            請先加入好友後再試。
           </div>
         </div>
         <!-- 按鈕區域 -->
-        <div class="px-6 py-4">
+        <div class="px-6 pb-3">
           <button
             @click="closeAlert"
-            class="w-full text-gray-800 text-base font-bold py-2 rounded hover:bg-gray-50 transition-colors"
+            class=" font-sans w-full text-gray-800 text-sm font-[400] py-2 rounded hover:bg-gray-50 transition-colors"
           >
             確定
           </button>
@@ -165,7 +165,7 @@ const emit = defineEmits(['createPoster'])
 
 // Methods
 const handleCreatePoster = () => {
-  // 如果不是好友，不允許創建海報
+  // 如果不是好友，不允許創建小卡
   if (props.isFriendChecked && !props.isFriend) {
     return
   }

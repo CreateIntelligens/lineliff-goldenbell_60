@@ -9,12 +9,12 @@
   <!-- LINE  -->
   <meta property="line:card" content="summary_large_image">
   <meta property="line:title" content="金鐘60星光打Call｜為心愛的節目瘋狂應援！">
-  <meta property="line:description" content="金鐘盛典即將登場！快來製作你的專屬應援海報，為最愛的節目和藝人加油打氣，一起點亮金鐘星光大道！讓你的心意化作「星光打Call卡」，在典禮閃耀 ❤ 開始應援: https://lineliff-goldenbell-60.vercel.app/">
+  <meta property="line:description" content="金鐘盛典即將登場！快來製作你的專屬應援小卡，為最愛的節目和藝人加油打氣，一起點亮金鐘星光大道！讓你的心意化作「星光打Call卡」，在典禮閃耀 ❤ 開始應援: https://lineliff-goldenbell-60.vercel.app/">
   <meta property="line:image" content="https://lineliff-goldenbell-60.vercel.app/images/og_photo.png">
   
   <!-- Additional meta tags for better compatibility -->
-  <meta name="description" content="金鐘盛典即將登場！快來製作你的專屬應援海報，為最愛的節目和藝人加油打氣，一起點亮金鐘星光大道！讓你的心意化作「星光打Call卡」，在典禮閃耀 ❤ 開始應援: https://lineliff-goldenbell-60.vercel.app/">
-  <meta name="keywords" content="金鐘獎,星光大道,應援,海報,節目,藝人">
+  <meta name="description" content="金鐘盛典即將登場！快來製作你的專屬應援小卡，為最愛的節目和藝人加油打氣，一起點亮金鐘星光大道！讓你的心意化作「星光打Call卡」，在典禮閃耀 ❤ 開始應援: https://lineliff-goldenbell-60.vercel.app/">
+  <meta name="keywords" content="金鐘獎,星光大道,應援,小卡,節目,藝人">
   <meta name="author" content="金鐘60星光打Call">
   <meta name="robots" content="index, follow">
   
@@ -74,7 +74,7 @@
           
           // 🔧 分享訊息文案配置 (後端可直接修改)
           messages: {
-            // 應援海報分享訊息 - 後端可修改此文案
+            // 應援小卡分享訊息 - 後端可修改此文案
             cheer: [{
               type: 'text',
               text: '「金鐘60星光打Call｜為心愛的節目瘋狂應援！」\n\n愛要大聲喊！金鐘獎你挺誰？為最愛的節目和藝人加油打氣吧～\n\n點擊下方連結，留下想對入圍節目或藝人說的話讓你的心意化作「星光打Call卡」，在典禮閃耀 ❤️\n\n開始應援：'
@@ -244,7 +244,7 @@
         url.searchParams.set('event_type', newTheme);
         
         // 顯示切換提示
-        const themeName = newTheme === 'award_speech' ? '得獎感言卡' : '應援海報';
+        const themeName = newTheme === 'award_speech' ? '得獎感言卡' : '應援小卡';
         console.log(`🎭 切換到${themeName}模式`);
         
         // 重新載入頁面

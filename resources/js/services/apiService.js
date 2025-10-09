@@ -473,7 +473,7 @@ class ApiService {
               console.log('✅ 感言卡文字渲染完成')
               
             } else {
-              // 應援海報：白色文字，居中，有陰影
+              // 應援小卡：白色文字，居中，有陰影
               ctx.fillStyle = 'white'
               ctx.font = `bold ${fontSize}px "Noto Serif HK", serif`
               ctx.textAlign = 'center'
@@ -492,7 +492,7 @@ class ApiService {
               
               this.drawMultilineText(ctx, text, x, y, maxWidth, fontSize * 1.2)
               
-              console.log('✅ 應援海報文字渲染完成')
+              console.log('✅ 應援小卡文字渲染完成')
             }
           } else {
             console.log('⚠️ 沒有文字，只生成背景圖片')

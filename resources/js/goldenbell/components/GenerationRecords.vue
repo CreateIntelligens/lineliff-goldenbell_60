@@ -30,7 +30,7 @@
           <div class="text-white text-center opacity-60">
             <div class="text-lg mb-2">載入中...</div>
             <div class="text-sm">
-              {{ eventType === 'award_speech' ? '正在獲取您的感言卡記錄' : '正在獲取您的應援海報記錄' }}
+              {{ eventType === 'award_speech' ? '正在獲取您的感言卡記錄' : '正在獲取您的應援小卡記錄' }}
             </div>
           </div>
         </div>
@@ -53,10 +53,10 @@
         <div v-else-if="records.length === 0" class="flex flex-col items-center justify-center w-full py-20">
           <div class="text-white text-center opacity-60">
             <div class="text-lg mb-2">
-              {{ eventType === 'award_speech' ? '尚未生成任何感言卡' : '尚未生成任何海報' }}
+              {{ eventType === 'award_speech' ? '尚未生成任何感言卡' : '尚未生成任何小卡' }}
             </div>
             <div class="text-sm">
-              {{ eventType === 'award_speech' ? '開始創建您的第一張專屬感言卡吧！' : '開始創建您的第一張應援海報吧！' }}
+              {{ eventType === 'award_speech' ? '開始創建您的第一張專屬感言卡吧！' : '開始創建您的第一張應援小卡吧！' }}
             </div>
           </div>
         </div>
@@ -70,7 +70,7 @@
             @click="viewHistoryItem(item)"
           >
             <div class="flex w-full flex-col items-start gap-3">
-              <!-- 海報圖片區域 -->
+              <!-- 小卡圖片區域 -->
               <div class="relative aspect-square w-full max-w-[150px] mx-auto rounded overflow-hidden">
                 <img 
                   v-if="getHistoryImage(item)"
@@ -155,7 +155,7 @@ const maxGenerations = computed(() => {
 
 // 根據 event_type 動態標題
 const pageTitle = computed(() => {
-  return eventType === 'award_speech' ? '專屬感言卡生成紀錄' : '應援海報生成紀錄'
+  return eventType === 'award_speech' ? '專屬感言卡生成紀錄' : '應援小卡生成紀錄'
 })
 
 // 根據 event_type 動態背景圖片
@@ -338,7 +338,7 @@ const loadImageHistory = async () => {
             imageUrl.includes('Entered1') // cheer 相關圖片
           
           if (!hasCheerFeatures && basicMatch && text.length > 0) {
-            console.warn('⚠️ cheer 模式下資料不符合應援海報特徵:', {
+            console.warn('⚠️ cheer 模式下資料不符合應援小卡特徵:', {
               itemId: item.id,
               text: text.substring(0, 30) + '...',
               textLength: text.length,

@@ -15,11 +15,11 @@ export const THEME_CONFIG = {
       subtitle: 'THE 60th GOLDEN BELL AWARDS 2025',
       mainTitle: '金鐘60•星光閃耀',
       description: [
-        '快來製作你的專屬應援海報',
+        '快來製作你的專屬應援小卡',
         '為最愛的節目和藝人加油打氣，',
         '一起點亮金鐘星光大道！'
       ],
-      buttonText: '製作我的應援海報'
+      buttonText: '製作我的應援小卡'
     },
     
     // 活動日期

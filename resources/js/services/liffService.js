@@ -20,7 +20,7 @@ class LiffService {
     this.shareConfig = window.GOLDENBELL_CONFIG?.liff?.shareTargetPicker || {
       enabled: true,
       messages: {
-        cheer: [{ type: 'flex', altText: '我製作了金鐘60應援海報！快來一起為心愛的節目加油！' }],
+        cheer: [{ type: 'flex', altText: '我製作了金鐘60應援小卡！快來一起為心愛的節目加油！' }],
         award: [{ type: 'flex', altText: '我寫了金鐘60得獎感言！快來看看我的感謝話語！' }]
       }
     }

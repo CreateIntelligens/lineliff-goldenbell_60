@@ -216,12 +216,12 @@ async function initializeApp() {
 
 // 導航功能函數
 async function goToPosterCreation() {
-  console.log('導航到應援海報製作頁面')
+  console.log('導航到應援小卡製作頁面')
   // 清除重新生成資料，這樣就是正常的新建模式
   regenerateData.value = null
   currentView.value = 'poster'
   
-  // 進入海報製作頁面時，確保載入最新的計數資料
+  // 進入小卡製作頁面時，確保載入最新的計數資料
   if (apiService.isApiAvailable()) {
     const currentEventType = getCurrentEventType()
     try {
@@ -246,7 +246,7 @@ async function goToPosterCreation() {
           generationStates.value[currentEventType].remainingCount = newRemaining
         }
         
-        console.log('🔄 更新海報製作頁面計數:', {
+        console.log('🔄 更新小卡製作頁面計數:', {
           currentCount: generationStates.value[currentEventType].generationCount,
           maxGenerations: generationStates.value[currentEventType].maxGenerations,
           remainingCount: generationStates.value[currentEventType].remainingCount,
@@ -274,7 +274,7 @@ async function goToImageRecord() {
 async function goBackFromRecords() {
   const eventType = getCurrentEventType()
   
-  console.log(`從${eventType === 'award_speech' ? '感言卡' : '應援海報'}生成紀錄返回到製作頁面`)
+  console.log(`從${eventType === 'award_speech' ? '感言卡' : '應援小卡'}生成紀錄返回到製作頁面`)
   
   // 重新載入用戶計數資料，確保計數正確
   if (apiService.isApiAvailable()) {
@@ -317,7 +317,7 @@ async function goBackFromRecords() {
     }
   }
   
-  // 返回到海報製作頁面
+  // 返回到小卡製作頁面
   currentView.value = 'poster'
 }
 
@@ -327,7 +327,7 @@ function addGenerationRecord(posterData) {
   
   const newRecord = {
     id: Date.now(), // 使用時間戳作為唯一 ID
-    imageUrl: posterData.imageUrl || '', // 海報圖片 URL
+    imageUrl: posterData.imageUrl || '', // 小卡圖片 URL
     image_url: posterData.imageUrl || '', // 備用屬性名
     poster_image: posterData.imageUrl || '', // 備用屬性名
     text: posterData.text || '', // 應援文字
@@ -399,7 +399,7 @@ async function loadUserHistory() {
     
     // 更新計數狀態
     if (cheerCount.status === 'fulfilled') {
-      console.log('🔍 應援海報計數 API 回應:', cheerCount.value)
+      console.log('🔍 應援小卡計數 API 回應:', cheerCount.value)
       // API 回應格式：{status: 'success', result: {data: {...}}}
       const apiData = cheerCount.value?.result?.data || cheerCount.value?.data
       if (apiData) {
@@ -422,17 +422,17 @@ async function loadUserHistory() {
           generationStates.value.cheer.remainingCount = newRemaining
         }
         
-        console.log('✅ 載入應援海報計數:', {
+        console.log('✅ 載入應援小卡計數:', {
           currentCount: generationStates.value.cheer.generationCount,
           maxGenerations: generationStates.value.cheer.maxGenerations,
           remainingCount: generationStates.value.cheer.remainingCount,
           API剩餘次數: newRemaining
         })
       } else {
-        console.warn('⚠️ 應援海報計數 API 回應格式異常:', cheerCount.value)
+        console.warn('⚠️ 應援小卡計數 API 回應格式異常:', cheerCount.value)
       }
     } else {
-      console.error('❌ 應援海報計數 API 失敗:', cheerCount.reason)
+      console.error('❌ 應援小卡計數 API 失敗:', cheerCount.reason)
     }
     
     if (awardCount.status === 'fulfilled') {
@@ -474,7 +474,7 @@ async function loadUserHistory() {
     
     const allHistoryRecords = []
     
-    // 處理應援海報歷史記錄
+    // 處理應援小卡歷史記錄
     if (cheerHistory.status === 'fulfilled') {
       const records = parseHistoryData(cheerHistory.value, 'cheer')
       allHistoryRecords.push(...records)
@@ -590,7 +590,7 @@ function regenerateFromDetail(recordData) {
     originalRecord: recordData
   }
   
-  // 導航到海報製作頁面
+  // 導航到小卡製作頁面
   currentView.value = 'poster'
 }
 

@@ -159,7 +159,7 @@
               @click="downloadToOfficial"
             >
               <div class="text-white font-bold text-[13px] leading-[100%] tracking-[-0.247px]">
-                下載至官方帳號
+                下載至LINE
               </div>
             </div>
 
@@ -722,7 +722,7 @@ const getAbsoluteTextStyle = (text) => {
   }
 }
 
-// 重新生成海報
+// 重新生成小卡
 const regeneratePoster = async () => {
   if (remainingCount.value <= 0 || isLoading.value || !generatedText.value) return
   
@@ -756,7 +756,7 @@ const regeneratePoster = async () => {
       remainingCount: remainingCount.value    // 保持原剩餘次數
     })
     
-    // 創建海報數據（但不觸發實際生成）
+    // 創建小卡數據（但不觸發實際生成）
     const posterData = {
       text: textToUse,
       imageUrl: posterImage.value,
@@ -805,7 +805,7 @@ const convertToAbsoluteUrl = (url) => {
   return new URL(url, baseUrl).href
 }
 
-// 下載至官方帳號
+// 下載至LINE
 const downloadToOfficial = async () => {
   if (!hasGenerated.value) {
     alert('請先生成感言卡')
@@ -900,7 +900,7 @@ const getDownloadFontSize = (text) => {
 
 const sharePoster = async () => {
   try {
-    // 檢查是否有生成的海報
+    // 檢查是否有生成的小卡
     if (!hasGenerated.value) {
       alert('請先生成感言卡再進行分享')
       return

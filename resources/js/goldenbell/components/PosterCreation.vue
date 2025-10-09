@@ -85,7 +85,7 @@
                       :style="canCreate ? 'background: linear-gradient(180deg, #E8FF02 -77.78%, #000 166.67%)' : 'background: #4C4C4C'"
                     >
                       <div class="text-white font-bold text-[13px] leading-[100%] tracking-[-0.247px]">
-                        {{ isLoading ? '處理中...' : '製作我的應援海報 ✨' }}
+                        {{ isLoading ? '處理中...' : '製作我的應援小卡 ✨' }}
                       </div>
                     </div>
                   </div>
@@ -153,7 +153,7 @@
               @click="downloadToOfficial"
             >
               <div class="text-white font-bold text-[13px] leading-[100%] tracking-[-0.247px]">
-                下載至官方帳號
+                下載至LINE
               </div>
             </div>
 
@@ -227,7 +227,7 @@ const maxGenerations = ref(10)
 const remainingCount = ref(10)
 const isCreating = ref(false)
 const isEditing = ref(false)
-const hasGenerated = ref(false) // 新增：是否已經生成過海報
+const hasGenerated = ref(false) // 新增：是否已經生成過小卡
 const isLoading = ref(false)
 const apiError = ref('')
 const maxLength = 20
@@ -397,7 +397,7 @@ const loadUserData = async () => {
 }
 
 /**
- * 儲存生成的海報到後端
+ * 儲存生成的小卡到後端
  */
 const savePosterToAPI = async (text, imageUrl, fontOptions = {}) => {
   if (!apiService.isApiAvailable()) {
@@ -405,7 +405,7 @@ const savePosterToAPI = async (text, imageUrl, fontOptions = {}) => {
   }
 
   try {
-    // 🔧 創建包含文字的海報圖片，傳入事件類型以應用正確樣式和字體選項
+    // 🔧 創建包含文字的小卡圖片，傳入事件類型以應用正確樣式和字體選項
     const imageBlob = await apiService.createPosterBlob(imageUrl, text, eventType, fontOptions)
     
     // 上傳到後端
@@ -420,7 +420,7 @@ const savePosterToAPI = async (text, imageUrl, fontOptions = {}) => {
 
 // 用於處理中文輸入法的狀態
 const isComposing = ref(false)
-const currentPosterId = ref(null) // 追蹤當前海報ID
+const currentPosterId = ref(null) // 追蹤當前小卡ID
 const textInput = ref(null) // textarea 的 ref
 
 // 新的文字輸入處理函數
@@ -619,7 +619,7 @@ const createPoster = async () => {
     // Set creating state to true (changes button style permanently)
     isCreating.value = true
     
-    // 標記已經生成過海報，按鈕區域將一直顯示
+    // 標記已經生成過小卡，按鈕區域將一直顯示
     hasGenerated.value = true
     
     // 🔧 準備字體選項 - 支援字體大小調整
@@ -628,7 +628,7 @@ const createPoster = async () => {
       baseFontRatio: 0.12 // 可以在這裡調整基礎字體大小比例
     }
     
-    // 儲存海報到後端
+    // 儲存小卡到後端
     let savedResult = null
     try {
       savedResult = await savePosterToAPI(textToUse, posterImage.value, fontOptions)
@@ -652,7 +652,7 @@ const createPoster = async () => {
         console.log('⚠️ 未找到 image_url 在回應中:', savedResult)
       }
     } catch (saveError) {
-      console.error('❌ 儲存海報失敗:', saveError)
+      console.error('❌ 儲存小卡失敗:', saveError)
       // 開發環境下 API 錯誤是正常的，不影響用戶體驗
       // 在生產環境中，這會是真正的錯誤
     }
@@ -675,7 +675,7 @@ const createPoster = async () => {
       remainingCount: remainingCount.value
     })
     
-    // 創建海報數據
+    // 創建小卡數據
     const posterData = {
       text: textToUse,
       imageUrl: posterImage.value,
@@ -683,7 +683,7 @@ const createPoster = async () => {
       savedResult: savedResult
     }
     
-    // 發送海報生成事件到父元件
+    // 發送小卡生成事件到父元件
     emit('posterGenerated', posterData)
     
     
@@ -694,7 +694,7 @@ const createPoster = async () => {
     isCreating.value = false
     hasGenerated.value = false
     
-    alert(`創建海報失敗: ${error.message}`)
+    alert(`創建小卡失敗: ${error.message}`)
   } finally {
     isLoading.value = false
   }
@@ -737,7 +737,7 @@ const regeneratePoster = async () => {
       remainingCount: remainingCount.value    // 保持原剩餘次數
     })
     
-    // 創建海報數據（但不觸發實際生成）
+    // 創建小卡數據（但不觸發實際生成）
     const posterData = {
       text: textToUse,
       imageUrl: posterImage.value,
@@ -788,15 +788,15 @@ const convertToAbsoluteUrl = (url) => {
 
 const downloadToOfficial = async () => {
   if (!hasGenerated.value) {
-    alert('請先生成海報')
+    alert('請先生成小卡')
     return
   }
 
   try {
-    console.log('📤 開始發送海報到官方帳號...')
+    console.log('📤 開始發送小卡到官方帳號...')
     console.log('🔍 檢查 backendImageUrl:', backendImageUrl.value)
     
-    const fileName = `金鐘60應援海報_${new Date().getTime()}`
+    const fileName = `金鐘60應援小卡_${new Date().getTime()}`
     
     // 🔧 如果有後端圖片 URL，直接使用（最佳情況）
     if (backendImageUrl.value) {
@@ -813,12 +813,12 @@ const downloadToOfficial = async () => {
     } else {
       // 🔧 如果沒有後端 URL，提示用戶重新生成
       console.log('⚠️ 沒有後端圖片 URL，無法下載')
-      alert('圖片尚未準備好，請重新生成海報後再試')
+      alert('圖片尚未準備好，請重新生成小卡後再試')
       return
     }
     
-    console.log('✅ 海報已發送到官方帳號')
-    alert('海報已發送到官方帳號！')
+    console.log('✅ 小卡已發送到官方帳號')
+    alert('小卡已發送到官方帳號！')
     
   } catch (error) {
     console.error('❌ 發送失敗:', error)
@@ -840,13 +840,13 @@ const downloadToOfficial = async () => {
   }
 }
 
-// 🔧 根據文字長度計算字體大小倍數（應援海報版本）
+// 🔧 根據文字長度計算字體大小倍數（應援小卡版本）
 const getFontSizeMultiplier = (text) => {
   if (!text) return 1.0
   
   const length = text.length
   
-  // 應援海報字體大小倍數 - 可以在這裡調整整體字體大小
+  // 應援小卡字體大小倍數 - 可以在這裡調整整體字體大小
   if (length <= 4) {
     return 1.4  // 非常短的文字，字體放大40%
   } else if (length <= 8) {
@@ -860,13 +860,13 @@ const getFontSizeMultiplier = (text) => {
   }
 }
 
-// 根據文字長度計算下載用的字體大小（應援海報版本）- 保留以供參考
+// 根據文字長度計算下載用的字體大小（應援小卡版本）- 保留以供參考
 const getDownloadFontSize = (text) => {
   if (!text) return 50
   
   const length = text.length
   
-  // 應援海報字體大小（比原來大一些）
+  // 應援小卡字體大小（比原來大一些）
   if (length <= 4) {
     return 60  // 非常短的文字，如"加油" 
   } else if (length <= 8) {
@@ -946,9 +946,9 @@ const sharePoster = async () => {
   
   try {
     
-    // 檢查是否有生成的海報
+    // 檢查是否有生成的小卡
     if (!hasGenerated.value) {
-      alert('請先生成海報再進行分享')
+      alert('請先生成小卡再進行分享')
       return
     }
     
@@ -971,8 +971,8 @@ const sharePoster = async () => {
     const messages = shareConfig?.messages?.cheer || [{
       type: 'text',
       text: generatedText.value ? 
-        `「金鐘60星光打Call｜為心愛的節目瘋狂應援！」\n\n我的應援：${generatedText.value}\n\n金鐘盛典即將登場！快來製作你的專屬應援海報，為最愛的節目和藝人加油打氣，一起點亮金鐘星光大道！\n\n讓你的心意化作「星光打Call卡」，在典禮閃耀 ❤` :
-        `「金鐘60星光打Call｜為心愛的節目瘋狂應援！」\n\n金鐘盛典即將登場！快來製作你的專屬應援海報，為最愛的節目和藝人加油打氣，一起點亮金鐘星光大道！\n\n讓你的心意化作「星光打Call卡」，在典禮閃耀 ❤`
+        `「金鐘60星光打Call｜為心愛的節目瘋狂應援！」\n\n我的應援：${generatedText.value}\n\n金鐘盛典即將登場！快來製作你的專屬應援小卡，為最愛的節目和藝人加油打氣，一起點亮金鐘星光大道！\n\n讓你的心意化作「星光打Call卡」，在典禮閃耀 ❤` :
+        `「金鐘60星光打Call｜為心愛的節目瘋狂應援！」\n\n金鐘盛典即將登場！快來製作你的專屬應援小卡，為最愛的節目和藝人加油打氣，一起點亮金鐘星光大道！\n\n讓你的心意化作「星光打Call卡」，在典禮閃耀 ❤`
     }]
     
     

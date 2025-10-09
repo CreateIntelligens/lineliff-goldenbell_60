@@ -1,5 +1,5 @@
 /**
- * 海報圖片生成服務
+ * 小卡圖片生成服務
  * 處理 Canvas 圖片生成、文字覆蓋、下載功能
  */
 
@@ -11,7 +11,7 @@ class PosterImageService {
   }
 
   /**
-   * 生成包含文字的海報圖片 Blob
+   * 生成包含文字的小卡圖片 Blob
    * @param {string} imageUrl - 背景圖片 URL
    * @param {string} text - 要覆蓋的文字
    * @param {Object} options - 生成選項
@@ -21,7 +21,7 @@ class PosterImageService {
    */
   async generatePosterBlob(imageUrl, text, options = {}) {
     try {
-      console.log('📥 開始生成海報圖片 Blob...', { imageUrl, text })
+      console.log('📥 開始生成小卡圖片 Blob...', { imageUrl, text })
       
       // 創建 Canvas 和圖片
       const canvas = document.createElement('canvas')
@@ -50,11 +50,11 @@ class PosterImageService {
             const mimeType = options.mimeType || 'image/jpeg'
             const quality = typeof options.quality === 'number' ? options.quality : 0.85
             const blob = await this.canvasToBlob(canvas, mimeType, quality)
-            console.log('✅ 海報 Blob 生成完成', { size: blob.size, type: blob.type })
+            console.log('✅ 小卡 Blob 生成完成', { size: blob.size, type: blob.type })
             resolve(blob)
             
           } catch (error) {
-            console.error('❌ 生成海報 Blob 失敗:', error)
+            console.error('❌ 生成小卡 Blob 失敗:', error)
             reject(error)
           }
         }
@@ -91,13 +91,13 @@ class PosterImageService {
       })
       
     } catch (error) {
-      console.error('❌ 生成海報 Blob 失敗:', error)
+      console.error('❌ 生成小卡 Blob 失敗:', error)
       throw error
     }
   }
 
   /**
-   * 生成包含文字的海報圖片並下載
+   * 生成包含文字的小卡圖片並下載
    * @param {string} imageUrl - 背景圖片 URL
    * @param {string} text - 要覆蓋的文字
    * @param {string} fileName - 下載檔案名稱
@@ -108,7 +108,7 @@ class PosterImageService {
    */
   async generateAndDownloadPoster(imageUrl, text, fileName, options = {}) {
     try {
-      console.log('📥 開始生成海報圖片...', { imageUrl, text, fileName })
+      console.log('📥 開始生成小卡圖片...', { imageUrl, text, fileName })
       
       // 創建 Canvas 和圖片
       const canvas = document.createElement('canvas')
@@ -136,11 +136,11 @@ class PosterImageService {
             // 下載圖片
             await this.downloadCanvasAsImage(canvas, fileName)
             
-            console.log('✅ 海報生成和下載完成')
+            console.log('✅ 小卡生成和下載完成')
             resolve()
             
           } catch (error) {
-            console.error('❌ 生成海報失敗:', error)
+            console.error('❌ 生成小卡失敗:', error)
             reject(error)
           }
         }
@@ -169,7 +169,7 @@ class PosterImageService {
       })
       
     } catch (error) {
-      console.error('❌ 生成海報過程發生錯誤:', error)
+      console.error('❌ 生成小卡過程發生錯誤:', error)
       throw error
     }
   }
@@ -377,7 +377,7 @@ class PosterImageService {
                     newWindow.document.write(`
                       <html>
                         <head>
-                          <title>金鐘60應援海報</title>
+                          <title>金鐘60應援小卡</title>
                           <style>
                             body { margin: 0; padding: 20px; text-align: center; background: #000; color: white; }
                             img { max-width: 100%; height: auto; }
@@ -385,8 +385,8 @@ class PosterImageService {
                           </style>
                         </head>
                         <body>
-                          <h3>您的金鐘60應援海報</h3>
-                          <img src="${url}" alt="金鐘60應援海報" />
+                          <h3>您的金鐘60應援小卡</h3>
+                          <img src="${url}" alt="金鐘60應援小卡" />
                           <div class="tip">
                             <p>長按圖片選擇「儲存到照片」</p>
                             <p>或點擊右上角分享按鈕保存</p>

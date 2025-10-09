@@ -64,7 +64,7 @@
               @click.stop="downloadToOfficial"
             >
               <div class="text-white font-bold text-[13px] leading-[100%] tracking-[-0.247px]">
-                下載至官方帳號
+                下載至LINE
               </div>
             </div>
 
@@ -117,7 +117,7 @@ const eventType = getCurrentEventType()
 
 // 根據 event_type 動態標題
 const pageTitle = computed(() => {
-  return eventType === 'award_speech' ? '專屬感言卡生成紀錄' : '應援海報生成紀錄'
+  return eventType === 'award_speech' ? '專屬感言卡生成紀錄' : '應援小卡生成紀錄'
 })
 
 // 根據 event_type 動態背景圖片
@@ -138,7 +138,7 @@ const regeneratePoster = (event) => {
     event.stopPropagation()
   }
   
-  console.log('🔄 重新生成海報被點擊:', props.recordData)
+  console.log('🔄 重新生成小卡被點擊:', props.recordData)
   console.log('📝 只執行重新生成功能，不觸發分享')
   
   emit('regeneratePoster', props.recordData)
@@ -179,7 +179,7 @@ const downloadToOfficial = async () => {
                    props.recordData.poster_image
     
     if (!imageUrl) {
-      alert('找不到圖片，請重新生成海報')
+      alert('找不到圖片，請重新生成小卡')
       return
     }
     
@@ -193,14 +193,14 @@ const downloadToOfficial = async () => {
     const text = props.recordData.text || ''
     const fileName = eventType === 'award_speech' 
       ? `金鐘60得獎感言卡_${props.recordData.id || new Date().getTime()}`
-      : `金鐘60應援海報_${props.recordData.id || new Date().getTime()}`
+      : `金鐘60應援小卡_${props.recordData.id || new Date().getTime()}`
     
     // 🔧 測試：先試試直接發送 URL，看是否是圖片生成的問題
     console.log('📤 直接發送後端圖片 URL...')
     await liffService.sendImage(imageUrl, fileName, '', eventType)
     
-    console.log('✅ 海報已發送到官方帳號')
-    alert('海報已發送到官方帳號！')
+    console.log('✅ 小卡已發送到官方帳號')
+    alert('小卡已發送到官方帳號！')
     
   } catch (error) {
     console.error('❌ 下載失敗:', error)
@@ -240,7 +240,7 @@ const getDownloadFontSize = (text) => {
       return 20  // 很長的文字
     }
   } else {
-    // 應援海報字體大小（比原來大一些）
+    // 應援小卡字體大小（比原來大一些）
     if (length <= 4) {
       return 60  // 非常短的文字，如"加油"
     } else if (length <= 8) {
@@ -257,10 +257,10 @@ const getDownloadFontSize = (text) => {
 
 const sharePoster = async () => {
   try {
-    console.log('🎯 海報詳情頁面分享按鈕被點擊了！')
-    console.log('分享海報:', props.recordData)
+    console.log('🎯 小卡詳情頁面分享按鈕被點擊了！')
+    console.log('分享小卡:', props.recordData)
     
-    // 取得海報資訊
+    // 取得小卡資訊
     let imageUrl = props.recordData.imageUrl || props.recordData.image_url || props.recordData.poster_image
     const text = props.recordData.text || ''
     const posterId = props.recordData.id || props.recordData.poster_id
@@ -299,9 +299,9 @@ const sharePoster = async () => {
       }
     } else {
       if (text) {
-        shareText = `「金鐘60星光打Call｜為心愛的節目瘋狂應援！」\n\n我的應援：${text}\n\n金鐘盛典即將登場！快來製作你的專屬應援海報，為最愛的節目和藝人加油打氣，一起點亮金鐘星光大道！\n\n讓你的心意化作「星光打Call卡」，在典禮閃耀 ❤`
+        shareText = `「金鐘60星光打Call｜為心愛的節目瘋狂應援！」\n\n我的應援：${text}\n\n金鐘盛典即將登場！快來製作你的專屬應援小卡，為最愛的節目和藝人加油打氣，一起點亮金鐘星光大道！\n\n讓你的心意化作「星光打Call卡」，在典禮閃耀 ❤`
       } else {
-        shareText = `「金鐘60星光打Call｜為心愛的節目瘋狂應援！」\n\n金鐘盛典即將登場！快來製作你的專屬應援海報，為最愛的節目和藝人加油打氣，一起點亮金鐘星光大道！\n\n讓你的心意化作「星光打Call卡」，在典禮閃耀 ❤`
+        shareText = `「金鐘60星光打Call｜為心愛的節目瘋狂應援！」\n\n金鐘盛典即將登場！快來製作你的專屬應援小卡，為最愛的節目和藝人加油打氣，一起點亮金鐘星光大道！\n\n讓你的心意化作「星光打Call卡」，在典禮閃耀 ❤`
       }
     }
     
@@ -331,7 +331,7 @@ const sharePoster = async () => {
     }
     
   } catch (error) {
-    console.error('❌ 分享海報失敗:', error)
+    console.error('❌ 分享小卡失敗:', error)
     
     // 根據環境顯示不同的錯誤訊息
     if (liffService.isInClient()) {
@@ -428,7 +428,7 @@ const getTextOverlayClass = () => {
     // 感言卡：文字在卡片區域，絕對定位
     return 'top-[105px] left-[85px] p-[10px]'
   } else {
-    // 應援海報：文字居中
+    // 應援小卡：文字居中
     return 'inset-0 flex items-center justify-center p-[15px]'
   }
 }
@@ -464,7 +464,7 @@ const getDetailTextStyle = (text) => {
       overflowWrap: 'break-word'
     }
   } else {
-    // 應援海報樣式：使用原有的 getTextStyle
+    // 應援小卡樣式：使用原有的 getTextStyle
     return getTextStyle(text)
   }
 }
