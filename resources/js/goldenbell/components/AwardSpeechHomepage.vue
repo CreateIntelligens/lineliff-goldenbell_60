@@ -12,6 +12,7 @@
       v-if="isFriendChecked && !isFriend" 
       class="absolute inset-0 z-50 flex items-center justify-center bg-black bg-opacity-80"
     >
+    
       <div class="bg-white rounded-lg p-6 mx-4 max-w-sm text-center">
         <div class="text-red-600 text-xl font-bold mb-4">⚠️ 無法使用服務</div>
         <div class="text-gray-800 text-base mb-4">
