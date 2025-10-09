@@ -817,8 +817,8 @@ const downloadToOfficial = async () => {
       return
     }
     
-    console.log('✅ 小卡已發送到官方帳號')
-    alert('小卡已發送到官方帳號！')
+    console.log('✅ 小卡已成功下載至LINE')
+    alert('小卡已成功下載至LINE！')
     
   } catch (error) {
     console.error('❌ 發送失敗:', error)

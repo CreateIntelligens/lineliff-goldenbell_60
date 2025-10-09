@@ -199,8 +199,8 @@ const downloadToOfficial = async () => {
     console.log('📤 直接發送後端圖片 URL...')
     await liffService.sendImage(imageUrl, fileName, '', eventType)
     
-    console.log('✅ 小卡已發送到官方帳號')
-    alert('小卡已發送到官方帳號！')
+    console.log('✅ 小卡已成功下載至LINE')
+    alert('小卡已成功下載至LINE！')
     
   } catch (error) {
     console.error('❌ 下載失敗:', error)
