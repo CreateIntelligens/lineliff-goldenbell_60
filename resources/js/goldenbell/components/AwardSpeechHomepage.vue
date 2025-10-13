@@ -41,9 +41,9 @@
 
     <!-- Main content -->
     <div
-      class="flex w-full pt-[40px] px-[20px] pb-[40px] flex-col items-start justify-between min-h-screen relative z-10"
+      class="flex w-full pt-[40px] px-[20px] flex-col items-start gap-[40px] relative z-10"
     >
-      <div class="flex flex-col items-start w-full">
+      <div class="flex flex-col items-start gap-[456px] w-full">
         <!-- Title -->
         <img
           :src="getThemeImages('award_speech').title"
@@ -52,7 +52,7 @@
         />
 
         <!-- Container with buttons -->
-        <div class="flex flex-col items-center gap-[16px] w-full flex-1 justify-center">
+        <div class="flex flex-col items-start gap-[16px] w-full">
           <div class="flex flex-col items-start gap-[8px] w-full">
             <!-- First button container -->
             <div class="flex flex-col items-center gap-[10px] w-full">
