@@ -461,7 +461,7 @@ class ApiService {
               
               // 感言卡位置和旋轉
               const x = canvas.width * 0.25  // 左側25%位置
-              const y = canvas.height * 0.3   // 上方30%位置
+              const y = canvas.height * 0.4   // 上方40%位置（往下調整）
               const maxWidth = canvas.width * 0.6  // 最大寬度60%
               
               ctx.save()
