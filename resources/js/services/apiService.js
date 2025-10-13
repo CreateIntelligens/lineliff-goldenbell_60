@@ -459,9 +459,9 @@ class ApiService {
               ctx.textAlign = 'left'
               ctx.textBaseline = 'top'
               
-              // 感言卡位置和旋轉 - 與前端預覽位置一致
-              const x = 85  // 固定左側位置，與預覽一致
-              const y = 105  // 固定上方位置，與預覽一致
+              // 感言卡位置和旋轉 - 調整位置
+              const x = 95  // 往右調整10px
+              const y = 115  // 往下調整10px
               const maxWidth = 240  // 固定最大寬度，與預覽一致
               
               ctx.save()
