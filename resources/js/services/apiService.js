@@ -459,10 +459,10 @@ class ApiService {
               ctx.textAlign = 'left'
               ctx.textBaseline = 'top'
               
-              // 感言卡位置和旋轉
-              const x = canvas.width * 0.28  
-              const y = canvas.height * 0.47  
-              const maxWidth = canvas.width * 0.6  // 最大寬度60%
+              // 感言卡位置和旋轉 - 與前端預覽位置一致
+              const x = 85  // 固定左側位置，與預覽一致
+              const y = 105  // 固定上方位置，與預覽一致
+              const maxWidth = 240  // 固定最大寬度，與預覽一致
               
               ctx.save()
               ctx.translate(x, y)
