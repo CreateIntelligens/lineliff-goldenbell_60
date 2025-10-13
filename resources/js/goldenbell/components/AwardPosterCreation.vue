@@ -873,10 +873,10 @@ const getFontSizeMultiplier = (text) => {
     return 1.1  // 中短文字，字體放大10%
   } else if (length <= 50) {
     return 1.0  // 中等長度，正常大小
-  } else if (length <= 75) {
-    return 0.9  // 較長文字，字體縮小10%
+  } else if (length <= 60) {
+    return 0.8  // 較長文字，字體縮小20%
   } else {
-    return 0.8  // 很長的文字，字體縮小20%
+    return 0.6  // 很長的文字，字體縮小40%
   }
 }
 
