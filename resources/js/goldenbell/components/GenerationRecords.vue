@@ -241,7 +241,7 @@ const loadImageHistory = async () => {
       
       // 轉換數據格式以符合元件需求，並過濾當前事件類型的記錄
       
-      // 🔒 嚴格過濾：確保兩個主題完全隔離
+      // 🔧 簡化過濾邏輯：完全信任後端的 event_type 標記
       const strictlyFilteredData = historyData.filter(item => {
         // 1. 基本事件類型檢查
         const itemEventType = item.event_type || item.eventType
@@ -256,101 +256,33 @@ const loadImageHistory = async () => {
         const normalizedCurrentType = String(eventType).trim().toLowerCase()
         const basicMatch = normalizedItemType === normalizedCurrentType
         
-        // 3. 嚴格的交叉驗證 - 防止標記錯誤的資料
-        if (eventType === 'award_speech') {
-          // award_speech 應該要有的特徵：較短文字、特定圖片 URL 模式
-          const text = item.text || ''
-          const imageUrl = item.image_url || item.imageUrl || ''
-          
-          // 檢查是否有 cheer 的特徵（這些應該被排除）
-          const hasCheerFeatures = 
-            text.length > 50 || // cheer 文字通常較長
-            imageUrl.includes('cheer') ||
-            imageUrl.includes('poster') ||
-            text.includes('應援') ||
-            text.includes('加油') ||
-            text.includes('打call')
-          
-          if (hasCheerFeatures && basicMatch) {
-            console.warn('🚫 award_speech 模式下檢測到 cheer 特徵，過濾掉:', {
-              itemId: item.id,
-              eventType: itemEventType,
-              text: text.substring(0, 30) + '...',
-              textLength: text.length,
-              imageUrl: imageUrl,
-              reason: '具有 cheer 特徵'
-            })
-            return false
-          }
-          
-          // award_speech 應該有的特徵
-          const hasAwardFeatures = 
-            text.length <= 100 && // 感言卡文字通常較短
-            (text.includes('感謝') || text.includes('得獎') || text.includes('感言') || text.length > 0)
-          
-          if (!hasAwardFeatures && basicMatch) {
-            console.warn('⚠️ award_speech 模式下資料不符合感言卡特徵:', {
-              itemId: item.id,
-              text: text.substring(0, 30) + '...',
-              textLength: text.length
-            })
-          }
+        // 3. 添加調試日誌
+        if (basicMatch) {
+          console.log('✅ 記錄匹配成功:', {
+            itemId: item.id,
+            eventType: itemEventType,
+            textLength: (item.text || '').length,
+            imageUrl: item.image_url || item.imageUrl || '無圖片'
+          })
+        } else {
+          console.log('❌ 記錄不匹配:', {
+            itemId: item.id,
+            itemEventType: itemEventType,
+            currentEventType: eventType,
+            reason: 'event_type 不匹配'
+          })
         }
-        
-        if (eventType === 'cheer') {
-          // cheer 應該要有的特徵檢查
-          const text = item.text || ''
-          const imageUrl = item.image_url || item.imageUrl || ''
-          
-          // 檢查是否有 award_speech 的特徵（這些應該被排除）
-          const hasAwardFeatures = 
-            text.includes('感謝') ||
-            text.includes('得獎') ||
-            text.includes('感言') ||
-            text.includes('致詞') ||
-            text.includes('獲獎') ||
-            text.includes('頒獎') ||
-            imageUrl.includes('award') ||
-            imageUrl.includes('speech') ||
-            imageUrl.includes('filtered') // award_filtered 相關圖片
-          
-          if (hasAwardFeatures && basicMatch) {
-            console.warn('🚫 cheer 模式下檢測到 award_speech 特徵，過濾掉:', {
-              itemId: item.id,
-              eventType: itemEventType,
-              text: text.substring(0, 30) + '...',
-              textLength: text.length,
-              imageUrl: imageUrl,
-              reason: '具有 award_speech 特徵'
-            })
-            return false
-          }
-          
-          // 額外檢查：cheer 應該有的特徵
-          const hasCheerFeatures = 
-            text.length > 50 || // cheer 文字通常較長
-            text.includes('應援') ||
-            text.includes('加油') ||
-            text.includes('打call') ||
-            text.includes('支持') ||
-            imageUrl.includes('cheer') ||
-            imageUrl.includes('poster') ||
-            imageUrl.includes('Entered1') // cheer 相關圖片
-          
-          if (!hasCheerFeatures && basicMatch && text.length > 0) {
-            console.warn('⚠️ cheer 模式下資料不符合應援小卡特徵:', {
-              itemId: item.id,
-              text: text.substring(0, 30) + '...',
-              textLength: text.length,
-              imageUrl: imageUrl
-            })
-          }
-        }
-        
         
         return basicMatch
       })
       
+      // 添加過濾統計日誌
+      console.log('📊 過濾統計:', {
+        原始記錄數: historyData.length,
+        過濾後記錄數: strictlyFilteredData.length,
+        當前事件類型: eventType,
+        過濾掉的記錄數: historyData.length - strictlyFilteredData.length
+      })
       
       apiRecords.value = strictlyFilteredData
         .map((item, index) => ({
