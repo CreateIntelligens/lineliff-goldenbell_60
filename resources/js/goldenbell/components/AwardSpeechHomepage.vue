@@ -1,6 +1,6 @@
 <template>
   <div
-    class="award-speech-homepage w-full min-h-screen bg-white relative sm:max-w-[393px] sm:mx-auto"
+    class="award-speech-homepage w-full min-h-screen bg-black relative sm:max-w-[393px] sm:mx-auto"
   >
     <!-- Background Image Container -->
     <div class="absolute inset-0 w-full h-[120vh] overflow-hidden">
@@ -79,7 +79,7 @@
             <img
               :src="getThemeImages('award_speech').logo"
               alt="Bottom Logo"
-              class="w-[153px] h-[20px]"
+              class="w-auto h-auto"
             />
           </div>
         </div>
