@@ -598,7 +598,7 @@ const createPoster = async () => {
     // 🔧 準備字體選項 - 支援字體大小調整
     const fontOptions = {
       fontSizeMultiplier: getFontSizeMultiplier(textToUse), // 根據文字長度動態調整
-      baseFontRatio: 0.12 // 可以在這裡調整基礎字體大小比例
+      baseFontRatio: 0.05 // 調整基礎字體大小比例，使下載文字與預覽一致
     }
     
     let savedResult = null
