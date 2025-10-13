@@ -2,12 +2,14 @@
   <div
     class="award-speech-homepage w-full min-h-screen bg-white relative sm:max-w-[393px] sm:mx-auto"
   >
-    <!-- Background Image -->
-    <img
-      :src="getThemeImages('award_speech').background"
-      alt="Award Speech Background"
-      class="w-full h-full min-h-screen object-cover absolute inset-0"
-    />
+    <!-- Background Image Container -->
+    <div class="absolute inset-0 w-full h-[120vh] overflow-hidden">
+      <img
+        :src="getThemeImages('award_speech').background"
+        alt="Award Speech Background"
+        class="w-full h-full object-cover object-bottom"
+      />
+    </div>
 
     <!-- 好友檢查警告 -->
     <div
@@ -39,9 +41,9 @@
 
     <!-- Main content -->
     <div
-      class="flex w-full pt-[40px] px-[20px] flex-col items-start gap-[40px] relative z-10"
+      class="flex w-full pt-[40px] px-[20px] pb-[40px] flex-col items-start justify-between min-h-screen relative z-10"
     >
-      <div class="flex flex-col items-start gap-[456px] w-full">
+      <div class="flex flex-col items-start w-full">
         <!-- Title -->
         <img
           :src="getThemeImages('award_speech').title"
@@ -50,7 +52,7 @@
         />
 
         <!-- Container with buttons -->
-        <div class="flex flex-col items-start gap-[16px] w-full">
+        <div class="flex flex-col items-center gap-[16px] w-full flex-1 justify-center">
           <div class="flex flex-col items-start gap-[8px] w-full">
             <!-- First button container -->
             <div class="flex flex-col items-center gap-[10px] w-full">
