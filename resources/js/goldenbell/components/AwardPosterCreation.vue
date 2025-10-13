@@ -328,16 +328,18 @@ watch(() => props.regenerateData, (newData) => {
   if (newData && newData.isRegenerate) {
     console.log('🔄 收到重新生成請求:', newData)
     
-    // 設置要重新生成的文字
-    inputText.value = newData.text || ''
-    generatedText.value = newData.text || ''
+    // 清空所有文字內容，讓用戶重新輸入
+    inputText.value = ''
+    filteredText.value = ''
+    generatedText.value = ''
+    warnings.value = []
     
-    // 設置為已生成狀態，但不實際生成圖片
-    hasGenerated.value = true
-    isCreating.value = true
+    // 重置生成狀態，讓用戶重新製作
+    hasGenerated.value = false
+    isCreating.value = false
     
     // 不消耗生成次數，不調用 API
-    console.log('✅ 重新生成模式：已設置文字內容，不消耗生成次數')
+    console.log('✅ 重新生成模式：已清空所有內容，等待用戶重新輸入')
     
     // 更新 App.vue 中的狀態
     emit('stateUpdated', eventType, {

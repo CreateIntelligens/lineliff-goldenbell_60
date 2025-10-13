@@ -583,9 +583,8 @@ function goBackToRecords() {
 function regenerateFromDetail(recordData) {
   console.log('從詳細頁面重新生成，導航到製作頁面:', recordData)
   
-  // 設置重新生成的資料
+  // 設置重新生成的資料（不傳遞文字內容，讓用戶重新輸入）
   regenerateData.value = {
-    text: recordData.text || '',
     isRegenerate: true,
     originalRecord: recordData
   }
