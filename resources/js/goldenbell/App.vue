@@ -267,6 +267,48 @@ async function goToImageRecord() {
   console.log('導航到圖片生成紀錄頁面')
   currentView.value = 'records'
   
+  // 重新載入用戶計數資料，確保計數正確
+  if (apiService.isApiAvailable()) {
+    const eventType = getCurrentEventType()
+    try {
+      console.log('🔄 重新載入計數資料...')
+      const countData = await apiService.getImageCount(eventType)
+      
+      // API 回應格式：{status: 'success', result: {data: {...}}}
+      const apiData = countData?.result?.data || countData?.data
+      if (apiData && generationStates.value[eventType]) {
+        const oldRemaining = generationStates.value[eventType].remainingCount
+        
+        // 更新計數，但保持合理的範圍
+        const newCurrentCount = parseInt(apiData.current_count) || 0
+        const newLimit = parseInt(apiData.limit) || 10
+        const newRemaining = parseInt(apiData.remaining) || 0
+        
+        // 確保計數不會異常增加
+        if (newCurrentCount >= generationStates.value[eventType].generationCount) {
+          generationStates.value[eventType].generationCount = newCurrentCount
+        }
+        
+        generationStates.value[eventType].maxGenerations = newLimit
+        
+        // 更新剩餘次數，但確保不會異常增加
+        if (newRemaining <= oldRemaining || oldRemaining === 0) {
+          generationStates.value[eventType].remainingCount = newRemaining
+        }
+        
+        console.log('✅ 計數資料更新成功:', {
+          eventType,
+          generationCount: generationStates.value[eventType].generationCount,
+          maxGenerations: generationStates.value[eventType].maxGenerations,
+          remainingCount: generationStates.value[eventType].remainingCount,
+          API剩餘次數: newRemaining
+        })
+      }
+    } catch (error) {
+      console.warn('⚠️ 重新載入計數資料失敗，保留現有狀態:', error.message)
+    }
+  }
+  
   // 觸發記錄頁面重新載入資料
   recordsRefreshTrigger.value = Date.now()
 }
