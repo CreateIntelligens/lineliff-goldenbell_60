@@ -868,7 +868,7 @@ const getFontSizeMultiplier = (text) => {
   
   // 感言卡字體大小倍數 - 可以在這裡調整整體字體大小
   if (length <= 15) {
-    return 1.3  // 短文字，字體放大30%
+    return 1.2  // 短文字，字體放大30%
   } else if (length <= 30) {
     return 1.1  // 中短文字，字體放大10%
   } else if (length <= 50) {

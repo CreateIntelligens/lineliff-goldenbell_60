@@ -559,9 +559,8 @@ class ApiService {
     }
     lines.push(currentLine)
     
-    // 計算起始 Y 位置（垂直置中）
-    const totalHeight = lines.length * lineHeight
-    const startY = y - (totalHeight / 2) + (lineHeight / 2)
+    // 計算起始 Y 位置（固定起始位置，不垂直置中）
+    const startY = y
     
     // 繪製每一行
     lines.forEach((line, index) => {
