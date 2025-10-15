@@ -123,10 +123,10 @@
             
             <!-- 🔧 前端預覽文字覆蓋層 - 只用於預覽，後端會生成完整圖片 -->
             <div v-if="generatedText" 
-                 class="absolute text-black font-bold break-words whitespace-pre-wrap"
+                 class="absolute text-black font-bold break-words whitespace-pre-wrap text-overlay-responsive"
                  :class="getTextSizeClass(generatedText)"
                  :style="getAbsoluteTextStyle(generatedText)"
-                 style="top: 105px; left: 85px; transform: rotate(-7deg); width: 240px; line-height: 1.2; padding: 10px; text-align: left;">
+                 style="top: 105px; transform: rotate(-7deg); width: 240px; line-height: 1.2; padding: 10px; text-align: left;">
               {{ generatedText }}
             </div>
           </div>
@@ -1050,6 +1050,18 @@ textarea::placeholder {
     font-size: 13px !important;
     transform: none;
     width: 100%;
+  }
+}
+
+/* 響應式文字覆蓋層定位 */
+.text-overlay-responsive {
+  left: 85px; /* 預設值，適合 iPhone 12 Pro (390px) */
+}
+
+/* iPhone 14 Pro Max / 15 Pro Max (430px) 響應式調整 */
+@media (min-width: 430px) {
+  .text-overlay-responsive {
+    left: 92px; /* 針對 430px 寬度調整 */
   }
 }
 </style>
