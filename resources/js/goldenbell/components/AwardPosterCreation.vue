@@ -1061,7 +1061,7 @@ textarea::placeholder {
 /* iPhone 14 Pro Max / 15 Pro Max (430px) 響應式調整 */
 @media (min-width: 430px) {
   .text-overlay-responsive {
-    left: 92px; /* 針對 430px 寬度調整 */
+    left: 94px; /* 針對 430px 寬度調整，稍微往右 */
   }
 }
 </style>
