@@ -42,11 +42,11 @@
     <!-- Main content -->
     <div
       class="flex w-full pt-[40px] px-[20px] flex-col items-start gap-[40px] relative z-10"
+      @click="handleCreateSpeech"
     >
       <div class="flex flex-col items-start gap-[456px] w-full">
         <!-- Title -->
         <img
-          @click="handleCreateSpeech"
           :src="getThemeImages('award_speech').title"
           alt="Title"
           class="h-[108px] w-full object-contain"
